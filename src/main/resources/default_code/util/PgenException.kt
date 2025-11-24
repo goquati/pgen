@@ -155,3 +155,38 @@ inline fun <T> Result<T, PgenException>.onNoneSqlException(block: (PgenException
 fun <T> Result<T, PgenException>.getOrThrowInternalServerError(msg: String): T = getOr {
     throw QuatiException.InternalServerError(msg, t = it)
 }
+
+private val PgenException.Sql.prettyMsg
+    get(): String {
+        val name = when (this) {
+            is PgenException.CheckViolation -> "check violation"
+            is PgenException.ExclusionViolation -> "exclusion violation"
+            is PgenException.ForeignKeyViolation -> "foreign key violation"
+            is PgenException.Generic -> "unknown error"
+            is PgenException.IntegrityConstraintViolation -> "integrity constraint violation"
+            is PgenException.NotNullViolation -> "not null violation"
+            is PgenException.RestrictViolation -> "restrict violation"
+            is PgenException.UniqueViolation -> "unique violation"
+        }
+        val col = listOfNotNull(
+            details.schemaName,
+            details.tableName,
+            details.columnName,
+        ).takeIf { it.isNotEmpty() }
+            ?.joinToString(".")
+            ?.let { "on $it" }
+        val constraint = details.constraintName?.let { "($it)" }
+        return listOfNotNull(name, col, constraint).joinToString(" ")
+    }
+
+fun PgenException.toQuatiException() = when (this) {
+    is PgenException.Other -> QuatiException.InternalServerError(msg)
+    is PgenException.Generic -> QuatiException.InternalServerError("$msg: $prettyMsg", this)
+
+    is PgenException.NotNullViolation, is PgenException.IntegrityConstraintViolation,
+    is PgenException.CheckViolation -> QuatiException.BadRequest("$msg: $prettyMsg", this)
+
+    is PgenException.ExclusionViolation, is PgenException.ForeignKeyViolation,
+    is PgenException.RestrictViolation, is PgenException.UniqueViolation ->
+        QuatiException.Conflict("$msg: $prettyMsg", this)
+}
