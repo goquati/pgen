@@ -32,7 +32,8 @@ data class Config(
     val connectionType: ConnectionType,
     val kotlinInstantType: Boolean, // TODO remove when Exposed v1 is stable
     val oasConfig: OasConfig?,
-    val addJacksonUtils: Boolean,
+    val addJacksonV2Utils: Boolean,
+    val addJacksonV3Utils: Boolean,
     val addKotlinxJsonUtils: Boolean,
 ) {
     enum class ConnectionType {
@@ -392,10 +393,12 @@ data class Config(
         private var connectionType: ConnectionType = ConnectionType.JDBC
         private var kotlinInstantType: Boolean = true
         private var oasConfig: OasConfig? = null
-        private var addJacksonUtils: Boolean = false
+        private var addJacksonV2Utils: Boolean = false
+        private var addJacksonV3Utils: Boolean = false
         private var addKotlinxJsonUtils: Boolean = false
 
-        fun addJacksonUtils(value: Boolean) = apply { addJacksonUtils = value }
+        fun addJacksonV2Utils(value: Boolean) = apply { addJacksonV2Utils = value }
+        fun addJacksonV3Utils(value: Boolean) = apply { addJacksonV3Utils = value }
         fun addKotlinxJsonUtils(value: Boolean) = apply { addKotlinxJsonUtils = value }
         fun connectionType(type: ConnectionType) = apply { connectionType = type }
         fun packageName(name: String) = apply { packageName = name }
@@ -433,9 +436,13 @@ data class Config(
             connectionType = connectionType,
             kotlinInstantType = kotlinInstantType,
             oasConfig = oasConfig,
-            addJacksonUtils = addJacksonUtils,
+            addJacksonV2Utils = addJacksonV2Utils,
+            addJacksonV3Utils = addJacksonV3Utils,
             addKotlinxJsonUtils = addKotlinxJsonUtils,
-        )
+        ).also {
+            if (it.addJacksonV2Utils && it.addJacksonV3Utils)
+                error("both Jackson v2 and v3 utils are enabled, please disable one of them")
+        }
     }
 
     companion object {

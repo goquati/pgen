@@ -194,6 +194,7 @@ fun main() {
     val envFile = EnvFileService(".env")
     val config = buildConfig {
         val testRepo = envFile["TEST_REPO"]
+        val sharedModule = "io.github.klahap.shared"
         addDb("scy") {
             connectionConfig {
                 url(envFile["DB_URL"])
@@ -211,7 +212,7 @@ fun main() {
             }
             val moduleShared = "io.github.klahap.shared"
             typeMappings {
-                add("public.user_id", clazz = "$moduleShared.UserId")
+                add("public.user_id", clazz = "$moduleShared.UserUuid")
                 add("public.email", clazz = "$moduleShared.Email")
             }
             enumMappings {
@@ -223,6 +224,7 @@ fun main() {
                     clazz = "io.github.klahap.pgen_test.MyId",
                     parseFunction = "foo"
                 )
+                add("public.hello.id", clazz = "$sharedModule.HelloId")
             }
             oasConfig {
                 oasRootPath("$testRepo/oas/pgen")
@@ -236,7 +238,7 @@ fun main() {
                 }
             }
         }
-        addJacksonUtils(true)
+        addJacksonV2Utils(true)
         packageName("io.github.klahap.pgen")
         outputPath("$testRepo/pgen/src/main/kotlin")
         outputPathSharedCode("$testRepo/pgen/shared/src/main/kotlin")

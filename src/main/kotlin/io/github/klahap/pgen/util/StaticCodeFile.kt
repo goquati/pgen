@@ -83,12 +83,16 @@ sealed interface StaticCodeFile {
                     yield(listOf("column_type"), "UtilR2dbc.kt")
                 }
             }
-            if (config.addJacksonUtils)
-                yield(listOf("util"), "JacksonUtil.kt")
+            if (config.addJacksonV2Utils)
+                yield(listOf("util"), "JacksonUtilV2.kt")
+            if (config.addJacksonV3Utils)
+                yield(listOf("util"), "JacksonUtilV3.kt")
             if (config.addKotlinxJsonUtils)
                 yield(listOf("util"), "KotlinxJsonUtil.kt")
-            if (config.addJacksonUtils && config.addKotlinxJsonUtils)
-                yield(listOf("util"), "QuatiStringSerializer.kt")
+            if (config.addJacksonV2Utils && config.addKotlinxJsonUtils)
+                yield(listOf("util"), "QuatiStringSerializerJacksonV2.kt")
+            if (config.addJacksonV3Utils && config.addKotlinxJsonUtils)
+                yield(listOf("util"), "QuatiStringSerializerJacksonV3.kt")
         }
     }
 }
