@@ -1,0 +1,29 @@
+[versions]
+kotlin = "2.2.0"
+kotlinx-serialization = "1.9.0"
+flyway = "11.6.0"
+
+[libraries]
+
+jdbc-postgresql = { module = "org.postgresql:postgresql", version = "42.7.7" }
+flyway-core = { module = "org.flywaydb:flyway-core", version.ref = "flyway" }
+flyway-postgresql = { module = "org.flywaydb:flyway-database-postgresql", version.ref = "flyway" }
+
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json-jvm", version.ref = "kotlinx-serialization" }
+
+poet = { module = "com.squareup:kotlinpoet", version.ref = "kotlin" }
+kaml = { module = "com.charleskorn.kaml:kaml", version = "0.66.0" }
+
+
+
+[bundles]
+flyway = [
+    "jdbc-postgresql",
+    "flyway-core",
+    "flyway-postgresql",
+]
+
+[plugins]
+kotlinJvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+gradlePluginPublish = { id = "com.gradle.plugin-publish", version = "1.2.1" }
