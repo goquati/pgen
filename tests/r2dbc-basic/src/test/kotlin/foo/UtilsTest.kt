@@ -17,11 +17,14 @@ import de.quati.pgen.r2dbc.util.deleteSingle
 import de.quati.pgen.r2dbc.util.orWhere
 import de.quati.pgen.r2dbc.util.setLocalConfig
 import de.quati.pgen.r2dbc.util.suspendTransaction
-import de.quati.pgen.r2dbc.util.transactionFlow
+import de.quati.pgen.r2dbc.util.suspendTransactionWithContext
+import de.quati.pgen.r2dbc.util.transactionReadOnlyFlow
 import de.quati.pgen.r2dbc.util.updateSingle
+import de.quati.pgen.shared.LocalConfigContext
 import de.quati.pgen.tests.r2dbc.basic.generated.db.foo._public.NonEmptyTextDomain
 import de.quati.pgen.tests.r2dbc.basic.generated.db.foo._public.Users
 import de.quati.pgen.tests.r2dbc.basic.shared.UserId
+import io.kotest.assertions.throwables.shouldThrowAny
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -289,6 +292,13 @@ class UtilsTest {
             timeZone shouldBe "UTC"
         }
 
+        with(LocalConfigContext(mapOf("application_name" to "foobar"))) {
+            db.suspendTransactionWithContext {
+                val current = exec("show application_name") { rs -> rs.get(0) }!!.single()
+                current shouldBe "foobar"
+            }
+        }
+
         // Because it's SET LOCAL, outside those transactions we should not see "pgen-map"
         db.suspendTransaction(readOnly = true) {
             val current = exec("show application_name") { rs -> rs.get(0) }!!.single()
@@ -297,17 +307,24 @@ class UtilsTest {
     }
 
     @Test
-    fun `test transactionFlow`(): Unit = runBlocking {
+    fun `test transaction utils`(): Unit = runBlocking {
         db.suspendTransaction {
             createUserFixture("alice")
             createUserFixture("bob")
         }
-        val emailFlow = db.transactionFlow(readOnly = true) {
-            Users.selectAll().map { it[Users.email] }
+        shouldThrowAny {
+            db.suspendTransaction(readOnly = true) {
+                createUserFixture("carol")
+            }
         }
-        val emails = async { // run in another coroutine, should be ok because of channelFlow
-            emailFlow.toList()
-        }.await()
-        emails shouldContainExactlyInAnyOrder listOf("alice@example.com", "bob@example.com")
+        db.suspendTransaction(readOnly = true) { Users.selectAll().count() } shouldBe 2
+
+        db.transactionReadOnlyFlow {
+            Users.selectAll().map { it[Users.email] }
+        }.also {
+            async { // run in another coroutine, should be ok because of channelFlow
+                it.toList()
+            }.await() shouldContainExactlyInAnyOrder listOf("alice@example.com", "bob@example.com")
+        }
     }
 }
