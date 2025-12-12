@@ -7,11 +7,9 @@ import de.quati.pgen.shared.ILocalConfigContext
 import de.quati.pgen.shared.PgenException
 import io.r2dbc.spi.IsolationLevel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.runBlocking
-import org.jetbrains.exposed.v1.core.Transaction
 import org.jetbrains.exposed.v1.core.Expression
 import org.jetbrains.exposed.v1.core.ColumnSet
 import org.jetbrains.exposed.v1.r2dbc.Query
@@ -24,15 +22,18 @@ import org.jetbrains.exposed.v1.r2dbc.transactions.transactionManager
 import de.quati.kotlin.util.Result
 import de.quati.kotlin.util.failure
 import de.quati.kotlin.util.success
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.supervisorScope
 import org.jetbrains.exposed.v1.core.Op
 import org.jetbrains.exposed.v1.core.Table
-import org.jetbrains.exposed.v1.core.and
-import org.jetbrains.exposed.v1.core.or
+import org.jetbrains.exposed.v1.core.compoundAnd
+import org.jetbrains.exposed.v1.core.compoundOr
 import org.jetbrains.exposed.v1.core.statements.UpdateStatement
+import org.jetbrains.exposed.v1.r2dbc.andWhere
 import org.jetbrains.exposed.v1.r2dbc.deleteWhere
+import org.jetbrains.exposed.v1.r2dbc.orWhere
 import org.jetbrains.exposed.v1.r2dbc.updateReturning
 
 public fun ColumnSet.select(builder: MutableList<Expression<*>>.() -> Unit): Query =
@@ -54,6 +55,11 @@ public suspend fun <T> R2dbcDatabase.suspendTransaction(
     return result
 }
 
+public suspend fun <T> R2dbcDatabase.suspendTransactionReadOnly(
+    transactionIsolation: IsolationLevel? = null,
+    statement: suspend R2dbcTransaction.() -> T
+): T = suspendTransaction(transactionIsolation = transactionIsolation, readOnly = true, statement = statement)
+
 public fun <T> R2dbcDatabase.blockingTransaction(
     context: CoroutineContext = Dispatchers.IO,
     readOnly: Boolean = false,
@@ -63,23 +69,28 @@ public fun <T> R2dbcDatabase.blockingTransaction(
     result
 }
 
-public fun interface TransactionFlowScope<T> {
-    context(_: Transaction, _: ProducerScope<T>)
-    public suspend fun block()
+public fun <T> R2dbcDatabase.blockingTransactionReadOnly(
+    context: CoroutineContext = Dispatchers.IO,
+    block: suspend R2dbcTransaction.() -> T,
+): T = blockingTransaction(context = context, readOnly = true, block = block)
+
+public fun interface TransactionFlowContext<T> {
+    context(_: R2dbcTransaction, _: CoroutineScope)
+    public suspend fun block(): Flow<T>
 }
 
 public fun <T> R2dbcDatabase.transactionFlow(
     readOnly: Boolean = false,
-    block: TransactionFlowScope<T>,
-): Flow<T> {
-    return channelFlow {
-        this@transactionFlow.suspendTransaction(
-            readOnly = readOnly,
-        ) {
-            block.block()
-        }
+    block: TransactionFlowContext<T>,
+): Flow<T> = channelFlow {
+    this@transactionFlow.suspendTransaction(readOnly = readOnly) {
+        block.block().collect { send(it) }
     }
 }
+
+public fun <T> R2dbcDatabase.transactionReadOnlyFlow(
+    block: TransactionFlowContext<T>,
+): Flow<T> = transactionFlow(readOnly = true, block = block)
 
 public suspend fun R2dbcTransaction.setLocalConfig(key: String, value: String) {
     val sql = SqlStringHelper.buildSetLocalConfigSql(key = key, value = value)
@@ -122,15 +133,13 @@ public fun <T> R2dbcDatabase.blockingTransactionWithContext(
 context(c: ILocalConfigContext)
 public fun <T> R2dbcDatabase.transactionFlowWithContext(
     readOnly: Boolean = false,
-    block: TransactionFlowScope<T>,
-): Flow<T> {
-    return channelFlow {
-        this@transactionFlowWithContext.suspendTransaction(
-            readOnly = readOnly,
-        ) {
-            setLocalConfig(c)
-            block.block()
-        }
+    block: TransactionFlowContext<T>,
+): Flow<T> = channelFlow {
+    this@transactionFlowWithContext.suspendTransaction(
+        readOnly = readOnly,
+    ) {
+        setLocalConfig(c)
+        block.block().collect { send(it) }
     }
 }
 
@@ -187,12 +196,22 @@ public suspend fun <T : Table> T.updateSingle(
     }
 }
 
-public fun Query.andWhereIfNotNull(andPart: () -> Op<Boolean>?): Query {
-    val expr = andPart() ?: return this@andWhereIfNotNull
-    return adjustWhere { if (this == null) expr else this and expr }
+public fun Query.orWhere(con: Op<Boolean>?, vararg cons: Op<Boolean>?): Query = orWhere {
+    (listOfNotNull(con) + cons).filterNotNull().let {
+        when (it.size) {
+            0 -> Op.TRUE
+            1 -> it.single()
+            else -> it.compoundOr()
+        }
+    }
 }
 
-public fun Query.orWhereIfNotNull(andPart: () -> Op<Boolean>?): Query {
-    val expr = andPart() ?: return this@orWhereIfNotNull
-    return adjustWhere { if (this == null) expr else this or expr }
+public fun Query.andWhere(con: Op<Boolean>?, vararg cons: Op<Boolean>?): Query = andWhere {
+    (listOfNotNull(con) + cons).filterNotNull().let {
+        when (it.size) {
+            0 -> Op.TRUE
+            1 -> it.single()
+            else -> it.compoundAnd()
+        }
+    }
 }

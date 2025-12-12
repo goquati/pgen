@@ -68,7 +68,7 @@ public fun arrayAgg(exp: Expression<out String?>): CustomFunction<List<String?>>
 
 private class LikeOp(expr1: Expression<*>, expr2: Expression<*>) : ComparisonOp(expr1, expr2, "LIKE")
 private class InsensitiveLikeOp(expr1: Expression<*>, expr2: Expression<*>) : ComparisonOp(expr1, expr2, "ILIKE")
-private class ContainsOp(expr1: Expression<List<String>?>, expr2: Expression<String>) :
+private class ContainsOp<T : List<String>?>(expr1: Expression<T>, expr2: Expression<*>) :
     ComparisonOp(expr2, anyFrom(expr1), "=")
 
 public infix fun <T : StringLike?> ExpressionWithColumnType<T>.like(pattern: String): Op<Boolean> =
@@ -82,7 +82,9 @@ public infix fun <T : String?> ExpressionWithColumnType<T>.iLike(pattern: T): Op
 public infix fun <T : StringLike?> ExpressionWithColumnType<T>.iLike(pattern: String): Op<Boolean> =
     InsensitiveLikeOp(this, QueryParameter(pattern, TextColumnType()))
 
-public infix fun ExpressionWithColumnType<List<String>?>.arrayContains(pattern: String): Op<Boolean> = ContainsOp(
+public infix fun <T : List<String>?> ExpressionWithColumnType<T>.arrayContains(
+    pattern: String,
+): Op<Boolean> = ContainsOp(
     expr1 = this,
     expr2 = QueryParameter(value = pattern, columnType = TextColumnType()),
 )
