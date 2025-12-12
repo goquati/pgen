@@ -1,13 +1,15 @@
 package de.quati.pgen.jdbc.column
 
+import org.jetbrains.exposed.v1.core.Column
 import org.jetbrains.exposed.v1.core.ColumnType
+import org.jetbrains.exposed.v1.core.Table
 import org.jetbrains.exposed.v1.core.statements.api.PreparedStatementApi
 import org.postgresql.util.PGobject
 
 public abstract class RangeColumnType<T : Comparable<T>, R : ClosedRange<T>> : ColumnType<R>() {
-    public abstract fun String.parse(): R
+    public abstract fun parse(value: String): R
 
-    override fun nonNullValueToString(value: R): String = value.toPgRangeString()
+    override fun nonNullValueToString(value: R): String = "[${value.start},${value.endInclusive}]"
 
     override fun nonNullValueAsDefaultString(value: R): String =
         "'${nonNullValueToString(value)}'"
@@ -23,46 +25,20 @@ public abstract class RangeColumnType<T : Comparable<T>, R : ClosedRange<T>> : C
     }
 
     override fun valueFromDB(value: Any): R? = when (value) {
-        is PGobject -> value.value?.takeIf { it.isNotBlank() }?.parse()
+        is PGobject -> value.value?.takeIf { it.isNotBlank() }?.let { parse(it) }
         else -> error("Retrieved unexpected value of type ${value::class.simpleName}")
     }
 }
 
 
-internal fun String.parseRangeBorderStart(): RawRangeBorder {
-    if (isBlank()) error("invalid range start ''")
-    if (this == "(") return RawRangeBorder.Infinity
-    return RawRangeBorder.Normal(
-        value = trimStart('[', '(').takeIf { it.isNotBlank() } ?: error("invalid range start '$this'"),
-        inclusive = when (first()) {
-            '[' -> true
-            '(' -> false
-            else -> error("Retrieved unexpected range start '$this'")
-        }
-    )
+public fun Table.int4Range(name: String): Column<IntRange> = registerColumn(name, Int4RangeColumnType())
+public class Int4RangeColumnType : RangeColumnType<Int, IntRange>() {
+    override fun sqlType(): String = "INT4RANGE"
+    override fun parse(value: String): IntRange = PgenRawRange.parse(value).toInt4Range()
 }
 
-internal fun String.parseRangeBorderEnd(): RawRangeBorder {
-    if (isBlank()) error("invalid range end ''")
-    if (this == ")") return RawRangeBorder.Infinity
-    return RawRangeBorder.Normal(
-        value = trimStart(']', ')').takeIf { it.isNotBlank() } ?: error("invalid range end '$this'"),
-        inclusive = when (last()) {
-            ']' -> true
-            ')' -> false
-            else -> error("Retrieved unexpected range end '$this'")
-        }
-    )
+public fun Table.int8Range(name: String): Column<LongRange> = registerColumn(name, Int8RangeColumnType())
+public class Int8RangeColumnType : RangeColumnType<Long, LongRange>() {
+    override fun sqlType(): String = "INT8RANGE"
+    override fun parse(value: String): LongRange = PgenRawRange.parse(value).toInt8Range()
 }
-
-internal fun String.parseRange(): RawRange {
-    if (this == "()") return RawRange.Empty
-    val (startRaw, endRaw) = split(",").takeIf { it.size == 2 }
-        ?: error("invalid range string '$this'")
-    return RawRange.Normal(
-        start = startRaw.parseRangeBorderStart(),
-        end = endRaw.parseRangeBorderEnd(),
-    )
-}
-
-internal fun ClosedRange<*>.toPgRangeString(): String = "[$start,$endInclusive]"
