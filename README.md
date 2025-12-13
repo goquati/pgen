@@ -54,7 +54,7 @@ Generate separate modules for multiple DBs.
 ```kotlin
 plugins {
     alias(libs.plugins.kotlinJvm)
-    id("de.quati.pgen") version "1.0.0-SNAPSHOT"  // TODO use released version
+    id("de.quati.pgen") version "0.34.0"
 }
 ```
 
@@ -175,7 +175,7 @@ dependencies {
     val coroutineVersion = "1.10.2"
     val serializationVersion = "1.9.0"
 
-    implementation("de.quati.pgen:r2dbc:1.0.0-SNAPSHOT")  // TODO use released version
+    implementation("de.quati.pgen:r2dbc:0.34.0")
     implementation("de.quati:kotlin-util:2.0.0")
 
     // Exposed core modules

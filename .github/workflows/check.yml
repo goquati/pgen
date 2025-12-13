@@ -13,6 +13,7 @@ permissions:
 
 jobs:
   check:
+    if: "!startsWith(github.event.head_commit.message, 'bot: update version')"
     runs-on: ubuntu-latest
     permissions:
       contents: read
