@@ -1,19 +1,14 @@
-name: Check Pgen
+name: Check
 
 on:
   push:
     branches:
       - 'main'
-    tags-ignore:
-      - '*'
   pull_request:
-
-permissions:
-  contents: read
+  workflow_call:
 
 jobs:
   check:
-    if: "!startsWith(github.event.head_commit.message, 'bot: update version')"
     runs-on: ubuntu-latest
     permissions:
       contents: read

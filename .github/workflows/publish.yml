@@ -1,43 +1,147 @@
-name: Publish Pgen
-
+name: Bump version, Tag, Publish & Release
 on:
-  push:
-    tags:
-      - '*.*.*'
-
-permissions:
-  contents: read
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version / tag name (e.g. 1.2.3 or v1.2.3)"
+        required: true
+        type: string
+      dry_run:
+        description: "Dry-run: don't actually publish (Gradle --dry-run)"
+        required: false
+        default: "false"
+        type: choice
+        options: ["false", "true"]
 
 jobs:
-  publish:
+  validate:
     runs-on: ubuntu-latest
+    steps:
+      - name: Validate version format
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="${{ inputs.version }}"
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Invalid version '$VERSION'. Expected format: X.Y.Z (numeric, e.g. 1.0.0, 1.42.333)"
+            exit 1
+          fi
+
+  check:
+    needs: validate
+    uses: ./.github/workflows/check.yaml
     permissions:
       contents: read
 
+  bump:
+    needs: check
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Update version references
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="${{ inputs.version }}"
+
+          sed -i 's/id("de\.quati\.pgen") version "[^"]*"/id("de.quati.pgen") version "'"$VERSION"'"/' README.md
+          sed -i 's/implementation("de\.quati\.pgen:r2dbc:[^"]*")/implementation("de.quati.pgen:r2dbc:'"$VERSION"'")/' README.md
+
+      - name: Commit changes
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="${{ inputs.version }}"
+
+          git config user.name "${{ github.actor }}"
+          git config user.email "${{ github.actor }}@users.noreply.github.com"
+
+          if git diff --quiet; then
+            echo "No changes to commit."
+            exit 0
+          fi
+
+          git add -A
+          git commit -m "bot: update version"
+          git push
+
+      - name: Create and push tag
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG="${{ inputs.version }}"
+
+          if git rev-parse -q --verify "refs/tags/${TAG}" >/dev/null; then
+            echo "Tag '${TAG}' already exists."
+            exit 1
+          fi
+
+          git tag -a "$TAG" -m "$TAG"
+          git push origin "$TAG"
+
+  publish:
+    needs: bump
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout tagged commit
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ inputs.version }}
+
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
           java-version: '21'
           distribution: 'temurin'
-      - name: publish gradle plugin
+
+      - name: Publish gradle plugin
         env:
-          GIT_TAG_VERSION: ${{ github.ref_name }}
+          GIT_TAG_VERSION: ${{ inputs.version }}
           GRADLE_PUBLISH_KEY: ${{ secrets.GRADLE_PUBLISH_KEY }}
           GRADLE_PUBLISH_SECRET: ${{ secrets.GRADLE_PUBLISH_SECRET }}
+          DRY_RUN: ${{ inputs.dry_run }}
         run: |
           cd ./plugin
-          ./gradlew publishPlugins
+          if [ "$DRY_RUN" = "false" ]; then
+            ./gradlew publishPlugins
+          else
+            ./gradlew publishPlugins --dry-run
+          fi
 
-      - name: publish library
+      - name: Publish library
         env:
-          GIT_TAG_VERSION: ${{ github.ref_name }}
+          GIT_TAG_VERSION: ${{ inputs.version }}
           ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.MAVEN_USERNAME }}
           ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.MAVEN_TOKEN }}
           ORG_GRADLE_PROJECT_signingInMemoryKeyId: ${{ secrets.MAVEN_SIGNING_KEY_ID }}
           ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.MAVEN_SIGNING_KEY }}
           ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.MAVEN_SIGNING_PASSWORD }}
+          DRY_RUN: ${{ inputs.dry_run }}
         run: |
           cd ./lib
-          ./gradlew publish
+          if [ "$DRY_RUN" = "false" ]; then
+            ./gradlew publish
+          else
+            ./gradlew publishToMavenLocal
+          fi
+
+      - name: Create GitHub Release
+        if: inputs.dry_run == 'false'
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ inputs.version }}
+          release_name: ${{ inputs.version }}
+          body: |
+            Release ${{ inputs.version }}
+          prerelease: false
