@@ -1,4 +1,6 @@
 import com.vanniktech.maven.publish.SonatypeHost
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 
 plugins {
     alias(libs.plugins.kotlinJvm)
@@ -11,8 +13,6 @@ repositories {
 
 val githubUser = "goquati"
 val githubProject = "pgen"
-val groupStr = "de.quati.pgen"
-val versionStr = System.getenv("GIT_TAG_VERSION") ?: "1.0-SNAPSHOT"
 
 enum class SubProjects(val projectName: String) {
     CORE("core"),
@@ -29,13 +29,26 @@ subprojects {
     val projectType = SubProjects.values().singleOrNull { it.projectName == name }
         ?: throw NotImplementedError("no description defined for $name")
 
+    apply(plugin = "org.jetbrains.kotlin.jvm")
     apply(plugin = "com.vanniktech.maven.publish")
 
     repositories {
         mavenCentral()
     }
-    group = groupStr
-    version = versionStr
+    group = "de.quati.pgen"
+    version = System.getenv("GIT_TAG_VERSION") ?: "1.0-SNAPSHOT"
+
+    kotlin {
+        jvmToolchain(21)
+        explicitApi()
+        compilerOptions {
+            allWarningsAsErrors = true
+            jvmTarget.set(JvmTarget.JVM_21)
+            apiVersion.set(KotlinVersion.KOTLIN_2_2)
+            languageVersion.set(KotlinVersion.KOTLIN_2_2)
+            freeCompilerArgs.add("-Xcontext-parameters")
+        }
+    }
 
     val artifactId = project.name
     val descriptionStr = when (projectType) {

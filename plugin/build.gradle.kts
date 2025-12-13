@@ -25,6 +25,7 @@ dependencies {
 }
 
 kotlin {
+    jvmToolchain(21)
     compilerOptions {
         freeCompilerArgs.add("-Xjsr305=strict")
         freeCompilerArgs.add("-Xcontext-parameters")

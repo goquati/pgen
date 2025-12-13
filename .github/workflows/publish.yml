@@ -29,7 +29,7 @@ jobs:
 
   check:
     needs: validate
-    uses: ./.github/workflows/check.yaml
+    uses: ./.github/workflows/check.yml
     permissions:
       contents: read
 
