@@ -15,11 +15,11 @@ public fun ErrorDetails.toPgenErrorDetails(): PgenErrorDetails = PgenErrorDetail
     detail = detail.getOrNull(),
     file = file.getOrNull(),
     hint = hint.getOrNull(),
-    internalPosition = internalPosition.getOrNull(),
+    internalPosition = internalPosition.getOrNull()?.toIntOrNull(),
     internalQuery = internalQuery.getOrNull(),
-    line = line.getOrNull(),
+    line = line.getOrNull()?.toIntOrNull(),
     message = message,
-    position = position.getOrNull(),
+    position = position.getOrNull()?.toIntOrNull(),
     routine = routine.getOrNull(),
     schemaName = schemaName.getOrNull(),
     severityLocalized = severityLocalized,
@@ -34,7 +34,7 @@ internal fun Throwable.toPgenError(): PgenException = when (this) {
             details = e.errorDetails.toPgenErrorDetails(),
         )
 
-        else -> PgenException.Other(msg = message ?: "")
+        else -> PgenException.Other(msg = message)
     }
 
     else -> PgenException.Other(msg = message ?: "")

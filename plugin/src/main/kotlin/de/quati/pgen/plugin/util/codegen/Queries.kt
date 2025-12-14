@@ -5,6 +5,7 @@ import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.LambdaTypeName
 import de.quati.pgen.plugin.dsl.addParameter
 import de.quati.pgen.plugin.dsl.buildFunction
+import de.quati.pgen.plugin.model.config.Config
 import de.quati.pgen.plugin.model.sql.Table
 
 context(c: CodeGenContext)
@@ -18,7 +19,10 @@ internal fun Table.toDeleteByIdOrThrow(): FunSpec? {
         columns.singleOrNull { it.name == pkName }
     } ?: return null
     return buildFunction(name = "deleteByIdOrThrow") {
-        addModifiers(KModifier.SUSPEND)
+        when (c.connectionType) {
+            Config.ConnectionType.JDBC -> Unit
+            Config.ConnectionType.R2DBC -> addModifiers(KModifier.SUSPEND)
+        }
         addParameter(name = "id", type = pk.type.getTypeName())
         receiver(this@toDeleteByIdOrThrow.name.typeName)
         addParameter(
@@ -37,7 +41,7 @@ internal fun Table.toDeleteByIdOrThrow(): FunSpec? {
             Poet.Exposed.eq,
             Poet.Exposed.and,
 
-        )
+            )
         addCode("val count = %T { op }\n", Poet.Exposed.deleteWhere())
         beginControlFlow("return when (count)")
         addCode("0 -> throw %T.NotFound(\"no ${'$'}tableName by id '${'$'}id' found\")\n", Poet.QuatiUtil.exception)

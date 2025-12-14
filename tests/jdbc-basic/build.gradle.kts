@@ -3,28 +3,28 @@ import de.quati.pgen.build.StartDbTestcontainerTask
 import de.quati.pgen.plugin.model.config.Config
 
 dependencies {
-    implementation("de.quati.pgen:r2dbc:1.0.0-SNAPSHOT")
+    implementation("de.quati.pgen:jdbc:1.0.0-SNAPSHOT")
     implementation(libs.goquati.base)
     implementation(libs.bundles.kotlinx.serialization)
     implementation(libs.bundles.exposed)
-    implementation(libs.bundles.exposed.r2dbc)
+    implementation(libs.bundles.exposed.jdbc)
 }
 
 enum class Db(override val port: Int) : DbTestcontainerConfig {
-    FOO(55430),
-    BAR(55431) {
+    FOO(55432),
+    BAR(55433) {
         override val type = DbTestcontainerConfig.Type.PgVector
     },
 }
 
-tasks.register<StartDbTestcontainerTask>("pgenDevDbR2dbcBasic") { configs.set(Db.values().toList()) }
-tasks.findByName("pgenFlywayMigration")!!.dependsOn("pgenDevDbR2dbcBasic")
+tasks.register<StartDbTestcontainerTask>("pgenDevDbJdbcBasic") { configs.set(Db.values().toList()) }
+tasks.findByName("pgenFlywayMigration")!!.dependsOn("pgenDevDbJdbcBasic")
 tasks.findByName("pgenGenerate")!!.dependsOn("pgenFlywayMigration")
 tasks.findByName("check")!!.dependsOn("pgenGenerate")
 tasks.compileKotlin { dependsOn("pgenGenerateCode") }
 
 pgen {
-    val baseModule = "${group}.tests.r2dbc.basic"
+    val baseModule = "${group}.tests.jdbc.basic"
     val sharedModule = "$baseModule.shared"
     val outputModule = "$baseModule.generated"
     addDb("foo") {
@@ -78,5 +78,5 @@ pgen {
     packageName(outputModule)
     outputPath("$projectDir/src/main/kotlin/${outputModule.replace('.', '/')}")
     specFilePath("$projectDir/src/main/resources/pgen-spec.yaml")
-    connectionType(Config.ConnectionType.R2DBC)
+    connectionType(Config.ConnectionType.JDBC)
 }

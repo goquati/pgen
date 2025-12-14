@@ -12,51 +12,46 @@ import de.quati.pgen.core.util.compoundAnd
 import de.quati.pgen.core.util.compoundOr
 import de.quati.pgen.core.util.iLike
 import de.quati.pgen.core.util.like
-import de.quati.pgen.r2dbc.util.andWhere
-import de.quati.pgen.r2dbc.util.deleteSingle
-import de.quati.pgen.r2dbc.util.orWhere
-import de.quati.pgen.r2dbc.util.setLocalConfig
-import de.quati.pgen.r2dbc.util.suspendTransaction
-import de.quati.pgen.r2dbc.util.suspendTransactionWithContext
-import de.quati.pgen.r2dbc.util.transactionReadOnlyFlow
-import de.quati.pgen.r2dbc.util.updateSingle
+import de.quati.pgen.jdbc.util.andWhere
+import de.quati.pgen.jdbc.util.deleteSingle
+import de.quati.pgen.jdbc.util.orWhere
+import de.quati.pgen.jdbc.util.setLocalConfig
+import de.quati.pgen.jdbc.util.transaction
+import de.quati.pgen.jdbc.util.transactionWithContext
+import de.quati.pgen.jdbc.util.updateSingle
 import de.quati.pgen.shared.LocalConfigContext
-import de.quati.pgen.tests.r2dbc.basic.generated.db.foo._public.NonEmptyTextDomain
-import de.quati.pgen.tests.r2dbc.basic.generated.db.foo._public.Users
-import de.quati.pgen.tests.r2dbc.basic.shared.UserId
+import de.quati.pgen.tests.jdbc.basic.generated.db.foo._public.NonEmptyTextDomain
+import de.quati.pgen.tests.jdbc.basic.generated.db.foo._public.Users
+import de.quati.pgen.tests.jdbc.basic.shared.UserId
 import io.kotest.assertions.throwables.shouldThrowAny
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import kotlinx.coroutines.async
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.single
-import kotlinx.coroutines.flow.toList
-import kotlinx.coroutines.flow.toSet
-import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import org.jetbrains.exposed.v1.core.eq
-import org.jetbrains.exposed.v1.r2dbc.R2dbcTransaction
-import org.jetbrains.exposed.v1.r2dbc.select
-import org.jetbrains.exposed.v1.r2dbc.selectAll
-import org.jetbrains.exposed.v1.r2dbc.upsertReturning
+import org.jetbrains.exposed.v1.jdbc.JdbcTransaction
+import org.jetbrains.exposed.v1.jdbc.select
+import org.jetbrains.exposed.v1.jdbc.selectAll
+import org.jetbrains.exposed.v1.jdbc.upsertReturning
 import java.util.UUID
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 
 class UtilsTest {
     @BeforeTest
-    fun cleanUp(): Unit = runBlocking { cleanUpAll() }
+    fun cleanUp() {
+        cleanUpAll()
+    }
 
     @Test
-    fun `test like for StringLike and iLike`(): Unit = runBlocking {
+    fun `test like for StringLike and iLike`() {
         val usernameAdmin = "admin-${UUID.randomUUID()}"
         val usernameUser = "user-${UUID.randomUUID()}"
         val adminId = createUserFixture(usernameAdmin) { it[Users.displayName] = "foobar" }.getOrThrow()
         val userId = createUserFixture(usernameUser) { it[Users.displayName] = "hello" }.getOrThrow()
 
-        db.suspendTransaction(readOnly = true) {
+        db.transaction(readOnly = true) {
             Users.selectAll().count() shouldBe 2
 
             Users.selectAll()
@@ -86,7 +81,7 @@ class UtilsTest {
 
 
     @Test
-    fun `test isUpdate and isInsert`(): Unit = runBlocking {
+    fun `test isUpdate and isInsert`() {
         val userId = createUserFixture("admin") { it[Users.displayName] = "foobar" }.getOrThrow()
         val upsertData = Users.CreateEntity(
             id = Option.Some(userId),
@@ -99,7 +94,7 @@ class UtilsTest {
             lastLoginAt = null,
         )
 
-        db.suspendTransaction {
+        db.transaction {
             Users.selectAll().count() shouldBe 1
 
             Users.upsertReturning(
@@ -132,11 +127,11 @@ class UtilsTest {
     }
 
     @Test
-    fun `delete single`(): Unit = runBlocking {
+    fun `delete single`() {
         createUserFixture("admin1")
         createUserFixture("admin2")
 
-        db.suspendTransaction {
+        db.transaction {
             Users.selectAll().count() shouldBe 2
             Users.deleteSingle { Users.username like "other%" } shouldBe DeleteSingleResult.None
             Users.deleteSingle { Users.username like "admin%" } shouldBe DeleteSingleResult.TooMany
@@ -147,11 +142,11 @@ class UtilsTest {
     }
 
     @Test
-    fun `update single`(): Unit = runBlocking {
+    fun `update single`() {
         createUserFixture("admin1") { it[Users.displayName] = "foobar" }
         createUserFixture("admin2") { it[Users.displayName] = "foobar" }
 
-        db.suspendTransaction {
+        db.transaction {
             Users.selectAll().map { it[Users.displayName] }.toList() shouldBe listOf("foobar", "foobar")
 
             Users.updateSingle(where = { Users.username like "other%" }) {
@@ -172,7 +167,7 @@ class UtilsTest {
     }
 
     @Test
-    fun `test arrayContains`(): Unit = runBlocking {
+    fun `test arrayContains`() {
         createUserFixture("no-admin")
         createUserFixture("admin-only") {
             it[Users.roles] = listOf("admin")
@@ -180,7 +175,7 @@ class UtilsTest {
         createUserFixture("admin-and-user") {
             it[Users.roles] = listOf("user", "admin")
         }
-        val emailsWithAdminRole = db.suspendTransaction(readOnly = true) {
+        val emailsWithAdminRole = db.transaction(readOnly = true) {
             Users.selectAll()
                 .where { Users.roles arrayContains "admin" }
                 .map { it[Users.email] }
@@ -193,13 +188,13 @@ class UtilsTest {
     }
 
     @Test
-    fun `test arrayAgg`(): Unit = runBlocking {
+    fun `test arrayAgg`() {
         createUserFixture("alice") { it[Users.displayName] = "foobar" }
         createUserFixture("bob") { it[Users.displayName] = "foobar" }
         createUserFixture("carol") { it[Users.displayName] = "hello" }
 
         val aggExpr = arrayAgg(Users.email)
-        val result = db.suspendTransaction(readOnly = true) {
+        val result = db.transaction(readOnly = true) {
             Users.select(Users.displayName, aggExpr)
                 .groupBy(Users.displayName)
                 .toList()
@@ -212,13 +207,13 @@ class UtilsTest {
     }
 
     @Test
-    fun `test compoundAnd, andWhere, compoundOr and orWhere`(): Unit = runBlocking {
+    fun `test compoundAnd, andWhere, compoundOr and orWhere`() {
         createUserFixture("alice")
         createUserFixture("bob")
         createUserFixture("carol")
 
         // --- compoundAnd with nulls should ignore nulls ----------------------
-        db.suspendTransaction(readOnly = true) {
+        db.transaction(readOnly = true) {
             val op = compoundAnd(
                 Users.username eq NonEmptyTextDomain("alice"),
                 null,
@@ -231,7 +226,7 @@ class UtilsTest {
         } shouldContainExactlyInAnyOrder listOf("alice@example.com")
 
         // --- compoundOr with nulls should ignore nulls -----------------------
-        db.suspendTransaction(readOnly = true) {
+        db.transaction(readOnly = true) {
             val op = compoundOr(
                 Users.username eq NonEmptyTextDomain("alice"),
                 null,
@@ -247,7 +242,7 @@ class UtilsTest {
         )
 
         // --- andWhere should behave similarly ----------------------
-        db.suspendTransaction(readOnly = true) {
+        db.transaction(readOnly = true) {
             Users.selectAll()
                 .andWhere(
                     Users.username eq NonEmptyTextDomain("alice"),
@@ -257,7 +252,7 @@ class UtilsTest {
         } shouldContainExactlyInAnyOrder listOf("alice@example.com")
 
         // --- orWhere should behave similarly ----------------------
-        db.suspendTransaction(readOnly = true) {
+        db.transaction(readOnly = true) {
             Users.selectAll()
                 .orWhere(
                     Users.username eq NonEmptyTextDomain("alice"),
@@ -271,19 +266,23 @@ class UtilsTest {
     }
 
     @Test
-    fun `test setLocalConfig`(): Unit = runBlocking {
-        suspend fun R2dbcTransaction.getConfig(name: String) =
-            exec("show $name") { rs -> rs.get(0) }!!.single()
+    fun `test setLocalConfig`() {
+        fun JdbcTransaction.getConfig(name: String) = exec("show $name") { rs ->
+            buildList {
+                while (rs.next())
+                    add(rs.getString(1))
+            }
+        }!!.single()
 
         // Use a built-in GUC that we can SHOW afterwards, e.g. application_name
-        db.suspendTransaction {
+        db.transaction {
             setLocalConfig("application_name", "pgen-single")
             val current = getConfig("application_name")
             current shouldBe "pgen-single"
         }
 
         // Multiple settings at once via map overload
-        db.suspendTransaction {
+        db.transaction {
             setLocalConfig(
                 mapOf(
                     "application_name" to "pgen-map",
@@ -297,38 +296,30 @@ class UtilsTest {
         }
 
         with(LocalConfigContext(mapOf("application_name" to "foobar"))) {
-            db.suspendTransactionWithContext {
+            db.transactionWithContext {
                 val current = getConfig("application_name")
                 current shouldBe "foobar"
             }
         }
 
         // Because it's SET LOCAL, outside those transactions we should not see "pgen-map"
-        db.suspendTransaction(readOnly = true) {
+        db.transaction(readOnly = true) {
             val current = getConfig("application_name")
             current shouldNotBe "pgen-map"
         }
     }
 
     @Test
-    fun `test transaction utils`(): Unit = runBlocking {
-        db.suspendTransaction {
+    fun `test transaction utils`() {
+        db.transaction {
             createUserFixture("alice")
             createUserFixture("bob")
         }
         shouldThrowAny {
-            db.suspendTransaction(readOnly = true) {
-                createUserFixture("carol")
+            db.transaction(readOnly = true) {
+                createUserFixture("carol").getOrThrow()
             }
         }
-        db.suspendTransaction(readOnly = true) { Users.selectAll().count() } shouldBe 2
-
-        db.transactionReadOnlyFlow {
-            Users.selectAll().map { it[Users.email] }
-        }.also {
-            async { // run in another coroutine, should be ok because of channelFlow
-                it.toList()
-            }.await() shouldContainExactlyInAnyOrder listOf("alice@example.com", "bob@example.com")
-        }
+        db.transaction(readOnly = true) { Users.selectAll().count() } shouldBe 2
     }
 }

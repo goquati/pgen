@@ -10,4 +10,5 @@ plugins {
 }
 rootProject.name = "tests"
 include("r2dbc-basic")
+include("jdbc-basic")
 includeBuild("../lib")
