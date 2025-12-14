@@ -30,8 +30,8 @@ fun Column.Type.getTypeName(innerArrayType: Boolean = true): TypeName = when (th
     Column.Type.Primitive.INTERVAL -> Poet.duration
     Column.Type.Primitive.INT4RANGE -> IntRange::class.asTypeName()
     Column.Type.Primitive.INT8RANGE -> LongRange::class.asTypeName()
-    Column.Type.Primitive.INT4MULTIRANGE -> Poet.Pgen.multiRange().parameterizedBy(Int::class.asTypeName())
-    Column.Type.Primitive.INT8MULTIRANGE -> Poet.Pgen.multiRange().parameterizedBy(Long::class.asTypeName())
+    Column.Type.Primitive.INT4MULTIRANGE -> Poet.Pgen.multiRange.parameterizedBy(Int::class.asTypeName())
+    Column.Type.Primitive.INT8MULTIRANGE -> Poet.Pgen.multiRange.parameterizedBy(Long::class.asTypeName())
     Column.Type.Primitive.INT4 -> Int::class.asTypeName()
     Column.Type.Primitive.FLOAT4 -> Float::class.asTypeName()
     Column.Type.Primitive.FLOAT8 -> Double::class.asTypeName()
@@ -39,6 +39,7 @@ fun Column.Type.getTypeName(innerArrayType: Boolean = true): TypeName = when (th
     Column.Type.Primitive.JSONB -> Poet.jsonElement
     Column.Type.Primitive.INT2 -> Short::class.asTypeName()
     Column.Type.Primitive.TEXT -> String::class.asTypeName()
+    Column.Type.Primitive.CITEXT -> String::class.asTypeName()
     Column.Type.Primitive.TIME -> Poet.localTime
     Column.Type.Primitive.TIMESTAMP -> Poet.instant
     Column.Type.Primitive.TIMESTAMP_WITH_TIMEZONE -> Poet.offsetDateTime
@@ -55,7 +56,7 @@ fun Column.Type.getExposedColumnType(): CodeBlock = when (this) {
         codeBlock("%T(%L)", Poet.Pgen.getArrayColumnType, elementType.getExposedColumnType())
 
     is Column.Type.NonPrimitive.PgVector ->
-        codeBlock("%T(schema=%S)", Poet.Pgen.pgVectorColumnType(), schema)
+        codeBlock("%T(schema=%S)", Poet.Pgen.pgVectorColumnType, schema)
 
     is Column.Type.NonPrimitive.Composite ->
         codeBlock("%T(sqlType=%S)", getColumnTypeTypeName(), sqlType)
@@ -83,15 +84,16 @@ fun Column.Type.getExposedColumnType(): CodeBlock = when (this) {
     Column.Type.Primitive.VARCHAR -> codeBlock("%T()", Poet.Exposed.textColumnType)
     Column.Type.Primitive.DATE -> codeBlock("%T()", Poet.Exposed.kotlinLocalDateColumnType)
     Column.Type.Primitive.INTERVAL -> codeBlock("%T()", Poet.Exposed.kotlinDurationColumnType)
-    Column.Type.Primitive.INT4RANGE -> codeBlock("%T()", Poet.Pgen.int4RangeColumnType())
-    Column.Type.Primitive.INT8RANGE -> codeBlock("%T()", Poet.Pgen.int8RangeColumnType())
-    Column.Type.Primitive.INT4MULTIRANGE -> codeBlock("%T()", Poet.Pgen.int4MultiRangeColumnType())
-    Column.Type.Primitive.INT8MULTIRANGE -> codeBlock("%T()", Poet.Pgen.int8MultiRangeColumnType())
+    Column.Type.Primitive.INT4RANGE -> codeBlock("%T()", Poet.Pgen.int4RangeColumnType)
+    Column.Type.Primitive.INT8RANGE -> codeBlock("%T()", Poet.Pgen.int8RangeColumnType)
+    Column.Type.Primitive.INT4MULTIRANGE -> codeBlock("%T()", Poet.Pgen.int4MultiRangeColumnType)
+    Column.Type.Primitive.INT8MULTIRANGE -> codeBlock("%T()", Poet.Pgen.int8MultiRangeColumnType)
     Column.Type.Primitive.INT4 -> codeBlock("%T()", Poet.Exposed.integerColumnType)
     Column.Type.Primitive.FLOAT4 -> codeBlock("%T()", Poet.Exposed.floatColumnType)
     Column.Type.Primitive.FLOAT8 -> codeBlock("%T()", Poet.Exposed.doubleColumnType)
     Column.Type.Primitive.INT2 -> codeBlock("%T()", Poet.Exposed.shortColumnType)
     Column.Type.Primitive.TEXT -> codeBlock("%T()", Poet.Exposed.textColumnType)
+    Column.Type.Primitive.CITEXT -> codeBlock("%T()", Poet.Pgen.citextColumnType)
     Column.Type.Primitive.TIME -> codeBlock("%T()", Poet.Exposed.kotlinLocalTimeColumnType)
     Column.Type.Primitive.TIMESTAMP -> codeBlock("%T()", Poet.Exposed.kotlinInstantColumnType)
     Column.Type.Primitive.TIMESTAMP_WITH_TIMEZONE -> codeBlock("%T()", Poet.Exposed.kotlinOffsetDateTimeColumnType)

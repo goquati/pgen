@@ -176,6 +176,7 @@ data class Column(
             JSON("json"),
             JSONB("jsonb"),
             TEXT("text"),
+            CITEXT("citext"),
             TIME("time"),
             TIMESTAMP("timestamp"),
             TIMESTAMP_WITH_TIMEZONE("timestamptz"),

@@ -85,7 +85,7 @@ fun FileSpec.Builder.addTableService(data: TableOasData) = addInterface(data.get
                     .%T(%T.Entity::create)
                     .collect { send(it) }
             """.trimIndent(),
-                Poet.Pgen.setLocalConfig(),
+                Poet.Pgen.setLocalConfig,
                 data.sqlData.name.typeName,
                 Poet.Exposed.selectAll(),
                 Poet.flowMap,
@@ -113,7 +113,7 @@ fun FileSpec.Builder.addTableService(data: TableOasData) = addInterface(data.get
                     .let { it ?: throw %T.BadRequest("Cannot create ${data.namePretty}") }
                     .let(%T.Entity::create)
             """.trimIndent(),
-                Poet.Pgen.setLocalConfig(),
+                Poet.Pgen.setLocalConfig,
                 data.sqlData.name.typeName,
                 Poet.Exposed.insertReturning(),
                 Poet.flowSingleOrNull,
@@ -137,7 +137,7 @@ fun FileSpec.Builder.addTableService(data: TableOasData) = addInterface(data.get
                 ${"// ".takeIf { localConfigContext == null } ?: ""}%T(c)
                 %T.%T { %T.id %T id }
                 """.trimIndent(),
-                Poet.Pgen.setLocalConfig(),
+                Poet.Pgen.setLocalConfig,
                 data.sqlData.name.typeName,
                 Poet.Exposed.deleteWhere(),
                 data.sqlData.name.typeName,
@@ -172,7 +172,7 @@ fun FileSpec.Builder.addTableService(data: TableOasData) = addInterface(data.get
                     .let { it ?: throw %T.BadRequest("Cannot update ${data.namePretty} with id: ${'$'}id") }
                     .let(%T.Entity::create)
                 """.trimIndent(),
-                Poet.Pgen.setLocalConfig(),
+                Poet.Pgen.setLocalConfig,
                 data.sqlData.name.typeName,
                 Poet.Exposed.updateReturning(),
                 data.sqlData.name.typeName,

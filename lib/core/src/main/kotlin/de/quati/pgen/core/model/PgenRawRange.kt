@@ -1,7 +1,7 @@
-package de.quati.pgen.jdbc.column
+package de.quati.pgen.core.model
 
 
-internal sealed interface PgenRawRange {
+public sealed interface PgenRawRange {
     public data object Empty : PgenRawRange
     public data class Normal(public val start: Border, public val end: Border) : PgenRawRange
     public sealed interface Border {
@@ -55,7 +55,7 @@ internal sealed interface PgenRawRange {
             if (value.isBlank()) error("invalid range end ''")
             if (value == ")") return Border.Infinity
             return Border.Normal(
-                value = value.trimStart(']', ')').takeIf { it.isNotBlank() } ?: error("invalid range end '$this'"),
+                value = value.trimEnd(']', ')').takeIf { it.isNotBlank() } ?: error("invalid range end '$this'"),
                 inclusive = when (value.last()) {
                     ']' -> true
                     ')' -> false

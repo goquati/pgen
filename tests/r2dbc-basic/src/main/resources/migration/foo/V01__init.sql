@@ -1,3 +1,4 @@
+create extension if not exists citext;
 create schema if not exists public;
 
 -- ==========================================================
@@ -125,4 +126,14 @@ create table public.documents
     constraint documents_updated_after_created check (
         updated_at is null or updated_at >= created_at
         )
+);
+
+
+create table public.pgen_test_table
+(
+    key              citext primary key,
+    i_range_nullable int4range,
+    i_range          int4range not null,
+    l_range_nullable int8range,
+    l_range          int8range not null
 );

@@ -98,6 +98,7 @@ private fun CodeBlock.Builder.addPgFieldConverter(type: Column.Type) = when (typ
     Column.Type.Primitive.JSON,
     Column.Type.Primitive.JSONB,
     Column.Type.Primitive.TIME,
+    Column.Type.Primitive.CITEXT,
     Column.Type.Primitive.TIMESTAMP,
     Column.Type.Primitive.TIMESTAMP_WITH_TIMEZONE,
     Column.Type.Primitive.REG_CLASS,

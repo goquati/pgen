@@ -61,7 +61,7 @@ fun PropertySpec.Builder.initializer(column: Column, postfix: String, postArgs: 
                     "${elementType.name.schema.schemaName}.${elementType.name.name}",
                     Poet.Pgen.getPgEnumByLabel,
                     elementType.name.typeName,
-                    Poet.Pgen.toDbObject(),
+                    Poet.Pgen.toDbObject,
                     *postArgs,
                 )
 
@@ -89,7 +89,7 @@ fun PropertySpec.Builder.initializer(column: Column, postfix: String, postArgs: 
             "${type.name.schema.schemaName}.${type.name.name}",
             Poet.Pgen.getPgEnumByLabel,
             type.name.typeName,
-            Poet.Pgen.toDbObject(),
+            Poet.Pgen.toDbObject,
             *postArgs
         )
 
@@ -120,7 +120,7 @@ fun PropertySpec.Builder.initializer(column: Column, postfix: String, postArgs: 
                 name = %S,
                 schema = %S,
             )$postfix""".trimIndent(),
-            Poet.Pgen.pgVector(),
+            Poet.Pgen.pgVector,
             columnName,
             type.schema,
             *postArgs
@@ -157,23 +157,23 @@ fun PropertySpec.Builder.initializer(column: Column, postfix: String, postArgs: 
         )
 
         Column.Type.Primitive.INT4RANGE -> @Suppress("SpreadOperator") initializer(
-            "registerColumn(name = %S, type = %T())$postfix",
-            columnName, Poet.Pgen.int4RangeColumnType(), *postArgs
+            "%T(name = %S)$postfix",
+            Poet.Pgen.int4Range, columnName, *postArgs
         )
 
         Column.Type.Primitive.INT8RANGE -> @Suppress("SpreadOperator") initializer(
-            "registerColumn(name = %S, type = %T())$postfix",
-            columnName, Poet.Pgen.int8RangeColumnType(), *postArgs
+            "%T(name = %S)$postfix",
+            Poet.Pgen.int8Range, columnName, *postArgs
         )
 
         Column.Type.Primitive.INT4MULTIRANGE -> @Suppress("SpreadOperator") initializer(
-            "registerColumn(name = %S, type = %T())$postfix",
-            columnName, Poet.Pgen.int4MultiRangeColumnType(), *postArgs
+            "%T(name = %S)$postfix",
+            Poet.Pgen.int4MultiRange, columnName, *postArgs
         )
 
         Column.Type.Primitive.INT8MULTIRANGE -> @Suppress("SpreadOperator") initializer(
-            "registerColumn(name = %S, type = %T())$postfix",
-            columnName, Poet.Pgen.int8MultiRangeColumnType(), *postArgs
+            "%T(name = %S)$postfix",
+            Poet.Pgen.int8MultiRange, columnName, *postArgs
         )
 
         Column.Type.Primitive.INT4 -> @Suppress("SpreadOperator") initializer(
@@ -214,6 +214,11 @@ fun PropertySpec.Builder.initializer(column: Column, postfix: String, postArgs: 
         Column.Type.Primitive.TEXT -> @Suppress("SpreadOperator") initializer(
             "text(name = %S)$postfix",
             columnName, *postArgs
+        )
+
+        Column.Type.Primitive.CITEXT -> @Suppress("SpreadOperator") initializer(
+            "%T(name = %S)$postfix",
+            Poet.Pgen.citext, columnName, *postArgs
         )
 
         Column.Type.Primitive.TIME -> @Suppress("SpreadOperator") initializer(

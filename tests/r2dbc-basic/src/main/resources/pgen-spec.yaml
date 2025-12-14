@@ -206,6 +206,24 @@ tables:
   checkConstraints:
   - "orders_processed_after_placed"
   - "orders_total_positive"
+- name: "foo.public.pgen_test_table"
+  columns:
+  - name: "key"
+    type: "CITEXT"
+  - name: "i_range_nullable"
+    type: "INT4RANGE"
+    isNullable: true
+  - name: "i_range"
+    type: "INT4RANGE"
+  - name: "l_range_nullable"
+    type: "INT8RANGE"
+    isNullable: true
+  - name: "l_range"
+    type: "INT8RANGE"
+  primaryKey:
+    keyName: "pgen_test_table_pkey"
+    columnNames:
+    - "key"
 - name: "foo.public.products"
   columns:
   - name: "id"

@@ -133,6 +133,10 @@ class DbService(
                         else -> unknownError()
                     }
                 }
+                "S" -> when(columnTypeName) {
+                    "citext" -> Primitive.CITEXT
+                    else -> unknownError()
+                }
 
                 else -> unknownError()
             }

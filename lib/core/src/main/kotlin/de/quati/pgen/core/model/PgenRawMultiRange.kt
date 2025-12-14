@@ -1,8 +1,8 @@
-package de.quati.pgen.jdbc.column
+package de.quati.pgen.core.model
 
 
 @JvmInline
-internal value class PgenRawMultiRange(public val ranges: List<PgenRawRange>) {
+public value class PgenRawMultiRange(public val ranges: List<PgenRawRange>) {
     public fun toInt4MultiRange(): PgenMultiRange<Int> = PgenMultiRange(ranges.map { it.toInt4Range() }.toSet())
     public fun toInt8MultiRange(): PgenMultiRange<Long> = PgenMultiRange(ranges.map { it.toInt8Range() }.toSet())
 

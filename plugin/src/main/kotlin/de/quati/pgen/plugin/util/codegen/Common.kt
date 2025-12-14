@@ -138,16 +138,25 @@ object Poet {
     }
 
     object Pgen {
-        private val packageNameShared = PackageName("de.quati.pgen.shared")
-        private val packageNameCore = PackageName("de.quati.pgen.core")
-        private val packageNameCoreUtil = PackageName("de.quati.pgen.core.util")
-        private val packageNameCoreColumnType = PackageName("de.quati.pgen.core.column")
-        private val packageNameJdbc = PackageName("de.quati.pgen.jdbc")
-        private val packageNameJdbcColumnType = PackageName("de.quati.pgen.jdbc.column")
-        private val packageNameJdbcUtil = PackageName("de.quati.pgen.jdbc.util")
-        private val packageNameR2dbc = PackageName("de.quati.pgen.r2dbc")
-        private val packageNameR2dbcColumnType = PackageName("de.quati.pgen.r2dbc.column")
-        private val packageNameR2dbcUtil = PackageName("de.quati.pgen.r2dbc.util")
+        private val packageNamePgen = PackageName("de.quati.pgen")
+        private val packageNameShared = packageNamePgen.plus("shared")
+        private val packageNameCore = packageNamePgen.plus("core")
+        private val packageNameCoreUtil = packageNameCore.plus("util")
+        private val packageNameCoreModel = packageNameCore.plus("model")
+        private val packageNameCoreColumnType = packageNameCore.plus("column")
+
+        context(c: CodeGenContext)
+        private val packageNameDriver
+            get() = when (c.connectionType) {
+                Config.ConnectionType.JDBC -> packageNamePgen.plus("jdbc")
+                Config.ConnectionType.R2DBC -> packageNamePgen.plus("r2dbc")
+            }
+
+        context(c: CodeGenContext)
+        private val packageNameDriverColumnType get() = packageNameDriver.plus("column")
+
+        context(c: CodeGenContext)
+        private val packageNameDriverUtil get() = packageNameDriver.plus("util")
 
         val stringLike = packageNameShared.className("StringLike")
         val regClass = packageNameShared.className("RegClass")
@@ -181,60 +190,54 @@ object Poet {
         val notNullConstraint = packageNameCore.className("Constraint", "NotNull")
 
         context(c: CodeGenContext)
-        fun pgVector() = when (c.connectionType) {
-            Config.ConnectionType.JDBC -> packageNameJdbcColumnType.className("pgVector")
-            Config.ConnectionType.R2DBC -> packageNameR2dbcColumnType.className("pgVector")
-        }
+        val pgVector get() = packageNameDriverColumnType.className("pgVector")
 
         context(c: CodeGenContext)
-        fun pgVectorColumnType() = when (c.connectionType) {
-            Config.ConnectionType.JDBC -> packageNameJdbcColumnType.className("PgVectorColumnType")
-            Config.ConnectionType.R2DBC -> packageNameR2dbcColumnType.className("PgVectorColumnType")
-        }
+        val pgVectorColumnType get() = packageNameDriverColumnType.className("PgVectorColumnType")
+
+        val multiRange = packageNameCoreModel.className("PgenMultiRange")
 
         context(c: CodeGenContext)
-        fun multiRange() = when (c.connectionType) {
-            Config.ConnectionType.JDBC -> packageNameJdbcColumnType.className("MultiRange")
-            Config.ConnectionType.R2DBC -> throw NotImplementedError("MultiRange")
-        }
+        val int4RangeColumnType get() = packageNameDriverColumnType.className("Int4RangeColumnType")
 
         context(c: CodeGenContext)
-        fun int4RangeColumnType() = when (c.connectionType) {
-            Config.ConnectionType.JDBC -> packageNameJdbcColumnType.className("Int4RangeColumnType")
-            Config.ConnectionType.R2DBC -> throw NotImplementedError("Int4RangeColumnType")
-        }
+        val int8RangeColumnType get() = packageNameDriverColumnType.className("Int8RangeColumnType")
 
         context(c: CodeGenContext)
-        fun int8RangeColumnType() = when (c.connectionType) {
-            Config.ConnectionType.JDBC -> packageNameJdbcColumnType.className("Int8RangeColumnType")
-            Config.ConnectionType.R2DBC -> throw NotImplementedError("Int8RangeColumnType")
-        }
+        val int4MultiRangeColumnType get() = packageNameDriverColumnType.className("Int4MultiRangeColumnType")
 
         context(c: CodeGenContext)
-        fun int4MultiRangeColumnType() = when (c.connectionType) {
-            Config.ConnectionType.JDBC -> packageNameJdbcColumnType.className("Int4MultiRangeColumnType")
-            Config.ConnectionType.R2DBC -> throw NotImplementedError("Int4MultiRangeColumnType")
-        }
+        val int8MultiRangeColumnType get() = packageNameDriverColumnType.className("Int8MultiRangeColumnType")
 
         context(c: CodeGenContext)
-        fun int8MultiRangeColumnType() = when (c.connectionType) {
-            Config.ConnectionType.JDBC -> packageNameJdbcColumnType.className("Int8MultiRangeColumnType")
-            Config.ConnectionType.R2DBC -> throw NotImplementedError("Int8MultiRangeColumnType")
-        }
+        val int4Range get() = packageNameDriverColumnType.className("int4Range")
+
+        context(c: CodeGenContext)
+        val int8Range get() = packageNameDriverColumnType.className("int8Range")
+
+        context(c: CodeGenContext)
+        val int4MultiRange get() = packageNameDriverColumnType.className("int4MultiRange")
+
+        context(c: CodeGenContext)
+        val int8MultiRange get() = packageNameDriverColumnType.className("int8MultiRange")
+
+        context(c: CodeGenContext)
+        val citextColumnType get() = packageNameCoreColumnType.className("CitextColumnType")
+
+        context(c: CodeGenContext)
+        val citext get() = packageNameCoreColumnType.className("citext")
 
         val getColumnWithAlias = packageNameCoreUtil.className("get")
 
         context(c: CodeGenContext)
-        fun toDbObject() = when (c.connectionType) {
-            Config.ConnectionType.JDBC -> packageNameJdbcColumnType.className("toDbObject")
-            Config.ConnectionType.R2DBC -> packageNameR2dbcColumnType.className("toDbObject")
-        }
+        val toDbObject get() = packageNameDriverColumnType.className("toDbObject")
 
         context(c: CodeGenContext)
-        fun setLocalConfig() = when (c.connectionType) {
-            Config.ConnectionType.JDBC -> throw NotImplementedError("setLocalConfig")
-            Config.ConnectionType.R2DBC -> packageNameR2dbcUtil.className("setLocalConfig")
-        }
+        val setLocalConfig
+            get() = when (c.connectionType) {
+                Config.ConnectionType.JDBC -> throw NotImplementedError("setLocalConfig")
+                Config.ConnectionType.R2DBC -> packageNameDriverUtil.className("setLocalConfig")
+            }
 
     }
 
