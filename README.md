@@ -1,55 +1,36 @@
-# pgen – PostgreSQL Schema → Exposed/R2DBC Code Generator
+# pgen – PostgreSQL Schema → Kotlin Exposed/R2DBC Code Generator
 
-*A Gradle plugin for type-safe, schema-first Kotlin database access*
+Build type-safe Kotlin data access from your PostgreSQL schema with a single Gradle plugin.
 
-pgen is a Gradle plugin that connects to a **PostgreSQL database**, introspects its schema, and generates:
-
-* A **specification file** (`pgen-spec.yaml`) describing the DB schema and mappings
-* Kotlin **Exposed table definitions**, **entity DTOs**, **update/create models**
-* **JDBC** and **R2DBC** support
-* Optional **Flyway migrations**
-* Mappings for **Postgres ENUMs**, **domains**, and **custom types**
-* Type overwrites for custom Kotlin wrappers
-
-The generated code enables fully type-safe access to your database without manually writing Exposed table definitions.
+pgen connects to a PostgreSQL database, introspects the schema, writes a stable YAML specification, and generates Kotlin
+sources for JetBrains Exposed with JDBC or R2DBC. Use it locally against a real DB, then regenerate deterministically
+from the checked-in spec in CI — no database required there.
 
 ---
 
-## ✨ Features
+## ✨ Highlights
 
-### ✔ Schema-first: DB → YAML → Kotlin
+- Schema-first workflow: DB → `pgen-spec.yaml` → Kotlin
+- Deterministic CI builds: generate from spec only (no DB)
+- JDBC and R2DBC support
+- Optional Flyway migrations before extraction
+- Custom mappings for Postgres ENUMs, domains, and user-defined types
+- Type overwrites for custom Kotlin wrappers/value classes
+- Multiple databases per project supported
 
-Run the plugin locally against a database to produce a stable YAML “spec” file.
-Commit this file to version control.
+---
 
-### ✔ Code generation without a running DB (CI-friendly)
+## ✅ Requirements
 
-In CI you do **not** need a PostgreSQL database.
-Just run:
-
-```bash
-./gradlew pgenGenerateCode
-```
-
-This reads the checked-in YAML spec file and regenerates Kotlin sources.
-
-### ✔ Custom type & enum mappings
-
-Map PostgreSQL types and domains to custom Kotlin value classes.
-
-### ✔ Flyway integration (optional)
-
-Automatically run migrations before schema extraction.
-
-### ✔ Multiple databases
-
-Generate separate modules for multiple DBs.
+- JDK 21+
+- Gradle 8+
+- PostgreSQL
 
 ---
 
 ## 🚀 Quick Start
 
-### 1. Apply the plugin
+### 1) Apply the plugin
 
 ```kotlin
 plugins {
@@ -58,9 +39,9 @@ plugins {
 }
 ```
 
-### 2. Configure pgen
+### 2) Configure pgen
 
-Below is a complete example with a single database, custom mappings, and codegen setup.
+Minimal but complete example with one database, Flyway, custom mappings, and R2DBC codegen:
 
 ```kotlin
 pgen {
@@ -74,19 +55,13 @@ pgen {
             user("postgres")
             password("postgres")
         }
-        flyway {
-            migrationDirectory("$projectDir/src/main/resources/migration/base")
-        }
-        tableFilter {
-            addSchemas("public")
-        }
+        flyway { migrationDirectory("$projectDir/src/main/resources/migration/base") }
+        tableFilter { addSchemas("public") }
         typeMappings {
             add("public.user_id", clazz = "$sharedModule.UserId")
             add("public.email", clazz = "$sharedModule.Email")
         }
-        enumMappings {
-            add(sqlType = "public.role", clazz = "$sharedModule.RoleDto")
-        }
+        enumMappings { add(sqlType = "public.role", clazz = "$sharedModule.RoleDto") }
         typeOverwrites {
             add("public.foo.id", clazz = "$sharedModule.MyId", parseFunction = "foo")
             add("public.hello.id", clazz = "$sharedModule.HelloId")
@@ -96,61 +71,46 @@ pgen {
     packageName(outputModule)
     outputPath("$projectDir/src/main/kotlin/${outputModule.replace('.', '/')}")
     specFilePath("$projectDir/src/main/resources/pgen-spec.yaml")
-    connectionType(Config.ConnectionType.R2DBC)
+    connectionType(Config.ConnectionType.R2DBC) // or JDBC
 }
 ```
 
-### 3. Ensure Kotlin compilation depends on code generation
+### 3) Make Kotlin compilation depend on code generation
 
 ```kotlin
 tasks.compileKotlin { dependsOn("pgenGenerateCode") }
 ```
 
+### 4) Local workflow
+
+```bash
+./gradlew pgenFlywayMigration   # optional, when Flyway is configured
+./gradlew pgenGenerateSpec      # connect to DB, produce pgen-spec.yaml
+./gradlew pgenGenerateCode      # generate Kotlin from spec
+```
+
+Commit only the spec, since the generated code is fully reproducible from it.
+
+### CI workflow (no DB required)
+
+```bash
+./gradlew pgenGenerateCode
+```
+
 ---
 
-# 🧩 Gradle Tasks
-
-pgen provides the following tasks:
+## 🧩 Gradle tasks
 
 | Task                  | Description                                                                   |
-| --------------------- | ----------------------------------------------------------------------------- |
+|-----------------------|-------------------------------------------------------------------------------|
 | `pgenFlywayMigration` | Runs Flyway migrations (if configured).                                       |
 | `pgenGenerateSpec`    | Connects to PostgreSQL, introspects schema, and generates the YAML spec file. |
-| `pgenGenerateCode`    | Generates Kotlin code **only from the spec file**. No DB required.            |
-| `pgenGenerate`        | Runs `pgenGenerateSpec` + `pgenGenerateCode`.                                 |
-
-## Workflow Summary
-
-### 🖥 Local development
-
-1. Have a running PostgreSQL database.
-2. Make schema changes.
-3. Run:
-
-```bash
-./gradlew pgenGenerateSpec
-./gradlew pgenGenerateCode
-```
-
-4. Commit the generated `pgen-spec.yaml` and the generated Kotlin code.
-
-### 🤖 CI pipeline
-
-CI **does not need a running DB**.
-
-Just run:
-
-```bash
-./gradlew pgenGenerateCode
-```
-
-This guarantees deterministic regeneration based on the committed spec.
+| `pgenGenerateCode`    | Generates Kotlin code from the spec only. No DB required.                     |
+| `pgenGenerate`        | Shorthand: `pgenGenerateSpec` + `pgenGenerateCode`.                           |
 
 ---
 
-# 📂 Project Structure
-
-Example layout:
+## 📂 Project structure (example layout)
 
 ```
 src/
@@ -164,21 +124,59 @@ src/
 
 ---
 
-# 🛠 Dependencies & Versions
+## ⚙️ Configuration overview
 
-Your project should declare dependencies for Exposed, pgen, Kotlin, R2DBC, etc.:
+Key configuration blocks inside `pgen { … }`:
+
+- `addDb("name") { … }`
+    - `connectionConfig { url(..); user(..); password(..) }`
+    - `flyway { migrationDirectory("…") }` (optional)
+    - `tableFilter { addSchemas("public"), include/exclude tables }`
+    - `typeMappings { add("schema.domain", clazz = "com.example.Email") }`
+    - `enumMappings { add(sqlType = "schema.enum", clazz = "com.example.Role") }`
+    - `typeOverwrites { add("schema.table.column", clazz = "…", parseFunction = "…") }`
+- Top-level outputs
+    - `packageName("…")`, `outputPath("…")`, `specFilePath("…")`
+    - `connectionType(Config.ConnectionType.R2DBC | JDBC)`
+
+See the example modules ([R2DBC](example/r2dbc/build.gradle.kts) and [JDBC](example/jdbc/build.gradle.kts)) for full, working configurations.
+
+---
+
+## 🧪 Examples
+
+- JDBC example: [example/jdbc](example/jdbc)
+    - How to run: see [example/jdbc/README.md](example/jdbc/README.md)
+- R2DBC example: [example/r2dbc](example/r2dbc)
+    - How to run: see [example/r2dbc/README.md](example/r2dbc/README.md)
+
+Both examples use the plugin to generate sources, then run a tiny program printing rows from the DB.
+
+---
+
+## 📘 What gets generated?
+
+The generator produces:
+
+- Exposed `Table` objects (`Users`, `Orders`, …)
+- `Entity` data classes
+- `CreateEntity` and `UpdateEntity` models for inserts/updates
+- `Enum`, `Composite` and `Domain` types
+- Constraint objects to detect DB errors
+- Helper extensions such as `deleteSingle`, `updateSingle`, etc.
+
+---
+
+## 🛠 Dependencies (reference)
+
+Below is a reference set you can adapt to your project:
 
 ```kotlin
-
 dependencies {
-    val exposedVersion = "1.0.0-rc-4"
-    val coroutineVersion = "1.10.2"
-    val serializationVersion = "1.9.0"
-
     implementation("de.quati.pgen:r2dbc:0.36.0")
-    implementation("de.quati:kotlin-util:2.0.0")
 
     // Exposed core modules
+    val exposedVersion = "1.0.0-rc-4"
     implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-crypt:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-dao:$exposedVersion")
@@ -194,30 +192,13 @@ dependencies {
     implementation("org.postgresql:r2dbc-postgresql:1.0.7.RELEASE")
     implementation("io.r2dbc:r2dbc-pool:1.0.2.RELEASE")
 
-    // Coroutines
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutineVersion")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:$coroutineVersion")
-
-    // Serialization
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-core-jvm:$serializationVersion")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:$serializationVersion")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
+    implementation("de.quati:kotlin-util:2.0.0")
 }
 ```
 
 ---
 
-# 📘 Example: Using Generated Code
-
-The generated Kotlin structures follow this pattern:
-
-* `Table` objects (`Users`, `Orders`, …)
-* `Entity` data classes
-* `CreateEntity` and `UpdateEntity` for insert/update
-* Constraint objects to detect DB errors
-* Extension helpers like `deleteSingle`, `updateSingle`, etc.
-
----
-
-# 📄 License
+## 📄 License
 
 This project is licensed under the [MIT License](LICENSE).
