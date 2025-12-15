@@ -1,14 +1,18 @@
 package foo
 
 import de.quati.pgen.r2dbc.util.suspendTransaction
+import de.quati.pgen.r2dbc.util.sync
 import de.quati.pgen.tests.r2dbc.basic.generated.db.foo._public.PgenTestTable
+import de.quati.pgen.tests.r2dbc.basic.generated.db.foo._public.SyncTestTable
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.flow.single
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.DateTimePeriod
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.r2dbc.insert
 import org.jetbrains.exposed.v1.r2dbc.selectAll
+import java.util.UUID
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 
@@ -59,5 +63,55 @@ class PgenTestTableTest {
             row[PgenTestTable.lRange] shouldBe 6L..9L
             row[PgenTestTable.lRangeNullable] shouldBe 1L..3L
         }
+    }
+
+    @Test
+    fun `test sync statement`(): Unit = runBlocking {
+        val g1 = UUID.randomUUID()
+        val g2 = UUID.randomUUID()
+        suspend fun loadData() = db.suspendTransaction(readOnly = false) {
+            SyncTestTable.selectAll().toList()
+        }.groupBy({ it[SyncTestTable.groupId] }, { it[SyncTestTable.name] })
+            .mapValues { it.value.toSet() }
+
+        db.suspendTransaction {
+            SyncTestTable.sync(
+                key = SyncTestTable.groupId to g1,
+                data = listOf(1, 2, 3),
+            ) {
+                this[SyncTestTable.name] = it.toString()
+            }
+        }
+        loadData() shouldBe mapOf(g1 to setOf("1", "2", "3"))
+
+        db.suspendTransaction {
+            SyncTestTable.sync(
+                key = SyncTestTable.groupId to g2,
+                data = listOf(2, 3, 4),
+            ) {
+                this[SyncTestTable.name] = it.toString()
+            }
+        }
+        loadData() shouldBe mapOf(g1 to setOf("1", "2", "3"), g2 to setOf("2", "3", "4"))
+
+        db.suspendTransaction {
+            SyncTestTable.sync(
+                key = SyncTestTable.groupId to g1,
+                data = listOf(3, 4),
+            ) {
+                this[SyncTestTable.name] = it.toString()
+            }
+        }
+        loadData() shouldBe mapOf(g1 to setOf("3", "4"), g2 to setOf("2", "3", "4"))
+
+        db.suspendTransaction {
+            SyncTestTable.sync(
+                key = SyncTestTable.groupId to g2,
+                data = listOf<Int>(),
+            ) {
+                this[SyncTestTable.name] = it.toString()
+            }
+        }
+        loadData() shouldBe mapOf(g1 to setOf("3", "4"))
     }
 }

@@ -15,6 +15,7 @@ import de.quati.pgen.tests.jdbc.basic.generated.db.foo._public.Orders
 import de.quati.pgen.tests.jdbc.basic.generated.db.foo._public.PgenTestTable
 import de.quati.pgen.tests.jdbc.basic.generated.db.foo._public.ProductType
 import de.quati.pgen.tests.jdbc.basic.generated.db.foo._public.Products
+import de.quati.pgen.tests.jdbc.basic.generated.db.foo._public.SyncTestTable
 import de.quati.pgen.tests.jdbc.basic.generated.db.foo._public.Users
 import de.quati.pgen.tests.jdbc.basic.shared.UserId
 import io.kotest.matchers.shouldBe
@@ -34,6 +35,7 @@ internal fun cleanUpAll(): Unit = db.transaction {
     Products.deleteAll()
     Users.deleteAll()
     PgenTestTable.deleteAll()
+    SyncTestTable.deleteAll()
 }
 
 internal fun createUserFixture(

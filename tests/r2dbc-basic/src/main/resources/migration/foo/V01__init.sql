@@ -139,3 +139,10 @@ create table public.pgen_test_table
     l_range_nullable  int8range,
     l_range           int8range not null
 );
+
+create table public.sync_test_table
+(
+    group_id uuid not null,
+    name     text not null,
+    constraint sync_test_table_pk primary key (group_id, name)
+);

@@ -15,6 +15,7 @@ import de.quati.pgen.tests.r2dbc.basic.generated.db.foo._public.Orders
 import de.quati.pgen.tests.r2dbc.basic.generated.db.foo._public.PgenTestTable
 import de.quati.pgen.tests.r2dbc.basic.generated.db.foo._public.ProductType
 import de.quati.pgen.tests.r2dbc.basic.generated.db.foo._public.Products
+import de.quati.pgen.tests.r2dbc.basic.generated.db.foo._public.SyncTestTable
 import de.quati.pgen.tests.r2dbc.basic.generated.db.foo._public.Users
 import de.quati.pgen.tests.r2dbc.basic.shared.UserId
 import io.kotest.matchers.shouldBe
@@ -34,6 +35,7 @@ internal suspend fun cleanUpAll(): Unit = db.suspendTransaction {
     Products.deleteAll()
     Users.deleteAll()
     PgenTestTable.deleteAll()
+    SyncTestTable.deleteAll()
 }
 
 internal suspend fun createUserFixture(

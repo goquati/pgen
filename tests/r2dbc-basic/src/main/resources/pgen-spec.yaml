@@ -269,6 +269,17 @@ tables:
   - "products_sku_unique"
   checkConstraints:
   - "products_price_positive"
+- name: "foo.public.sync_test_table"
+  columns:
+  - name: "group_id"
+    type: "UUID"
+  - name: "name"
+    type: "TEXT"
+  primaryKey:
+    keyName: "sync_test_table_pk"
+    columnNames:
+    - "group_id"
+    - "name"
 - name: "foo.public.users"
   columns:
   - name: "id"

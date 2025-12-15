@@ -1,4 +1,4 @@
-package de.quati.pgen.r2dbc.util
+package de.quati.pgen.jdbc.util
 
 import de.quati.pgen.core.util.SyncKeysBuilder
 import de.quati.pgen.core.util.SyncRowBuilder
@@ -9,14 +9,14 @@ import org.jetbrains.exposed.v1.core.Table
 import org.jetbrains.exposed.v1.core.compoundAnd
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.statements.buildStatement
-import org.jetbrains.exposed.v1.r2dbc.R2dbcTransaction
-import org.jetbrains.exposed.v1.r2dbc.deleteWhere
-import org.jetbrains.exposed.v1.r2dbc.statements.SuspendExecutable
-import org.jetbrains.exposed.v1.r2dbc.statements.api.R2dbcPreparedStatementApi
-import org.jetbrains.exposed.v1.r2dbc.transactions.TransactionManager
+import org.jetbrains.exposed.v1.jdbc.JdbcTransaction
+import org.jetbrains.exposed.v1.jdbc.deleteWhere
+import org.jetbrains.exposed.v1.jdbc.statements.BlockingExecutable
+import org.jetbrains.exposed.v1.jdbc.statements.api.JdbcPreparedStatementApi
+import org.jetbrains.exposed.v1.jdbc.transactions.TransactionManager
 
 
-public suspend fun <T : Table, K, V> T.sync(
+public fun <T : Table, K, V> T.sync(
     key: Pair<Column<K>, K>,
     data: Collection<V>,
     block: SyncRowBuilder.(V) -> Unit,
@@ -26,7 +26,7 @@ public suspend fun <T : Table, K, V> T.sync(
     block = block,
 )
 
-public suspend fun <T : Table, V> T.sync(
+public fun <T : Table, V> T.sync(
     keys: SyncKeysBuilder.() -> Unit,
     data: Collection<V>,
     block: SyncRowBuilder.(V) -> Unit,
@@ -38,14 +38,13 @@ public suspend fun <T : Table, V> T.sync(
 
 private class SyncSuspendExecutable(
     override val statement: SyncStatement
-) : SuspendExecutable<Unit, SyncStatement> {
-    override suspend fun R2dbcPreparedStatementApi.executeInternal(transaction: R2dbcTransaction) {
+) : BlockingExecutable<Unit, SyncStatement> {
+    override fun JdbcPreparedStatementApi.executeInternal(transaction: JdbcTransaction) {
         executeUpdate()
-        getResultRow()!!.collect()
     }
 }
 
-private suspend fun <T : Table, V> T.sync(
+private fun <T : Table, V> T.sync(
     keys: Map<Column<*>, QueryParameter<*>>,
     data: Collection<V>,
     block: SyncRowBuilder.(V) -> Unit,
