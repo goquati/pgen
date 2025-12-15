@@ -53,6 +53,14 @@ jobs:
           sed -i 's/id("de\.quati\.pgen") version "[^"]*"/id("de.quati.pgen") version "'"$VERSION"'"/' README.md
           sed -i 's/implementation("de\.quati\.pgen:r2dbc:[^"]*")/implementation("de.quati.pgen:r2dbc:'"$VERSION"'")/' README.md
 
+          sed -i 's/id("de\.quati\.pgen") version "[^"]*"/id("de.quati.pgen") version "'"$VERSION"'"/' example/jdbc/README.md
+          sed -i 's/id("de\.quati\.pgen") version "[^"]*"/id("de.quati.pgen") version "'"$VERSION"'"/' example/jdbc/build.gradle.kts
+          sed -i 's/implementation("de\.quati\.pgen:jdbc:[^"]*")/implementation("de.quati.pgen:jdbc:'"$VERSION"'")/' example/jdbc/build.gradle.kts
+
+          sed -i 's/id("de\.quati\.pgen") version "[^"]*"/id("de.quati.pgen") version "'"$VERSION"'"/' example/r2dbc/README.md
+          sed -i 's/id("de\.quati\.pgen") version "[^"]*"/id("de.quati.pgen") version "'"$VERSION"'"/' example/r2dbc/build.gradle.kts
+          sed -i 's/implementation("de\.quati\.pgen:r2dbc:[^"]*")/implementation("de.quati.pgen:r2dbc:'"$VERSION"'")/' example/r2dbc/build.gradle.kts
+
       - name: Commit changes
         shell: bash
         run: |

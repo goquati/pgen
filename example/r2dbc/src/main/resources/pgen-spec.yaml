@@ -1,0 +1,243 @@
+tables:
+- name: "base.public.documents"
+  columns:
+  - name: "id"
+    type: "UUID"
+    default: "gen_random_uuid()"
+  - name: "owner_id"
+    type:
+      type: "domain"
+      name: "base.public.user_id"
+      originalType: "UUID"
+  - name: "title"
+    type:
+      type: "domain"
+      name: "base.public.non_empty_text"
+      originalType: "TEXT"
+    isNullable: true
+  - name: "content"
+    type: "BINARY"
+    isNullable: true
+  - name: "content_type"
+    type: "TEXT"
+    default: "'application/octet-stream'::text"
+  - name: "metadata"
+    type: "JSONB"
+    default: "'{}'::jsonb"
+  - name: "tags"
+    type:
+      type: "array"
+      elementType: "TEXT"
+    default: "'{}'::text[]"
+  - name: "created_at"
+    type: "TIMESTAMP_WITH_TIMEZONE"
+    default: "now()"
+  - name: "updated_at"
+    type: "TIMESTAMP_WITH_TIMEZONE"
+    isNullable: true
+  primaryKey:
+    keyName: "documents_pkey"
+    columnNames:
+    - "id"
+  foreignKeys:
+  - name: "documents_owner_id_fkey"
+    targetTable: "base.public.users"
+    references:
+    - sourceColumn: "owner_id"
+      targetColumn: "id"
+  uniqueConstraints:
+  - "documents_owner_title_unique"
+  checkConstraints:
+  - "documents_updated_after_created"
+- name: "base.public.flyway_schema_history"
+  columns:
+  - name: "installed_rank"
+    type: "INT4"
+  - name: "version"
+    type: "VARCHAR"
+    isNullable: true
+  - name: "description"
+    type: "VARCHAR"
+  - name: "type"
+    type: "VARCHAR"
+  - name: "script"
+    type: "VARCHAR"
+  - name: "checksum"
+    type: "INT4"
+    isNullable: true
+  - name: "installed_by"
+    type: "VARCHAR"
+  - name: "installed_on"
+    type: "TIMESTAMP"
+    default: "now()"
+  - name: "execution_time"
+    type: "INT4"
+  - name: "success"
+    type: "BOOL"
+  primaryKey:
+    keyName: "flyway_schema_history_pk"
+    columnNames:
+    - "installed_rank"
+- name: "base.public.orders"
+  columns:
+  - name: "id"
+    type:
+      type: "domain"
+      name: "base.public.order_id"
+      originalType: "UUID"
+  - name: "order_uuid"
+    type: "UUID"
+    default: "gen_random_uuid()"
+  - name: "user_id"
+    type:
+      type: "domain"
+      name: "base.public.user_id"
+      originalType: "UUID"
+  - name: "product_id"
+    type: "INT4"
+  - name: "status"
+    type:
+      type: "enum"
+      name: "base.public.order_status"
+    default: "'PENDING'::order_status"
+  - name: "total_cents"
+    type: "INT4"
+  - name: "notes"
+    type: "TEXT"
+    isNullable: true
+  - name: "placed_at"
+    type: "TIMESTAMP_WITH_TIMEZONE"
+    default: "now()"
+  - name: "processed_at"
+    type: "TIMESTAMP"
+    isNullable: true
+  - name: "metadata"
+    type: "JSONB"
+    isNullable: true
+  - name: "raw_json_payload"
+    type: "JSON"
+    isNullable: true
+  - name: "receipt_pdf"
+    type: "BINARY"
+    isNullable: true
+  - name: "tags"
+    type:
+      type: "array"
+      elementType: "TEXT"
+    isNullable: true
+  primaryKey:
+    keyName: "orders_pkey"
+    columnNames:
+    - "id"
+  foreignKeys:
+  - name: "orders_product_fk"
+    targetTable: "base.public.products"
+    references:
+    - sourceColumn: "product_id"
+      targetColumn: "id"
+  - name: "orders_user_fk"
+    targetTable: "base.public.users"
+    references:
+    - sourceColumn: "user_id"
+      targetColumn: "id"
+  uniqueConstraints:
+  - "orders_unique_order_uuid"
+  checkConstraints:
+  - "orders_processed_after_placed"
+  - "orders_total_positive"
+- name: "base.public.products"
+  columns:
+  - name: "id"
+    type: "INT4"
+    default: "nextval('products_id_seq'::regclass)"
+  - name: "sku"
+    type: "TEXT"
+  - name: "name"
+    type:
+      type: "domain"
+      name: "base.public.non_empty_text"
+      originalType: "TEXT"
+  - name: "type"
+    type:
+      type: "enum"
+      name: "base.public.product_type"
+  - name: "description"
+    type: "TEXT"
+    isNullable: true
+  - name: "price_cents"
+    type: "INT4"
+  - name: "status"
+    type:
+      type: "enum"
+      name: "base.public.order_status"
+    default: "'PENDING'::order_status"
+  - name: "extra_data"
+    type: "JSON"
+    isNullable: true
+  - name: "created_at"
+    type: "TIMESTAMP"
+    default: "now()"
+  primaryKey:
+    keyName: "products_pkey"
+    columnNames:
+    - "id"
+  uniqueConstraints:
+  - "products_sku_unique"
+  checkConstraints:
+  - "products_price_positive"
+- name: "base.public.users"
+  columns:
+  - name: "id"
+    type:
+      type: "domain"
+      name: "base.public.user_id"
+      originalType: "UUID"
+    default: "gen_random_uuid()"
+  - name: "username"
+    type:
+      type: "domain"
+      name: "base.public.non_empty_text"
+      originalType: "TEXT"
+  - name: "email"
+    type: "TEXT"
+    isNullable: true
+  - name: "display_name"
+    type: "TEXT"
+    isNullable: true
+  - name: "roles"
+    type:
+      type: "array"
+      elementType: "TEXT"
+    default: "ARRAY['user'::text]"
+  - name: "preferences"
+    type: "JSONB"
+    default: "'{}'::jsonb"
+  - name: "created_at"
+    type: "TIMESTAMP_WITH_TIMEZONE"
+    default: "now()"
+  - name: "last_login_at"
+    type: "TIMESTAMP_WITH_TIMEZONE"
+    isNullable: true
+  primaryKey:
+    keyName: "users_pkey"
+    columnNames:
+    - "id"
+  uniqueConstraints:
+  - "users_email_unique"
+  - "users_username_unique"
+  checkConstraints:
+  - "users_roles_not_empty"
+enums:
+- name: "base.public.order_status"
+  fields:
+  - "PENDING"
+  - "PAID"
+  - "CANCELLED"
+  - "REFUNDED"
+- name: "base.public.product_type"
+  fields:
+  - "A"
+  - "B"
+  - "C"
+compositeTypes: []
+statements: []
