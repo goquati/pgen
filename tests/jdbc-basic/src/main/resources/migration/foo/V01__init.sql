@@ -10,13 +10,13 @@ create type public.product_type as enum ('a', 'b', 'c');
 -- ==========================================================
 -- Composite type
 -- ==========================================================
---create type public.address as -- TODO
---(
---    street      text,
---    city        text,
---    postal_code text,
---    country     text
---);
+create type public.address as
+(
+    street      text,
+    city        text,
+    postal_code text,
+    country     text
+);
 
 -- ==========================================================
 -- Domain types
@@ -89,7 +89,6 @@ create table public.orders
     metadata         jsonb,
     raw_json_payload json,
     receipt_pdf      bytea,
-    --shipping_address public.address,
     tags             text[],
 
     -- Foreign keys
@@ -132,12 +131,14 @@ create table public.documents
 create table public.pgen_test_table
 (
     key               citext primary key,
-    duration          interval  not null,
+    duration          interval       not null,
     duration_nullable interval,
     i_range_nullable  int4range,
-    i_range           int4range not null,
+    i_range           int4range      not null,
     l_range_nullable  int8range,
-    l_range           int8range not null
+    l_range           int8range      not null,
+    address_nullable  public.address,
+    address           public.address not null
 );
 
 create table public.sync_test_table

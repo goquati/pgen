@@ -225,6 +225,15 @@ tables:
     isNullable: true
   - name: "l_range"
     type: "INT8RANGE"
+  - name: "address_nullable"
+    type:
+      type: "composite"
+      name: "foo.public.address"
+    isNullable: true
+  - name: "address"
+    type:
+      type: "composite"
+      name: "foo.public.address"
   primaryKey:
     keyName: "pgen_test_table_pkey"
     columnNames:
@@ -334,5 +343,19 @@ enums:
   - "a"
   - "b"
   - "c"
-compositeTypes: []
+compositeTypes:
+- name: "foo.public.address"
+  columns:
+  - name: "street"
+    type: "TEXT"
+    isNullable: true
+  - name: "city"
+    type: "TEXT"
+    isNullable: true
+  - name: "postal_code"
+    type: "TEXT"
+    isNullable: true
+  - name: "country"
+    type: "TEXT"
+    isNullable: true
 statements: []

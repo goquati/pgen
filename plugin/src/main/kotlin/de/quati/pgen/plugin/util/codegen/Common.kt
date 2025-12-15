@@ -36,7 +36,9 @@ object Poet {
     val generateChannelFlow = ClassName("kotlinx.coroutines.flow", "channelFlow")
     val trySendBlocking = ClassName("kotlinx.coroutines.channels", "trySendBlocking")
 
-    val PGobject = ClassName("org.postgresql.util", "PGobject")
+    object Jdbc {
+        val PGobject = ClassName("org.postgresql.util", "PGobject")
+    }
 
     val codecRegistrar = ClassName("io.r2dbc.postgresql.extension", "CodecRegistrar")
     val flowSingleOrNull = ClassName("kotlinx.coroutines.flow", "singleOrNull")
@@ -56,6 +58,7 @@ object Poet {
             Config.ConnectionType.R2DBC -> packageName.plus("r2dbc")
         }
 
+        val preparedStatementApi = packageNameCore.plus("statements.api").className("PreparedStatementApi")
         val date = packageNameDatetime.className("date")
         val time = packageNameDatetime.className("time")
         val timestamp = packageNameDatetime.className("timestamp")
@@ -70,7 +73,6 @@ object Poet {
         val customFunction = packageNameCore.className("CustomFunction")
         val table = packageNameCore.className("Table")
         val transaction = packageNameCore.className("Transaction")
-        val columnType = packageNameCore.className("ColumnType")
         val primaryKey = packageNameCore.className("Table", "PrimaryKey")
         val column = packageNameCore.className("Column")
         val alias = packageNameCore.className("Alias")
@@ -158,10 +160,10 @@ object Poet {
 
         val stringLike = packageNameShared.className("StringLike")
         val regClass = packageNameShared.className("RegClass")
-
         val columnValueSet = packageNameCore.className("ColumnValueSet")
         val columnValue = packageNameCore.className("ColumnValue")
 
+        val compositeColumnType = packageNameCoreColumnType.className("CompositeColumnType")
         val regClassColumn = packageNameCoreColumnType.className("regClass")
         val regClassColumnType = packageNameCoreColumnType.className("RegClassColumnType")
 

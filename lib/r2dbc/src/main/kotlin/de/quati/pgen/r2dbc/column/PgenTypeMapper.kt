@@ -1,5 +1,6 @@
 package de.quati.pgen.r2dbc.column
 
+import de.quati.pgen.core.column.CompositeColumnType
 import de.quati.pgen.core.model.PgenMultiRange
 import de.quati.pgen.core.model.PgenRange
 import io.r2dbc.postgresql.codec.PostgresTypes
@@ -12,7 +13,6 @@ import org.jetbrains.exposed.v1.core.vendors.PostgreSQLDialect
 import org.jetbrains.exposed.v1.r2dbc.mappers.R2dbcTypeMapping
 import org.jetbrains.exposed.v1.r2dbc.mappers.TypeMapper
 import kotlin.reflect.KClass
-import kotlin.time.Duration
 
 
 public class PgenTypeMapper : TypeMapper {
@@ -25,6 +25,7 @@ public class PgenTypeMapper : TypeMapper {
         Int4RangeColumnType::class,
         Int8RangeColumnType::class,
         IntervalColumnType::class,
+        CompositeColumnType::class,
     )
 
     override fun setValue(
@@ -87,6 +88,14 @@ public class PgenTypeMapper : TypeMapper {
 
             is IntervalColumnType -> {
                 statement.bind(index - 1, Parameters.`in`(PG_INTERVAL_TYPE, value))
+                true
+            }
+
+            is CompositeColumnType<*> -> {
+                statement.bind(
+                    index - 1,
+                    Parameters.`in`(PostgresqlObjectId.UNSPECIFIED, value),
+                )
                 true
             }
 

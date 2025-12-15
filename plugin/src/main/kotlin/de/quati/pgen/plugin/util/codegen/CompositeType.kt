@@ -3,12 +3,14 @@ package de.quati.pgen.plugin.util.codegen
 import com.squareup.kotlinpoet.CodeBlock
 import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
+import com.squareup.kotlinpoet.asTypeName
 import de.quati.pgen.plugin.dsl.addCode
 import de.quati.pgen.plugin.dsl.addFunction
 import de.quati.pgen.plugin.dsl.addProperty
 import de.quati.pgen.plugin.dsl.buildDataClass
 import de.quati.pgen.plugin.dsl.buildObject
 import de.quati.pgen.plugin.dsl.primaryConstructor
+import de.quati.pgen.plugin.model.config.Config
 import de.quati.pgen.plugin.model.sql.Column
 import de.quati.pgen.plugin.model.sql.CompositeType
 
@@ -28,7 +30,7 @@ internal fun CompositeType.toTypeSpecInternal() = buildDataClass(this@toTypeSpec
     addType(
         buildObject("ColumnType") {
             superclass(
-                Poet.Exposed.columnType
+                Poet.Pgen.compositeColumnType
                     .parameterizedBy(this@toTypeSpecInternal.name.typeName)
             )
             addFunction("sqlType") {
@@ -42,7 +44,15 @@ internal fun CompositeType.toTypeSpecInternal() = buildDataClass(this@toTypeSpec
                 returns(this@toTypeSpecInternal.name.typeName)
                 addCode {
                     beginControlFlow("val fields = when (value)")
-                    add("is PGobject -> %T.parseFields(value.value ?: \"\")\n", Poet.Pgen.pgStructField)
+                    when (c.connectionType) {
+                        Config.ConnectionType.JDBC -> add(
+                            "is %T -> %T.parseFields(value.value ?: \"\")\n",
+                            Poet.Jdbc.PGobject,
+                            Poet.Pgen.pgStructField,
+                        )
+
+                        Config.ConnectionType.R2DBC -> Unit
+                    }
                     add("is String -> %T.parseFields(value)\n", Poet.Pgen.pgStructField)
                     add(
                         "else -> error(\"Unexpected value for " +
@@ -65,7 +75,7 @@ internal fun CompositeType.toTypeSpecInternal() = buildDataClass(this@toTypeSpec
             addFunction("notNullValueToDB") {
                 addModifiers(KModifier.OVERRIDE)
                 addParameter("value", this@toTypeSpecInternal.name.typeName)
-                returns(Any::class)
+                returns(String::class)
                 addCode {
                     beginControlFlow("val dataStr = buildList")
                     this@toTypeSpecInternal.columns.sortedBy { it.pos }.forEach { column ->
@@ -74,12 +84,26 @@ internal fun CompositeType.toTypeSpecInternal() = buildDataClass(this@toTypeSpec
                         add(".serialize(value.%L))\n", column.prettyName)
                     }
                     endControlFlow()
-                    beginControlFlow("return %T().apply", Poet.PGobject)
-                    add("this.value = dataStr.%T()\n", Poet.Pgen.pgStructFieldJoin)
-                    add("this.type = sqlType()\n")
-                    endControlFlow()
+                    add("return dataStr.%T()", Poet.Pgen.pgStructFieldJoin)
                 }
             }
+
+            if (c.connectionType == Config.ConnectionType.JDBC)
+                addFunction("setParameter") {
+                    addModifiers(KModifier.OVERRIDE)
+                    addParameter("stmt", Poet.Exposed.preparedStatementApi)
+                    addParameter("index", Int::class.asTypeName())
+                    addParameter("value", Any::class.asTypeName().copy(nullable = true))
+                    addCode {
+                        beginControlFlow("val parameterValue: %T? = value?.let", Poet.Jdbc.PGobject)
+                        beginControlFlow("%T().apply", Poet.Jdbc.PGobject)
+                        add("type = sqlType()\n")
+                        add("this.value = value as? String\n")
+                        endControlFlow()
+                        endControlFlow()
+                        add("super.setParameter(stmt, index, parameterValue)\n")
+                    }
+                }
         }
     )
 }
