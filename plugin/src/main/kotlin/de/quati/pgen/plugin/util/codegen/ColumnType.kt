@@ -27,7 +27,7 @@ fun Column.Type.getTypeName(innerArrayType: Boolean = true): TypeName = when (th
     Column.Type.Primitive.BINARY -> ByteArray::class.asTypeName()
     Column.Type.Primitive.VARCHAR -> String::class.asTypeName()
     Column.Type.Primitive.DATE -> Poet.localDate
-    Column.Type.Primitive.INTERVAL -> Poet.duration
+    Column.Type.Primitive.INTERVAL -> Poet.dateTimePeriod
     Column.Type.Primitive.INT4RANGE -> IntRange::class.asTypeName()
     Column.Type.Primitive.INT8RANGE -> LongRange::class.asTypeName()
     Column.Type.Primitive.INT4MULTIRANGE -> Poet.Pgen.multiRange.parameterizedBy(Int::class.asTypeName())
@@ -83,7 +83,7 @@ fun Column.Type.getExposedColumnType(): CodeBlock = when (this) {
     Column.Type.Primitive.BINARY -> codeBlock("%T()", Poet.Exposed.binaryColumnType)
     Column.Type.Primitive.VARCHAR -> codeBlock("%T()", Poet.Exposed.textColumnType)
     Column.Type.Primitive.DATE -> codeBlock("%T()", Poet.Exposed.kotlinLocalDateColumnType)
-    Column.Type.Primitive.INTERVAL -> codeBlock("%T()", Poet.Exposed.kotlinDurationColumnType)
+    Column.Type.Primitive.INTERVAL -> codeBlock("%T()", Poet.Pgen.intervalColumnType)
     Column.Type.Primitive.INT4RANGE -> codeBlock("%T()", Poet.Pgen.int4RangeColumnType)
     Column.Type.Primitive.INT8RANGE -> codeBlock("%T()", Poet.Pgen.int8RangeColumnType)
     Column.Type.Primitive.INT4MULTIRANGE -> codeBlock("%T()", Poet.Pgen.int4MultiRangeColumnType)

@@ -25,7 +25,7 @@ object Poet {
     val json = ClassName("kotlinx.serialization.json", "Json")
     val jsonElement = ClassName("kotlinx.serialization.json", "JsonElement")
 
-    val duration = ClassName("kotlin.time", "Duration")
+    val dateTimePeriod = ClassName("kotlinx.datetime", "DateTimePeriod")
     val instant = ClassName("kotlin.time", "Instant")
     val localTime = ClassName("kotlinx.datetime", "LocalTime")
     val localDate = ClassName("kotlinx.datetime", "LocalDate")
@@ -58,13 +58,11 @@ object Poet {
 
         val date = packageNameDatetime.className("date")
         val time = packageNameDatetime.className("time")
-        val durationColumn = packageNameDatetime.className("duration")
         val timestamp = packageNameDatetime.className("timestamp")
         val timestampWithTimeZone = packageNameDatetime.className("timestampWithTimeZone")
         val defaultExpTimestamp = packageNameDatetime.className("CurrentTimestamp")
         val defaultExpTimestampZ = packageNameDatetime.className("CurrentTimestampWithTimeZone")
         val kotlinLocalDateColumnType = packageNameDatetime.className("KotlinLocalDateColumnType")
-        val kotlinDurationColumnType = packageNameDatetime.className("KotlinDurationColumnType")
         val kotlinLocalTimeColumnType = packageNameDatetime.className("KotlinLocalTimeColumnType")
         val kotlinInstantColumnType = packageNameDatetime.className("KotlinInstantColumnType")
         val kotlinOffsetDateTimeColumnType = packageNameDatetime.className("KotlinOffsetDateTimeColumnType")
@@ -222,10 +220,16 @@ object Poet {
         val int8MultiRange get() = packageNameDriverColumnType.className("int8MultiRange")
 
         context(c: CodeGenContext)
-        val citextColumnType get() = packageNameCoreColumnType.className("CitextColumnType")
+        val citextColumnType get() = packageNameDriverColumnType.className("CitextColumnType")
 
         context(c: CodeGenContext)
-        val citext get() = packageNameCoreColumnType.className("citext")
+        val citext get() = packageNameDriverColumnType.className("citext")
+
+        context(c: CodeGenContext)
+        val intervalColumnType get() = packageNameDriverColumnType.className("IntervalColumnType")
+
+        context(c: CodeGenContext)
+        val interval get() = packageNameDriverColumnType.className("interval")
 
         val getColumnWithAlias = packageNameCoreUtil.className("get")
 

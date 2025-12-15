@@ -1,4 +1,4 @@
-package de.quati.pgen.core.column
+package de.quati.pgen.r2dbc.column
 
 import org.jetbrains.exposed.v1.core.Column
 import org.jetbrains.exposed.v1.core.Table

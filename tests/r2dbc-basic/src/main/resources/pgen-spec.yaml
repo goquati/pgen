@@ -210,6 +210,11 @@ tables:
   columns:
   - name: "key"
     type: "CITEXT"
+  - name: "duration"
+    type: "INTERVAL"
+  - name: "duration_nullable"
+    type: "INTERVAL"
+    isNullable: true
   - name: "i_range_nullable"
     type: "INT4RANGE"
     isNullable: true

@@ -131,9 +131,11 @@ create table public.documents
 
 create table public.pgen_test_table
 (
-    key              citext primary key,
-    i_range_nullable int4range,
-    i_range          int4range not null,
-    l_range_nullable int8range,
-    l_range          int8range not null
+    key               citext primary key,
+    duration          interval  not null,
+    duration_nullable interval,
+    i_range_nullable  int4range,
+    i_range           int4range not null,
+    l_range_nullable  int8range,
+    l_range           int8range not null
 );
