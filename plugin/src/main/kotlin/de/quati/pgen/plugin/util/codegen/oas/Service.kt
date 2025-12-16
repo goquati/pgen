@@ -21,11 +21,12 @@ import de.quati.pgen.plugin.util.codegen.getColumnTypeName
 context(c: CodeGenContext, mapperConfig: Config.OasConfig.Mapper)
 fun FileSpec.Builder.addTableService(data: TableOasData) = addInterface(data.getOasServiceName()) {
 
-    val idType = data.sqlData.columns.singleOrNull { it.prettyName == "id" }
-        // TODO check if id is primary key
-        ?.getColumnTypeName()
-        ?: error("no id column found")
-
+    val idType = with(data.sqlData.dbName.toContext()) {
+        data.sqlData.columns.singleOrNull { it.prettyName == "id" }
+            // TODO check if id is primary key
+            ?.getColumnTypeName()
+            ?: error("no id column found")
+    }
     addProperty("db", Poet.Exposed.database())
 
     addFunction("getById") {

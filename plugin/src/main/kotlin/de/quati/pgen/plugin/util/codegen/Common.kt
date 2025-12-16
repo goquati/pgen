@@ -164,8 +164,11 @@ object Poet {
         val columnValue = packageNameCore.className("ColumnValue")
 
         val compositeColumnType = packageNameCoreColumnType.className("CompositeColumnType")
-        val regClassColumn = packageNameCoreColumnType.className("regClass")
-        val regClassColumnType = packageNameCoreColumnType.className("RegClassColumnType")
+        context(c: CodeGenContext)
+        val regClassColumn get() = packageNameDriverColumnType.className("regClass")
+
+        context(c: CodeGenContext)
+        val regClassColumnType get() = packageNameDriverColumnType.className("RegClassColumnType")
 
         val domainType = packageNameCoreColumnType.className("domainType")
         val domainTypeColumn = packageNameCoreColumnType.className("DomainTypeColumn")

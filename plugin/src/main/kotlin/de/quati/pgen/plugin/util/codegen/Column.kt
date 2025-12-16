@@ -4,6 +4,7 @@ import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.asTypeName
 import de.quati.pgen.plugin.model.sql.Column
+import de.quati.pgen.plugin.util.codegen.oas.DbContext
 
 
 context(_: CodeGenContext)
@@ -34,7 +35,7 @@ private fun Column.getDefaultExpression(): Pair<String, List<Any>>? = when (type
     else -> null
 }
 
-context(c: CodeGenContext)
+context(c: CodeGenContext, _: DbContext)
 fun PropertySpec.Builder.initializer(column: Column, postfix: String, postArgs: List<Any>) {
     val columnName = column.name.value
     var postfix = postfix
@@ -252,10 +253,15 @@ fun PropertySpec.Builder.initializer(column: Column, postfix: String, postArgs: 
             columnName,
             *postArgs
         )
+
+        is Column.Type.CustomPrimitive -> @Suppress("SpreadOperator") initializer(
+            "registerColumn(name = %S, type = %T())$postfix",
+            columnName, c.getColumnTypeMapping(type).columnType.poet, *postArgs
+        )
     }
 }
 
-context(c: CodeGenContext)
+context(_: CodeGenContext, _: DbContext)
 internal fun Column.getColumnTypeName() = when (type) {
     is Column.Type.NonPrimitive.Array -> List::class.asTypeName()
         .parameterizedBy(type.getTypeName())

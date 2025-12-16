@@ -13,6 +13,7 @@ import de.quati.pgen.plugin.dsl.primaryConstructor
 import de.quati.pgen.plugin.model.config.Config
 import de.quati.pgen.plugin.model.sql.Column
 import de.quati.pgen.plugin.model.sql.CompositeType
+import de.quati.pgen.plugin.util.codegen.oas.DbContext
 
 
 context(c: CodeGenContext)
@@ -108,7 +109,7 @@ internal fun CompositeType.toTypeSpecInternal() = buildDataClass(this@toTypeSpec
     )
 }
 
-context(c: CodeGenContext)
+context(_: CodeGenContext, _: DbContext)
 private fun CodeBlock.Builder.addPgFieldConverter(type: Column.Type) = when (type) {
     Column.Type.Primitive.BOOL,
     Column.Type.Primitive.DATE,
@@ -130,7 +131,8 @@ private fun CodeBlock.Builder.addPgFieldConverter(type: Column.Type) = when (typ
     is Column.Type.NonPrimitive.PgVector,
     is Column.Type.NonPrimitive.Composite,
     is Column.Type.NonPrimitive.Domain,
-    is Column.Type.NonPrimitive.Reference ->
+    is Column.Type.NonPrimitive.Reference,
+    is Column.Type.CustomPrimitive ->
         throw NotImplementedError("Unsupported composite field type ${type.sqlType}")
 
     is Column.Type.NonPrimitive.Enum -> add("%T.Enum(%T::class)", Poet.Pgen.pgStructFieldConverter, type.getTypeName())

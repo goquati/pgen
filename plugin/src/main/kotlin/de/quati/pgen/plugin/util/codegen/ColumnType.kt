@@ -5,11 +5,12 @@ import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.asTypeName
 import de.quati.pgen.plugin.model.sql.Column
+import de.quati.pgen.plugin.util.codegen.oas.DbContext
 import java.math.BigDecimal
 import java.util.UUID
 
 
-context(c: CodeGenContext)
+context(c: CodeGenContext, _: DbContext)
 fun Column.Type.getTypeName(innerArrayType: Boolean = true): TypeName = when (this) {
     is Column.Type.NonPrimitive.Array -> if (innerArrayType)
         elementType.getTypeName()
@@ -46,11 +47,12 @@ fun Column.Type.getTypeName(innerArrayType: Boolean = true): TypeName = when (th
     Column.Type.Primitive.UUID -> UUID::class.asTypeName()
     Column.Type.Primitive.UNCONSTRAINED_NUMERIC -> BigDecimal::class.asTypeName()
     Column.Type.Primitive.REG_CLASS -> Poet.Pgen.regClass
+    is Column.Type.CustomPrimitive -> c.getColumnTypeMapping(this).value.poet
 }
 
 private fun codeBlock(format: String, vararg args: Any) = CodeBlock.builder().add(format, *args).build()
 
-context(c: CodeGenContext)
+context(c: CodeGenContext, _: DbContext)
 fun Column.Type.getExposedColumnType(): CodeBlock = when (this) {
     is Column.Type.NonPrimitive.Array ->
         codeBlock("%T(%L)", Poet.Pgen.getArrayColumnType, elementType.getExposedColumnType())
@@ -102,4 +104,5 @@ fun Column.Type.getExposedColumnType(): CodeBlock = when (this) {
     Column.Type.Primitive.JSONB -> codeBlock("%T()", Poet.Pgen.defaultJsonColumnType)
     Column.Type.Primitive.UNCONSTRAINED_NUMERIC -> codeBlock("%T()", Poet.Pgen.unconstrainedNumericColumnType)
     Column.Type.Primitive.REG_CLASS -> codeBlock("%T()", Poet.Pgen.regClassColumnType)
+    is Column.Type.CustomPrimitive -> codeBlock("%T()", c.getColumnTypeMapping(this).columnType.poet)
 }

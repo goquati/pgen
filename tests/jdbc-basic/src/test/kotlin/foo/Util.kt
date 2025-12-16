@@ -8,6 +8,7 @@ import de.quati.pgen.jdbc.util.transactionCatching
 import de.quati.pgen.shared.PgenException
 import de.quati.pgen.tests.jdbc.basic.createDb
 import de.quati.pgen.tests.jdbc.basic.generated.db.foo._public.Documents
+import de.quati.pgen.tests.jdbc.basic.generated.db.foo._public.Ips
 import de.quati.pgen.tests.jdbc.basic.generated.db.foo._public.NonEmptyTextDomain
 import de.quati.pgen.tests.jdbc.basic.generated.db.foo._public.OrderId
 import de.quati.pgen.tests.jdbc.basic.generated.db.foo._public.OrderStatus
@@ -36,6 +37,7 @@ internal fun cleanUpAll(): Unit = db.transaction {
     Users.deleteAll()
     PgenTestTable.deleteAll()
     SyncTestTable.deleteAll()
+    Ips.deleteAll()
 }
 
 internal fun createUserFixture(

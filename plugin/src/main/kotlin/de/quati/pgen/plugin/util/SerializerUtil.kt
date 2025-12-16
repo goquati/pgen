@@ -14,6 +14,7 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerializationException
+import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
@@ -31,24 +32,27 @@ object ColumnTypeSerializer : KSerializer<Column.Type> {
 
     override fun serialize(encoder: Encoder, value: Column.Type) {
         when (value) {
-            is Column.Type.Primitive ->
-                encoder.encodeSerializableValue(Column.Type.Primitive.serializer(), value)
-
+            is Column.Type.Primitive -> encoder.encodeSerializableValue(String.serializer(), value.sqlType)
+            is Column.Type.CustomPrimitive -> encoder.encodeSerializableValue(String.serializer(), value.sqlType)
             is Column.Type.NonPrimitive ->
                 encoder.encodeSerializableValue(Column.Type.NonPrimitive.serializer(), value)
         }
     }
 
+    private fun String.deserialize() =
+        Column.Type.Primitive.entries.firstOrNull { it.sqlType.equals(this, ignoreCase = true) }
+            ?: Column.Type.CustomPrimitive(this)
+
     override fun deserialize(decoder: Decoder): Column.Type = when (decoder) {
         is JsonDecoder -> when (val node = decoder.decodeJsonElement()) {
-            is JsonPrimitive -> Column.Type.Primitive.valueOf(node.content)
+            is JsonPrimitive -> node.content.deserialize()
             is JsonObject -> decoder.json.decodeFromJsonElement<Column.Type.NonPrimitive>(node)
             else -> throw SerializationException("Invalid JSON for Column.Type")
         }
 
         is YamlInput -> {
             when (val node = decoder.node) {
-                is YamlScalar -> Column.Type.Primitive.valueOf(node.content)
+                is YamlScalar -> node.content.deserialize()
                 is YamlMap -> decoder.decodeSerializableValue(Column.Type.NonPrimitive.serializer())
                 else -> throw SerializationException("Invalid YAML for Column.Type")
             }

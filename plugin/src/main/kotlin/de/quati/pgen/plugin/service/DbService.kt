@@ -2,6 +2,7 @@ package de.quati.pgen.plugin.service
 
 import de.quati.pgen.plugin.dsl.execute
 import de.quati.pgen.plugin.dsl.executeQuery
+import de.quati.pgen.plugin.model.config.ColumnTypeMapping
 import de.quati.pgen.plugin.model.config.Config
 import de.quati.pgen.plugin.model.config.SqlObjectFilter
 import de.quati.pgen.plugin.model.sql.*
@@ -16,8 +17,10 @@ import java.sql.ResultSet
 
 class DbService(
     val dbName: DbName,
+    columnTypeMappings: Collection<ColumnTypeMapping>,
     connectionConfig: Config.Db.DbConnectionConfig
 ) : Closeable {
+    val columnTypeMappings = columnTypeMappings.associateBy { it.sqlType }
     private val connection = DriverManager.getConnection(
         connectionConfig.url,
         connectionConfig.user,
@@ -113,6 +116,7 @@ class DbService(
     ): Type {
         val schema = dbName.toSchema(getString("column_type_schema")!!)
         val columnTypeName = udtNameOverride ?: getString("column_type_name")!!
+        val sqlTypeName = SqlObjectName(schema = schema, name = columnTypeName)
         val columnTypeCategory = columnTypeCategoryOverride ?: getString("column_type_category")!!
         if (columnTypeName.startsWith("_")) return NonPrimitive.Array(
             getColumnType(
@@ -121,19 +125,24 @@ class DbService(
             )
         )
 
+        columnTypeMappings[sqlTypeName]?.also {
+            return it.toCustomPrimitiveType()
+        }
+
         if (schema != dbName.schemaPgCatalog) {
             fun unknownError(): Nothing =
                 error("Unknown column type '$columnTypeCategory' for column type '$schema:$columnTypeName'")
             return when (columnTypeCategory) {
-                "E" -> NonPrimitive.Enum(SqlObjectName(schema = schema, name = columnTypeName))
-                "C" -> NonPrimitive.Composite(SqlObjectName(schema = schema, name = columnTypeName))
+                "E" -> NonPrimitive.Enum(sqlTypeName)
+                "C" -> NonPrimitive.Composite(sqlTypeName)
                 "U" -> {
                     when (columnTypeName) {
                         NonPrimitive.PgVector.VECTOR_NAME -> NonPrimitive.PgVector(schema = schema.schemaName)
                         else -> unknownError()
                     }
                 }
-                "S" -> when(columnTypeName) {
+
+                "S" -> when (columnTypeName) {
                     "citext" -> Primitive.CITEXT
                     else -> unknownError()
                 }

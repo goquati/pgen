@@ -2,6 +2,7 @@ package de.quati.pgen.plugin.util.codegen
 
 import com.squareup.kotlinpoet.ClassName
 import de.quati.pgen.plugin.dsl.PackageName
+import de.quati.pgen.plugin.model.config.ColumnTypeMapping
 import de.quati.pgen.plugin.model.config.Config
 import de.quati.pgen.plugin.model.config.Config.OasConfig.LocalConfigContext
 import de.quati.pgen.plugin.model.sql.Column
@@ -10,16 +11,24 @@ import de.quati.pgen.plugin.model.sql.KotlinValueClass
 import de.quati.pgen.plugin.model.sql.SqlColumnName
 import de.quati.pgen.plugin.model.sql.SqlObjectName
 import de.quati.pgen.plugin.model.sql.Table
+import de.quati.pgen.plugin.util.codegen.oas.DbContext
 
 class CodeGenContext(
     rootPackageName: PackageName,
     val typeMappings: Map<SqlObjectName, KotlinValueClass>,
     val enumMappings: Map<SqlObjectName, KotlinEnumClass>,
+    columnTypeMappings: Collection<ColumnTypeMapping>,
     typeOverwrites: Map<SqlColumnName, KotlinValueClass>,
     typeGroups: List<Set<SqlColumnName>>,
     val connectionType: Config.ConnectionType,
     localConfigContext: LocalConfigContext?,
 ) {
+    val columnTypeMappings = columnTypeMappings.associateBy { it.sqlType }
+
+    context(d: DbContext)
+    fun getColumnTypeMapping(type: Column.Type.CustomPrimitive) =
+        columnTypeMappings[type.sqlObjectName] ?: error("no column type mapping for ${type.sqlObjectName}")
+
     val localConfigContext = localConfigContext?.let { c ->
         c.copy(
             type = ClassName(

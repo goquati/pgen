@@ -1,12 +1,14 @@
 package de.quati.pgen.r2dbc.column
 
 import de.quati.pgen.core.column.CompositeColumnType
+import de.quati.pgen.core.column.PgenColumnType
 import de.quati.pgen.core.model.PgenMultiRange
 import de.quati.pgen.core.model.PgenRange
 import io.r2dbc.postgresql.codec.PostgresTypes
 import io.r2dbc.postgresql.codec.PostgresqlObjectId
 import io.r2dbc.spi.Parameters
 import io.r2dbc.spi.Statement
+import io.r2dbc.spi.Type
 import org.jetbrains.exposed.v1.core.IColumnType
 import org.jetbrains.exposed.v1.core.vendors.DatabaseDialect
 import org.jetbrains.exposed.v1.core.vendors.PostgreSQLDialect
@@ -26,6 +28,7 @@ public class PgenTypeMapper : TypeMapper {
         Int8RangeColumnType::class,
         IntervalColumnType::class,
         CompositeColumnType::class,
+        PgenColumnType::class,
     )
 
     override fun setValue(
@@ -92,10 +95,12 @@ public class PgenTypeMapper : TypeMapper {
             }
 
             is CompositeColumnType<*> -> {
-                statement.bind(
-                    index - 1,
-                    Parameters.`in`(PostgresqlObjectId.UNSPECIFIED, value),
-                )
+                statement.bind(index - 1, Parameters.`in`(PostgresqlObjectId.UNSPECIFIED, value))
+                true
+            }
+
+            is PgenColumnType -> {
+                statement.bind(index - 1, Parameters.`in`(columnType.typeInfo.toPostgresType(), value))
                 true
             }
 
@@ -104,7 +109,12 @@ public class PgenTypeMapper : TypeMapper {
     }
 
     private companion object {
-        private fun createType(oid: Int, typarray: Int, name: String, category: String) =
+        private fun PgenColumnType.TypeInfo?.toPostgresType(): Type = if (this == null)
+            PostgresqlObjectId.UNSPECIFIED
+        else
+            PostgresTypes.PostgresType(oid, unsignedOid, typarray, unsignedTyparrayval, name, category)
+
+        private fun createType(oid: Int, typarray: Int, name: String, category: String): PostgresTypes.PostgresType =
             PostgresTypes.PostgresType(oid, oid.toLong(), typarray, typarray.toLong(), name, category)
 
         private val PG_INT4RANGE_TYPE = createType(3904, typarray = 3905, name = "int4range", category = "R")
