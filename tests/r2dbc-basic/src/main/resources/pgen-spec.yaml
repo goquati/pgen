@@ -2,28 +2,28 @@ tables:
 - name: "bar.public.flyway_schema_history"
   columns:
   - name: "installed_rank"
-    type: "INT4"
+    type: "int4"
   - name: "version"
-    type: "VARCHAR"
+    type: "varchar"
     isNullable: true
   - name: "description"
-    type: "VARCHAR"
+    type: "varchar"
   - name: "type"
-    type: "VARCHAR"
+    type: "varchar"
   - name: "script"
-    type: "VARCHAR"
+    type: "varchar"
   - name: "checksum"
-    type: "INT4"
+    type: "int4"
     isNullable: true
   - name: "installed_by"
-    type: "VARCHAR"
+    type: "varchar"
   - name: "installed_on"
-    type: "TIMESTAMP"
+    type: "timestamp"
     default: "now()"
   - name: "execution_time"
-    type: "INT4"
+    type: "int4"
   - name: "success"
-    type: "BOOL"
+    type: "bool"
   primaryKey:
     keyName: "flyway_schema_history_pk"
     columnNames:
@@ -31,26 +31,26 @@ tables:
 - name: "bar.public.item_embeddings"
   columns:
   - name: "id"
-    type: "INT8"
+    type: "int8"
     default: "nextval('item_embeddings_id_seq'::regclass)"
   - name: "item_uuid"
-    type: "UUID"
+    type: "uuid"
     default: "gen_random_uuid()"
   - name: "title"
-    type: "TEXT"
+    type: "text"
   - name: "description"
-    type: "TEXT"
+    type: "text"
     isNullable: true
   - name: "embedding"
     type:
       type: "pgvector"
       schema: "public"
   - name: "metadata"
-    type: "JSONB"
+    type: "jsonb"
     isNullable: true
     default: "'{}'::jsonb"
   - name: "created_at"
-    type: "TIMESTAMP_WITH_TIMEZONE"
+    type: "timestamptz"
     default: "now()"
   primaryKey:
     keyName: "item_embeddings_pkey"
@@ -63,38 +63,38 @@ tables:
 - name: "foo.public.documents"
   columns:
   - name: "id"
-    type: "UUID"
+    type: "uuid"
     default: "gen_random_uuid()"
   - name: "owner_id"
     type:
       type: "domain"
       name: "foo.public.user_id"
-      originalType: "UUID"
+      originalType: "uuid"
   - name: "title"
     type:
       type: "domain"
       name: "foo.public.non_empty_text_domain"
-      originalType: "TEXT"
+      originalType: "text"
     isNullable: true
   - name: "content"
-    type: "BINARY"
+    type: "bytea"
     isNullable: true
   - name: "content_type"
-    type: "TEXT"
+    type: "text"
     default: "'application/octet-stream'::text"
   - name: "metadata"
-    type: "JSONB"
+    type: "jsonb"
     default: "'{}'::jsonb"
   - name: "tags"
     type:
       type: "array"
-      elementType: "TEXT"
+      elementType: "text"
     default: "'{}'::text[]"
   - name: "created_at"
-    type: "TIMESTAMP_WITH_TIMEZONE"
+    type: "timestamptz"
     default: "now()"
   - name: "updated_at"
-    type: "TIMESTAMP_WITH_TIMEZONE"
+    type: "timestamptz"
     isNullable: true
   primaryKey:
     keyName: "documents_pkey"
@@ -113,78 +113,91 @@ tables:
 - name: "foo.public.flyway_schema_history"
   columns:
   - name: "installed_rank"
-    type: "INT4"
+    type: "int4"
   - name: "version"
-    type: "VARCHAR"
+    type: "varchar"
     isNullable: true
   - name: "description"
-    type: "VARCHAR"
+    type: "varchar"
   - name: "type"
-    type: "VARCHAR"
+    type: "varchar"
   - name: "script"
-    type: "VARCHAR"
+    type: "varchar"
   - name: "checksum"
-    type: "INT4"
+    type: "int4"
     isNullable: true
   - name: "installed_by"
-    type: "VARCHAR"
+    type: "varchar"
   - name: "installed_on"
-    type: "TIMESTAMP"
+    type: "timestamp"
     default: "now()"
   - name: "execution_time"
-    type: "INT4"
+    type: "int4"
   - name: "success"
-    type: "BOOL"
+    type: "bool"
   primaryKey:
     keyName: "flyway_schema_history_pk"
     columnNames:
     - "installed_rank"
+- name: "foo.public.ips"
+  columns:
+  - name: "key"
+    type: "text"
+  - name: "i"
+    type: "pg_catalog.inet"
+  - name: "i_nullable"
+    type: "pg_catalog.inet"
+    isNullable: true
+  primaryKey:
+    keyName: "ips_pkey"
+    columnNames:
+    - "key"
 - name: "foo.public.orders"
   columns:
   - name: "id"
     type:
       type: "domain"
       name: "foo.public.order_id"
-      originalType: "UUID"
+      originalType: "uuid"
   - name: "order_uuid"
-    type: "UUID"
+    type: "uuid"
     default: "gen_random_uuid()"
   - name: "user_id"
     type:
       type: "domain"
       name: "foo.public.user_id"
-      originalType: "UUID"
+      originalType: "uuid"
   - name: "product_id"
-    type: "INT4"
+    type: "int4"
   - name: "status"
     type:
       type: "enum"
       name: "foo.public.order_status"
     default: "'pending'::order_status"
   - name: "total_cents"
-    type: "INT4"
+    type: "int4"
   - name: "notes"
-    type: "TEXT"
+    type: "text"
     isNullable: true
   - name: "placed_at"
-    type: "TIMESTAMP_WITH_TIMEZONE"
+    type: "timestamptz"
     default: "now()"
   - name: "processed_at"
-    type: "TIMESTAMP"
+    type: "timestamp"
     isNullable: true
   - name: "metadata"
-    type: "JSONB"
+    type: "jsonb"
     isNullable: true
   - name: "raw_json_payload"
-    type: "JSON"
+    type: "json"
     isNullable: true
   - name: "receipt_pdf"
-    type: "BINARY"
+    type: "bytea"
     isNullable: true
   - name: "tags"
     type:
       type: "array"
-      elementType: "TEXT"
+      elementType: "text"
     isNullable: true
   primaryKey:
     keyName: "orders_pkey"
@@ -209,22 +222,22 @@ tables:
 - name: "foo.public.pgen_test_table"
   columns:
   - name: "key"
-    type: "CITEXT"
+    type: "citext"
   - name: "duration"
-    type: "INTERVAL"
+    type: "interval"
   - name: "duration_nullable"
-    type: "INTERVAL"
+    type: "interval"
     isNullable: true
   - name: "i_range_nullable"
-    type: "INT4RANGE"
+    type: "int4range"
     isNullable: true
   - name: "i_range"
-    type: "INT4RANGE"
+    type: "int4range"
   - name: "l_range_nullable"
-    type: "INT8RANGE"
+    type: "int8range"
     isNullable: true
   - name: "l_range"
-    type: "INT8RANGE"
+    type: "int8range"
   - name: "address_nullable"
     type:
       type: "composite"
@@ -234,6 +247,11 @@ tables:
     type:
       type: "composite"
       name: "foo.public.address"
+  - name: "table_nullable"
+    type: "regclass"
+    isNullable: true
+  - name: "table"
+    type: "regclass"
   primaryKey:
     keyName: "pgen_test_table_pkey"
     columnNames:
@@ -241,34 +259,34 @@ tables:
 - name: "foo.public.products"
   columns:
   - name: "id"
-    type: "INT4"
+    type: "int4"
     default: "nextval('products_id_seq'::regclass)"
   - name: "sku"
-    type: "TEXT"
+    type: "text"
   - name: "name"
     type:
       type: "domain"
       name: "foo.public.non_empty_text_domain"
-      originalType: "TEXT"
+      originalType: "text"
   - name: "type"
     type:
       type: "enum"
       name: "foo.public.product_type"
   - name: "description"
-    type: "TEXT"
+    type: "text"
     isNullable: true
   - name: "price_cents"
-    type: "INT4"
+    type: "int4"
   - name: "status"
     type:
       type: "enum"
       name: "foo.public.order_status"
     default: "'pending'::order_status"
   - name: "extra_data"
-    type: "JSON"
+    type: "json"
     isNullable: true
   - name: "created_at"
-    type: "TIMESTAMP"
+    type: "timestamp"
     default: "now()"
   primaryKey:
     keyName: "products_pkey"
@@ -281,9 +299,9 @@ tables:
 - name: "foo.public.sync_test_table"
   columns:
   - name: "group_id"
-    type: "UUID"
+    type: "uuid"
   - name: "name"
-    type: "TEXT"
+    type: "text"
   primaryKey:
     keyName: "sync_test_table_pk"
     columnNames:
@@ -295,32 +313,32 @@ tables:
     type:
       type: "domain"
       name: "foo.public.user_id"
-      originalType: "UUID"
+      originalType: "uuid"
     default: "gen_random_uuid()"
   - name: "username"
     type:
       type: "domain"
       name: "foo.public.non_empty_text_domain"
-      originalType: "TEXT"
+      originalType: "text"
   - name: "email"
-    type: "TEXT"
+    type: "text"
     isNullable: true
   - name: "display_name"
-    type: "TEXT"
+    type: "text"
     isNullable: true
   - name: "roles"
     type:
       type: "array"
-      elementType: "TEXT"
+      elementType: "text"
     default: "ARRAY['user'::text]"
   - name: "preferences"
-    type: "JSONB"
+    type: "jsonb"
     default: "'{}'::jsonb"
   - name: "created_at"
-    type: "TIMESTAMP_WITH_TIMEZONE"
+    type: "timestamptz"
     default: "now()"
   - name: "last_login_at"
-    type: "TIMESTAMP_WITH_TIMEZONE"
+    type: "timestamptz"
     isNullable: true
   primaryKey:
     keyName: "users_pkey"
@@ -347,15 +365,15 @@ compositeTypes:
 - name: "foo.public.address"
   columns:
   - name: "street"
-    type: "TEXT"
+    type: "text"
     isNullable: true
   - name: "city"
-    type: "TEXT"
+    type: "text"
     isNullable: true
   - name: "postal_code"
-    type: "TEXT"
+    type: "text"
     isNullable: true
   - name: "country"
-    type: "TEXT"
+    type: "text"
     isNullable: true
 statements: []

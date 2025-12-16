@@ -47,6 +47,7 @@ private fun generateSpec(config: Config) {
     val specData = config.dbConfigs.map { configDb ->
         DbService(
             dbName = configDb.dbName,
+            columnTypeMappings = configDb.columnTypeMappings,
             connectionConfig = configDb.connectionConfig ?: error("no DB connection config defined")
         ).use { dbService ->
             val statements = dbService.getStatements(parseStatements(configDb.statementScripts))
@@ -140,9 +141,10 @@ private fun generateCode(config: Config) {
             .associate { it.sqlType to it.enumClass },
         typeOverwrites = config.dbConfigs.flatMap(Config.Db::typeOverwrites)
             .associate { it.sqlColumn to it.valueClass },
+        columnTypeMappings = config.dbConfigs.flatMap(Config.Db::columnTypeMappings),
         typeGroups = spec.tables.getColumnTypeGroups(),
         connectionType = config.connectionType,
-        localConfigContext = config.oasConfig?.localConfigContext,
+        localConfigContext = config.oasConfig?.localConfigContext
     ).run {
         println("sync code files to ${config.outputPath}")
         directorySync(config.outputPath) {

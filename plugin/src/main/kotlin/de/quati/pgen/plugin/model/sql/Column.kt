@@ -4,6 +4,7 @@ import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.TypeName
 import de.quati.pgen.plugin.util.ColumnTypeSerializer
 import de.quati.pgen.plugin.util.codegen.CodeGenContext
+import de.quati.pgen.plugin.util.codegen.oas.DbContext
 import de.quati.pgen.plugin.util.makeDifferent
 import de.quati.pgen.plugin.util.toCamelCase
 import kotlinx.serialization.SerialName
@@ -158,7 +159,23 @@ data class Column(
             }
         }
 
-        @Serializable
+        data class CustomPrimitive(override val sqlType: String) : Type {
+
+            context(c: DbContext)
+            val sqlObjectName
+                get(): SqlObjectName {
+                    val (schemaName, typeName) = sqlType.split(".")
+                        .also { require(it.size == 2) { "invalid sql type name '$sqlType'" } }
+                    return SqlObjectName(
+                        schema = SchemaName(
+                            dbName = c.dbName,
+                            schemaName = schemaName
+                        ),
+                        name = typeName
+                    )
+                }
+        }
+
         enum class Primitive(override val sqlType: String) : Type {
             BOOL("bool"),
             BINARY("bytea"),

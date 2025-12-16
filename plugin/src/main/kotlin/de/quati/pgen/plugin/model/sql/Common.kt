@@ -7,6 +7,7 @@ import de.quati.pgen.plugin.util.KotlinClassNameSerializer
 import de.quati.pgen.plugin.util.SqlColumnNameSerializer
 import de.quati.pgen.plugin.util.SqlObjectNameSerializer
 import de.quati.pgen.plugin.util.SqlStatementNameSerializer
+import de.quati.pgen.plugin.util.codegen.oas.DbContext
 import de.quati.pgen.plugin.util.kotlinKeywords
 import de.quati.pgen.plugin.util.makeDifferent
 import de.quati.pgen.plugin.util.toCamelCase
@@ -16,6 +17,8 @@ import kotlinx.serialization.Serializable
 value class DbName(val name: String) : Comparable<DbName> {
     override fun compareTo(other: DbName) = name.compareTo(other.name)
     override fun toString() = name
+
+    fun toContext() = DbContext.Base(this)
 
     fun toSchema(schemaName: String) = SchemaName(dbName = this, schemaName = schemaName)
     val schemaPgCatalog get() = toSchema(schemaName = "pg_catalog")
@@ -32,8 +35,9 @@ data class SchemaName(val dbName: DbName, val schemaName: String) : Comparable<S
             ?: schemaName.compareTo(other.schemaName)
 }
 
-sealed interface SqlObject : Comparable<SqlObject> {
+sealed interface SqlObject : Comparable<SqlObject>, DbContext {
     val name: SqlObjectName
+    override val dbName: DbName get() = name.schema.dbName
     override fun compareTo(other: SqlObject) = name.compareTo(other.name)
 }
 

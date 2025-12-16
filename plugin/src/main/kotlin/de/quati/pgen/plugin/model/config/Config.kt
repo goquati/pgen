@@ -185,6 +185,7 @@ data class Config(
         val typeMappings: Set<TypeMapping>,
         val enumMappings: Set<EnumMapping>,
         val typeOverwrites: Set<TypeOverwrite>,
+        val columnTypeMappings: Set<ColumnTypeMapping>,
         val flyway: Flyway?,
     ) {
         data class Flyway(
@@ -231,6 +232,7 @@ data class Config(
             private var typeMappings: Set<TypeMapping>? = null
             private var enumMappings: Set<EnumMapping>? = null
             private var typeOverwrites: Set<TypeOverwrite>? = null
+            private var columnTypeMappings: Set<ColumnTypeMapping>? = null
             private var flyway: Flyway? = null
 
             class StatementCollectionBuilder {
@@ -319,6 +321,29 @@ data class Config(
                 fun build() = overwrites.toSet()
             }
 
+            class ColumnTypeMappingBuilder(private val dbName: DbName) {
+                private val mappings = linkedSetOf<ColumnTypeMapping>()
+                fun add(
+                    sqlType: String,
+                    columnTypeClass: String,
+                    valueClass: String,
+                ) {
+                    val (schemaName, name) = sqlType.takeIfValidAbsoluteClazzName(size = 2)?.split('.')
+                        ?: throw IllegalArgumentException("illegal sqlType '$sqlType', expected format <schema>.<name>")
+                    val entity = ColumnTypeMapping(
+                        sqlType = SqlObjectName(
+                            schema = SchemaName(dbName = dbName, schemaName = schemaName),
+                            name = name,
+                        ),
+                        columnType = columnTypeClass.toKotlinClassName(),
+                        value = valueClass.toKotlinClassName(),
+                    )
+                    mappings.add(entity)
+                }
+
+                fun build() = mappings.toSet()
+            }
+
             fun connectionConfig(ignoreErrors: Boolean = true, block: DbConnectionConfig.Builder.() -> Unit) = apply {
                 this.connectionConfig = runCatching {
                     DbConnectionConfig.Builder().apply(block).build()
@@ -349,6 +374,10 @@ data class Config(
                 typeOverwrites = TypeOverwriteBuilder(dbName = dbName).apply(block).build()
             }
 
+            fun columnTypeMappings(block: ColumnTypeMappingBuilder.() -> Unit) {
+                columnTypeMappings = ColumnTypeMappingBuilder(dbName = dbName).apply(block).build()
+            }
+
             fun flyway(block: Flyway.Builder.() -> Unit) {
                 flyway = Flyway.Builder().apply(block).build()
             }
@@ -361,6 +390,7 @@ data class Config(
                 typeMappings = typeMappings?.distinctBy(TypeMapping::sqlType)?.toSet() ?: emptySet(),
                 enumMappings = enumMappings?.distinctBy(EnumMapping::sqlType)?.toSet() ?: emptySet(),
                 typeOverwrites = typeOverwrites?.distinctBy(TypeOverwrite::sqlColumn)?.toSet() ?: emptySet(),
+                columnTypeMappings = columnTypeMappings?.distinctBy(ColumnTypeMapping::sqlType)?.toSet() ?: emptySet(),
                 flyway = flyway,
             )
 

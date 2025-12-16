@@ -5,6 +5,7 @@ import de.quati.pgen.plugin.model.config.Config
 dependencies {
     implementation("de.quati.pgen:r2dbc:1.0.0-SNAPSHOT")
     implementation(libs.goquati.base)
+    implementation(libs.ipaddress)
     implementation(libs.bundles.kotlinx.serialization)
     implementation(libs.bundles.exposed)
     implementation(libs.bundles.exposed.r2dbc)
@@ -52,6 +53,13 @@ pgen {
         typeOverwrites {
             add("public.foo.id", clazz = "$sharedModule.MyId", parseFunction = "foo")
             add("public.hello.id", clazz = "$sharedModule.HelloId")
+        }
+        columnTypeMappings {
+            add(
+                sqlType = "pg_catalog.inet",
+                columnTypeClass = "$sharedModule.InetColumnType",
+                valueClass = "inet.ipaddr.IPAddress",
+            )
         }
     }
     addDb("bar") {

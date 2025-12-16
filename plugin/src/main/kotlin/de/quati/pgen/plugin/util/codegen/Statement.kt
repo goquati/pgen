@@ -24,73 +24,77 @@ context(c: CodeGenContext)
 internal fun FileSpec.Builder.addStatements(statements: Collection<Statement>) {
     val packageName = statements.packageName
     statements.map { statement ->
-        addClass(statement.name.prettyResultClassName) {
-            addModifiers(KModifier.DATA)
-            primaryConstructor {
-                statement.columns.forEach { column ->
-                    val name = column.name.pretty
-                    val type = column.type.getTypeName(innerArrayType = false).copy(nullable = column.isNullable)
-                    addParameter(name, type)
-                    addProperty(name = name, type = type) { initializer(name) }
+        with(statement.name.dbName.toContext()) {
+            addClass(statement.name.prettyResultClassName) {
+                addModifiers(KModifier.DATA)
+                primaryConstructor {
+                    statement.columns.forEach { column ->
+                        val name = column.name.pretty
+                        val type = column.type.getTypeName(innerArrayType = false).copy(nullable = column.isNullable)
+                        addParameter(name, type)
+                        addProperty(name = name, type = type) { initializer(name) }
+                    }
                 }
             }
         }
     }
     statements.map { statement ->
-        val resultTypeName = ClassName(packageName.name, statement.name.prettyResultClassName)
-        val statementNames = statement.columns.map { it.name.pretty }.toSet() +
-                statement.variables.map { it.pretty }.toSet()
-        addFunction(statement.name.prettyName) {
-            when (statement.cardinality) {
-                Statement.Cardinality.ONE -> addModifiers(KModifier.SUSPEND)
-                Statement.Cardinality.MANY -> Unit
-            }
-            receiver(Poet.Exposed.transaction)
-            statement.variableTypes.entries.sortedBy { it.key }.forEach { (name, type) ->
-                addParameter(name.pretty, type.getTypeName())
-            }
-            when (statement.cardinality) {
-                Statement.Cardinality.ONE -> returns(resultTypeName)
-                Statement.Cardinality.MANY -> returns(Poet.flow.parameterizedBy(resultTypeName))
-            }
-
-            addCode {
-                val rowSetName = "rowSet".makeDifferent(statementNames)
-
-                val inputsPairs = buildCodeBlock {
-                    statement.variables.forEach { name ->
-                        val type = statement.variableTypes[name]!!
-                        add("%L to %L,", type.getExposedColumnType(), name.pretty)
-                    }
+        with(statement.name.dbName.toContext()) {
+            val resultTypeName = ClassName(packageName.name, statement.name.prettyResultClassName)
+            val statementNames = statement.columns.map { it.name.pretty }.toSet() +
+                    statement.variables.map { it.pretty }.toSet()
+            addFunction(statement.name.prettyName) {
+                when (statement.cardinality) {
+                    Statement.Cardinality.ONE -> addModifiers(KModifier.SUSPEND)
+                    Statement.Cardinality.MANY -> Unit
                 }
-                addControlFlow("return %T", Poet.generateChannelFlow) {
-                    add("exec(stmt = %S, args = listOf(%L)) { %L ->\n", statement.sql, inputsPairs, rowSetName)
-                    indent {
-                        addControlFlow("while(%L.next())", rowSetName) {
-                            add("%T(\n", Poet.trySendBlocking)
-                            indent {
-                                add("%T(\n", resultTypeName)
+                receiver(Poet.Exposed.transaction)
+                statement.variableTypes.entries.sortedBy { it.key }.forEach { (name, type) ->
+                    addParameter(name.pretty, type.getTypeName())
+                }
+                when (statement.cardinality) {
+                    Statement.Cardinality.ONE -> returns(resultTypeName)
+                    Statement.Cardinality.MANY -> returns(Poet.flow.parameterizedBy(resultTypeName))
+                }
+
+                addCode {
+                    val rowSetName = "rowSet".makeDifferent(statementNames)
+
+                    val inputsPairs = buildCodeBlock {
+                        statement.variables.forEach { name ->
+                            val type = statement.variableTypes[name]!!
+                            add("%L to %L,", type.getExposedColumnType(), name.pretty)
+                        }
+                    }
+                    addControlFlow("return %T", Poet.generateChannelFlow) {
+                        add("exec(stmt = %S, args = listOf(%L)) { %L ->\n", statement.sql, inputsPairs, rowSetName)
+                        indent {
+                            addControlFlow("while(%L.next())", rowSetName) {
+                                add("%T(\n", Poet.trySendBlocking)
                                 indent {
-                                    statement.columns.forEachIndexed { idx, column ->
-                                        add(
-                                            "%L = %L.getObject(%L)%L.let { %L.valueFromDB(it) }%L,\n",
-                                            column.name.pretty,
-                                            rowSetName, idx + 1,
-                                            if (column.isNullable) "?" else "!!",
-                                            column.type.getExposedColumnType(),
-                                            if (column.isNullable) "" else "!!",
-                                        )
+                                    add("%T(\n", resultTypeName)
+                                    indent {
+                                        statement.columns.forEachIndexed { idx, column ->
+                                            add(
+                                                "%L = %L.getObject(%L)%L.let { %L.valueFromDB(it) }%L,\n",
+                                                column.name.pretty,
+                                                rowSetName, idx + 1,
+                                                if (column.isNullable) "?" else "!!",
+                                                column.type.getExposedColumnType(),
+                                                if (column.isNullable) "" else "!!",
+                                            )
+                                        }
                                     }
+                                    add(")\n")
                                 }
                                 add(")\n")
                             }
-                            add(")\n")
                         }
                     }
-                }
-                when (statement.cardinality) {
-                    Statement.Cardinality.ONE -> add("}.%T()\n", Poet.flowSingle)
-                    Statement.Cardinality.MANY -> add("}\n")
+                    when (statement.cardinality) {
+                        Statement.Cardinality.ONE -> add("}.%T()\n", Poet.flowSingle)
+                        Statement.Cardinality.MANY -> add("}\n")
+                    }
                 }
             }
         }
