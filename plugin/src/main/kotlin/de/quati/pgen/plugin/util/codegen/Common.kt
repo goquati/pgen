@@ -31,6 +31,8 @@ object Poet {
     val localDate = ClassName("kotlinx.datetime", "LocalDate")
     val offsetDateTime = OffsetDateTime::class.asTypeName()
 
+    val iPAddress = ClassName("inet.ipaddr", "IPAddress")
+
     val flowSingle = ClassName("kotlinx.coroutines.flow", "single")
     val flow = ClassName("kotlinx.coroutines.flow", "Flow")
     val generateChannelFlow = ClassName("kotlinx.coroutines.flow", "channelFlow")
@@ -164,8 +166,11 @@ object Poet {
         val columnValue = packageNameCore.className("ColumnValue")
 
         val compositeColumnType = packageNameCoreColumnType.className("CompositeColumnType")
-        val regClassColumn = packageNameCoreColumnType.className("regClass")
-        val regClassColumnType = packageNameCoreColumnType.className("RegClassColumnType")
+        context(c: CodeGenContext)
+        val regClassColumn get() = packageNameDriverColumnType.className("regClass")
+
+        context(c: CodeGenContext)
+        val regClassColumnType get() = packageNameDriverColumnType.className("RegClassColumnType")
 
         val domainType = packageNameCoreColumnType.className("domainType")
         val domainTypeColumn = packageNameCoreColumnType.className("DomainTypeColumn")
@@ -232,6 +237,18 @@ object Poet {
 
         context(c: CodeGenContext)
         val interval get() = packageNameDriverColumnType.className("interval")
+
+        context(c: CodeGenContext)
+        val inetColumnType get() = packageNameDriverColumnType.className("InetColumnType")
+
+        context(c: CodeGenContext)
+        val cidrColumnType get() = packageNameDriverColumnType.className("CidrColumnType")
+
+        context(c: CodeGenContext)
+        val cidr get() = packageNameDriverColumnType.className("cidr")
+
+        context(c: CodeGenContext)
+        val inet get() = packageNameDriverColumnType.className("inet")
 
         val getColumnWithAlias = packageNameCoreUtil.className("get")
 

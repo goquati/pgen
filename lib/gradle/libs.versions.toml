@@ -20,6 +20,8 @@ r2dbc-pool = { module = "io.r2dbc:r2dbc-pool", version = "1.0.2.RELEASE" }
 
 goquati-base = { module = "de.quati:kotlin-util", version.ref = "quati-util" }
 
+ipaddress = { module = "com.github.seancfoley:ipaddress", version = "5.5.1" }
+
 kotlinx-serialization-core = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core-jvm", version.ref = "kotlinx-serialization" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json-jvm", version.ref = "kotlinx-serialization" }
 

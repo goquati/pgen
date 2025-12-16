@@ -138,7 +138,9 @@ create table public.pgen_test_table
     l_range_nullable  int8range,
     l_range           int8range      not null,
     address_nullable  public.address,
-    address           public.address not null
+    address           public.address not null,
+    table_nullable    regclass,
+    "table"           regclass       not null
 );
 
 create table public.sync_test_table
@@ -146,4 +148,13 @@ create table public.sync_test_table
     group_id uuid not null,
     name     text not null,
     constraint sync_test_table_pk primary key (group_id, name)
+);
+
+create table public.ips
+(
+    key          text primary key,
+    i          inet not null,
+    i_nullable inet,
+    c          cidr not null,
+    c_nullable cidr
 );

@@ -26,6 +26,8 @@ public class PgenTypeMapper : TypeMapper {
         Int8RangeColumnType::class,
         IntervalColumnType::class,
         CompositeColumnType::class,
+        InetColumnType::class,
+        CidrColumnType::class,
     )
 
     override fun setValue(
@@ -99,6 +101,16 @@ public class PgenTypeMapper : TypeMapper {
                 true
             }
 
+            is InetColumnType -> {
+                statement.bind(index - 1, Parameters.`in`(PG_INET_TYPE, value))
+                true
+            }
+
+            is CidrColumnType -> {
+                statement.bind(index - 1, Parameters.`in`(PG_CIDR_TYPE, value))
+                true
+            }
+
             else -> false
         }
     }
@@ -112,5 +124,7 @@ public class PgenTypeMapper : TypeMapper {
         private val PG_INT4MULTIRANGE_TYPE = createType(4451, typarray = 6150, name = "int4multirange", category = "R")
         private val PG_INT8MULTIRANGE_TYPE = createType(4536, typarray = 6157, name = "int8multirange", category = "R")
         private val PG_INTERVAL_TYPE = createType(1186, typarray = 1187, name = "interval", category = "R")
+        private val PG_INET_TYPE = createType(869, typarray = 1041, name = "interval", category = "R")
+        private val PG_CIDR_TYPE = createType(650, typarray = 651, name = "interval", category = "R")
     }
 }

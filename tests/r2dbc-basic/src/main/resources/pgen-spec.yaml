@@ -139,6 +139,24 @@ tables:
     keyName: "flyway_schema_history_pk"
     columnNames:
     - "installed_rank"
+- name: "foo.public.ips"
+  columns:
+  - name: "key"
+    type: "TEXT"
+  - name: "i"
+    type: "INET"
+  - name: "i_nullable"
+    type: "INET"
+    isNullable: true
+  - name: "c"
+    type: "CIDR"
+  - name: "c_nullable"
+    type: "CIDR"
+    isNullable: true
+  primaryKey:
+    keyName: "ips_pkey"
+    columnNames:
+    - "key"
 - name: "foo.public.orders"
   columns:
   - name: "id"
@@ -234,6 +252,11 @@ tables:
     type:
       type: "composite"
       name: "foo.public.address"
+  - name: "table_nullable"
+    type: "REG_CLASS"
+    isNullable: true
+  - name: "table"
+    type: "REG_CLASS"
   primaryKey:
     keyName: "pgen_test_table_pkey"
     columnNames:

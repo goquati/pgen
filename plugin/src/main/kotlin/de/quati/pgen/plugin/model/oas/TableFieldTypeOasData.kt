@@ -57,6 +57,8 @@ sealed interface TableFieldTypeOasData {
             Column.Type.Primitive.JSON -> Type(type = "string")
             Column.Type.Primitive.JSONB -> Type(type = "string")
             Column.Type.Primitive.TEXT -> Type(type = "string")
+            Column.Type.Primitive.INET -> Type(type = "string")
+            Column.Type.Primitive.CIDR -> Type(type = "string")
             Column.Type.Primitive.CITEXT -> Type(type = "string")
             Column.Type.Primitive.TIME -> Type(type = "string", format = "time")
             Column.Type.Primitive.TIMESTAMP -> Type(type = "string", format = "date-time")

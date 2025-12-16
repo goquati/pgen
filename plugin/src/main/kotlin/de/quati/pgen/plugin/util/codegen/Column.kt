@@ -221,6 +221,16 @@ fun PropertySpec.Builder.initializer(column: Column, postfix: String, postArgs: 
             Poet.Pgen.citext, columnName, *postArgs
         )
 
+        Column.Type.Primitive.CIDR -> @Suppress("SpreadOperator") initializer(
+            "%T(name = %S)$postfix",
+            Poet.Pgen.cidr, columnName, *postArgs
+        )
+
+        Column.Type.Primitive.INET -> @Suppress("SpreadOperator") initializer(
+            "%T(name = %S)$postfix",
+            Poet.Pgen.inet, columnName, *postArgs
+        )
+
         Column.Type.Primitive.TIME -> @Suppress("SpreadOperator") initializer(
             "%T(name = %S)$postfix",
             Poet.Exposed.time, columnName, *postArgs

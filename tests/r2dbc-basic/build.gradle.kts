@@ -5,6 +5,7 @@ import de.quati.pgen.plugin.model.config.Config
 dependencies {
     implementation("de.quati.pgen:r2dbc:1.0.0-SNAPSHOT")
     implementation(libs.goquati.base)
+    implementation(libs.ipaddress)
     implementation(libs.bundles.kotlinx.serialization)
     implementation(libs.bundles.exposed)
     implementation(libs.bundles.exposed.r2dbc)

@@ -166,6 +166,8 @@ data class Column(
             INT2("int2"),
             INT4("int4"),
             INT8("int8"),
+            INET("inet"),
+            CIDR("cidr"),
             FLOAT4("float4"),
             FLOAT8("float8"),
             INT4RANGE("int4range"),

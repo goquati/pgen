@@ -40,6 +40,8 @@ fun Column.Type.getTypeName(innerArrayType: Boolean = true): TypeName = when (th
     Column.Type.Primitive.INT2 -> Short::class.asTypeName()
     Column.Type.Primitive.TEXT -> String::class.asTypeName()
     Column.Type.Primitive.CITEXT -> String::class.asTypeName()
+    Column.Type.Primitive.CIDR -> Poet.iPAddress
+    Column.Type.Primitive.INET -> Poet.iPAddress
     Column.Type.Primitive.TIME -> Poet.localTime
     Column.Type.Primitive.TIMESTAMP -> Poet.instant
     Column.Type.Primitive.TIMESTAMP_WITH_TIMEZONE -> Poet.offsetDateTime
@@ -94,6 +96,8 @@ fun Column.Type.getExposedColumnType(): CodeBlock = when (this) {
     Column.Type.Primitive.INT2 -> codeBlock("%T()", Poet.Exposed.shortColumnType)
     Column.Type.Primitive.TEXT -> codeBlock("%T()", Poet.Exposed.textColumnType)
     Column.Type.Primitive.CITEXT -> codeBlock("%T()", Poet.Pgen.citextColumnType)
+    Column.Type.Primitive.CIDR -> codeBlock("%T()", Poet.Pgen.cidrColumnType)
+    Column.Type.Primitive.INET -> codeBlock("%T()", Poet.Pgen.inetColumnType)
     Column.Type.Primitive.TIME -> codeBlock("%T()", Poet.Exposed.kotlinLocalTimeColumnType)
     Column.Type.Primitive.TIMESTAMP -> codeBlock("%T()", Poet.Exposed.kotlinInstantColumnType)
     Column.Type.Primitive.TIMESTAMP_WITH_TIMEZONE -> codeBlock("%T()", Poet.Exposed.kotlinOffsetDateTimeColumnType)
