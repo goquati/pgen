@@ -145,7 +145,7 @@ create table public.pgen_test_table
 
 create table public.sync_test_table
 (
-    group_id uuid not null,
+    group_id int  not null,
     name     text not null,
     constraint sync_test_table_pk primary key (group_id, name)
 );

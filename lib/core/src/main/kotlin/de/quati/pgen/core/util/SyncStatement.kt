@@ -39,7 +39,7 @@ public class SyncKeysBuilder {
 
 public abstract class SyncBuilder<out T>(targets: List<Table>) : Statement<T>(StatementType.MERGE, targets) {
     public var builderValuesColumns: List<Column<*>>? = null
-    public val builderValuesRows: MutableList<List<Expression<*>>> = mutableListOf<List<Expression<*>>>()
+    public val builderValuesRows: MutableList<List<Expression<*>>> = mutableListOf()
 
     public fun addRow(rowBuilder: SyncRowBuilder) {
         if (builderValuesColumns == null)

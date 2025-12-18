@@ -13,6 +13,7 @@ import de.quati.pgen.core.util.compoundOr
 import de.quati.pgen.core.util.iLike
 import de.quati.pgen.core.util.like
 import de.quati.pgen.r2dbc.util.andWhere
+import de.quati.pgen.r2dbc.util.batchUpdate
 import de.quati.pgen.r2dbc.util.deleteSingle
 import de.quati.pgen.r2dbc.util.orWhere
 import de.quati.pgen.r2dbc.util.setLocalConfig
@@ -22,6 +23,7 @@ import de.quati.pgen.r2dbc.util.transactionReadOnlyFlow
 import de.quati.pgen.r2dbc.util.updateSingle
 import de.quati.pgen.shared.LocalConfigContext
 import de.quati.pgen.tests.r2dbc.basic.generated.db.foo._public.NonEmptyTextDomain
+import de.quati.pgen.tests.r2dbc.basic.generated.db.foo._public.SyncTestTable
 import de.quati.pgen.tests.r2dbc.basic.generated.db.foo._public.Users
 import de.quati.pgen.tests.r2dbc.basic.shared.UserId
 import io.kotest.assertions.throwables.shouldThrowAny
@@ -38,10 +40,14 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.r2dbc.R2dbcTransaction
+import org.jetbrains.exposed.v1.r2dbc.batchInsert
 import org.jetbrains.exposed.v1.r2dbc.select
 import org.jetbrains.exposed.v1.r2dbc.selectAll
 import org.jetbrains.exposed.v1.r2dbc.upsertReturning
 import java.util.UUID
+import kotlin.collections.associate
+import kotlin.collections.component1
+import kotlin.collections.component2
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 
@@ -330,5 +336,29 @@ class UtilsTest {
                 it.toList()
             }.await() shouldContainExactlyInAnyOrder listOf("alice@example.com", "bob@example.com")
         }
+    }
+
+    @Test
+    fun `test batchUpdate`(): Unit = runBlocking {
+        val d1 = mapOf("foo" to 1, "bar" to 2, "baz" to 3, "qux" to 4)
+        val d2 = mapOf("foo" to 10, "bar" to 2, "baz" to 30, "qux" to 40)
+        db.suspendTransaction {
+            SyncTestTable.batchInsert(d1.entries) { (k, v) ->
+                this[SyncTestTable.name] = k
+                this[SyncTestTable.groupId] = v
+            }
+            SyncTestTable.selectAll().toList().associate { it[SyncTestTable.name] to it[SyncTestTable.groupId] }
+        } shouldBe d1
+
+        db.suspendTransaction {
+            SyncTestTable.batchUpdate(
+                keys = listOf(SyncTestTable.name),
+                data = d2.entries.filter { it.key != "bar" },
+            ) {
+                this[SyncTestTable.name] = it.key
+                this[SyncTestTable.groupId] = it.value
+            }
+            SyncTestTable.selectAll().toList().associate { it[SyncTestTable.name] to it[SyncTestTable.groupId] }
+        } shouldBe d2
     }
 }

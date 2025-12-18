@@ -92,8 +92,6 @@ class PgenTestTableTest {
 
     @Test
     fun `test sync statement`(): Unit = runBlocking {
-        val g1 = UUID.randomUUID()
-        val g2 = UUID.randomUUID()
         suspend fun loadData() = db.suspendTransaction(readOnly = false) {
             SyncTestTable.selectAll().toList()
         }.groupBy({ it[SyncTestTable.groupId] }, { it[SyncTestTable.name] })
@@ -101,43 +99,43 @@ class PgenTestTableTest {
 
         db.suspendTransaction {
             SyncTestTable.sync(
-                key = SyncTestTable.groupId to g1,
+                key = SyncTestTable.groupId to 47,
                 data = listOf(1, 2, 3),
             ) {
                 this[SyncTestTable.name] = it.toString()
             }
         }
-        loadData() shouldBe mapOf(g1 to setOf("1", "2", "3"))
+        loadData() shouldBe mapOf(47 to setOf("1", "2", "3"))
 
         db.suspendTransaction {
             SyncTestTable.sync(
-                key = SyncTestTable.groupId to g2,
+                key = SyncTestTable.groupId to 3,
                 data = listOf(2, 3, 4),
             ) {
                 this[SyncTestTable.name] = it.toString()
             }
         }
-        loadData() shouldBe mapOf(g1 to setOf("1", "2", "3"), g2 to setOf("2", "3", "4"))
+        loadData() shouldBe mapOf(47 to setOf("1", "2", "3"), 3 to setOf("2", "3", "4"))
 
         db.suspendTransaction {
             SyncTestTable.sync(
-                key = SyncTestTable.groupId to g1,
+                key = SyncTestTable.groupId to 47,
                 data = listOf(3, 4),
             ) {
                 this[SyncTestTable.name] = it.toString()
             }
         }
-        loadData() shouldBe mapOf(g1 to setOf("3", "4"), g2 to setOf("2", "3", "4"))
+        loadData() shouldBe mapOf(47 to setOf("3", "4"), 3 to setOf("2", "3", "4"))
 
         db.suspendTransaction {
             SyncTestTable.sync(
-                key = SyncTestTable.groupId to g2,
+                key = SyncTestTable.groupId to 3,
                 data = listOf<Int>(),
             ) {
                 this[SyncTestTable.name] = it.toString()
             }
         }
-        loadData() shouldBe mapOf(g1 to setOf("3", "4"))
+        loadData() shouldBe mapOf(47 to setOf("3", "4"))
     }
 
     @Test

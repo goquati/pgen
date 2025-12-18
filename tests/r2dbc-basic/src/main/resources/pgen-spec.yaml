@@ -320,7 +320,7 @@ tables:
 - name: "foo.public.sync_test_table"
   columns:
   - name: "group_id"
-    type: "uuid"
+    type: "int4"
   - name: "name"
     type: "text"
   primaryKey:

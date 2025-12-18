@@ -13,6 +13,7 @@ import de.quati.pgen.core.util.compoundOr
 import de.quati.pgen.core.util.iLike
 import de.quati.pgen.core.util.like
 import de.quati.pgen.jdbc.util.andWhere
+import de.quati.pgen.jdbc.util.batchUpdate
 import de.quati.pgen.jdbc.util.deleteSingle
 import de.quati.pgen.jdbc.util.orWhere
 import de.quati.pgen.jdbc.util.setLocalConfig
@@ -21,6 +22,7 @@ import de.quati.pgen.jdbc.util.transactionWithContext
 import de.quati.pgen.jdbc.util.updateSingle
 import de.quati.pgen.shared.LocalConfigContext
 import de.quati.pgen.tests.jdbc.basic.generated.db.foo._public.NonEmptyTextDomain
+import de.quati.pgen.tests.jdbc.basic.generated.db.foo._public.SyncTestTable
 import de.quati.pgen.tests.jdbc.basic.generated.db.foo._public.Users
 import de.quati.pgen.tests.jdbc.basic.shared.UserId
 import io.kotest.assertions.throwables.shouldThrowAny
@@ -31,10 +33,13 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.JdbcTransaction
+import org.jetbrains.exposed.v1.jdbc.batchInsert
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.upsertReturning
 import java.util.UUID
+import kotlin.collections.component1
+import kotlin.collections.component2
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 
@@ -321,5 +326,29 @@ class UtilsTest {
             }
         }
         db.transaction(readOnly = true) { Users.selectAll().count() } shouldBe 2
+    }
+
+    @Test
+    fun `test batchUpdate`() {
+        val d1 = mapOf("foo" to 1, "bar" to 2, "baz" to 3, "qux" to 4)
+        val d2 = mapOf("foo" to 10, "bar" to 2, "baz" to 30, "qux" to 40)
+        db.transaction {
+            SyncTestTable.batchInsert(d1.entries) { (k, v) ->
+                this[SyncTestTable.name] = k
+                this[SyncTestTable.groupId] = v
+            }
+            SyncTestTable.selectAll().associate { it[SyncTestTable.name] to it[SyncTestTable.groupId] }
+        } shouldBe d1
+
+        db.transaction {
+            SyncTestTable.batchUpdate(
+                keys = listOf(SyncTestTable.name),
+                data = d2.entries.filter { it.key != "bar" },
+            ) {
+                this[SyncTestTable.name] = it.key
+                this[SyncTestTable.groupId] = it.value
+            }
+            SyncTestTable.selectAll().associate { it[SyncTestTable.name] to it[SyncTestTable.groupId] }
+        } shouldBe d2
     }
 }
