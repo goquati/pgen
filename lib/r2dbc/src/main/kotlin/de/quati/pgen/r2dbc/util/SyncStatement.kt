@@ -1,9 +1,10 @@
 package de.quati.pgen.r2dbc.util
 
-import de.quati.pgen.core.util.SyncKeysBuilder
-import de.quati.pgen.core.util.SyncRowBuilder
-import de.quati.pgen.core.util.SyncStatement
+import de.quati.pgen.intern.SyncKeysBuilder
+import de.quati.pgen.intern.SyncRow
+import de.quati.pgen.intern.SyncStatement
 import org.jetbrains.exposed.v1.core.Column
+import org.jetbrains.exposed.v1.core.Expression
 import org.jetbrains.exposed.v1.core.QueryParameter
 import org.jetbrains.exposed.v1.core.Table
 import org.jetbrains.exposed.v1.core.compoundAnd
@@ -36,6 +37,17 @@ public suspend fun <T : Table, V> T.sync(
     block = block,
 )
 
+public class SyncRowBuilder {
+    private val columns = mutableListOf<Column<*>>()
+    private val values = mutableListOf<Expression<*>>()
+    internal fun build() = SyncRow(columns = columns, values = values)
+
+    public operator fun <T> set(column: Column<T>, value: T) {
+        columns.add(column)
+        values.add(QueryParameter(value, column.columnType))
+    }
+}
+
 private class SyncSuspendExecutable(
     override val statement: SyncStatement
 ) : SuspendExecutable<Unit, SyncStatement> {
@@ -60,7 +72,7 @@ private suspend fun <T : Table, V> T.sync(
             keys = keys,
         ).apply {
             data.forEach {
-                val row = SyncRowBuilder().apply { block(it) }
+                val row = SyncRowBuilder().apply { block(it) }.build()
                 addRow(row)
             }
         }

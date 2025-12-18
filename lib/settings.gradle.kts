@@ -5,5 +5,6 @@ rootProject.name = "lib"
 
 include(":shared")
 include(":core")
+include(":intern")
 include(":jdbc")
 include(":r2dbc")

@@ -19,6 +19,7 @@ enum class SubProjects(val projectName: String) {
     JDBC("jdbc"),
     R2DBC("r2dbc"),
     SHARED("shared"),
+    INTERN("intern"),
 }
 
 tasks.matching { it.name.startsWith("publish") }.configureEach {
@@ -51,19 +52,23 @@ subprojects {
     }
 
     val artifactId = project.name
-    val descriptionStr = when (projectType) {
-        SubProjects.CORE -> "Core utilities used by all generated code: column/value helpers, constraint handling, " +
-                "shared abstractions"
 
-        SubProjects.SHARED ->
-            "Runtime code with no Exposed dependency, containing common models and utilities used by both JDBC and " +
-                    "R2DBC output."
-
-        SubProjects.JDBC -> "JDBC-specific helpers and extensions for generated code targeting Exposed JDBC."
-        SubProjects.R2DBC ->
-            "R2DBC-specific helpers and extensions for non-blocking database access with Exposed R2DBC."
-    }
+    if (projectType in setOf(SubProjects.INTERN)) return@subprojects
     mavenPublishing {
+        val descriptionStr = when (projectType) {
+            SubProjects.CORE -> "Core utilities used by all generated code: column/value helpers, constraint " +
+                    "handling, shared abstractions"
+
+            SubProjects.SHARED ->
+                "Runtime code with no Exposed dependency, containing common models and utilities used by both JDBC " +
+                        "and R2DBC output."
+
+            SubProjects.JDBC -> "JDBC-specific helpers and extensions for generated code targeting Exposed JDBC."
+            SubProjects.R2DBC ->
+                "R2DBC-specific helpers and extensions for non-blocking database access with Exposed R2DBC."
+
+            SubProjects.INTERN -> error("should not be published")
+        }
         coordinates(
             groupId = project.group as String,
             artifactId = artifactId,

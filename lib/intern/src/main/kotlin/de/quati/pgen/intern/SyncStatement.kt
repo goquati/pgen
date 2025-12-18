@@ -1,4 +1,4 @@
-package de.quati.pgen.core.util
+package de.quati.pgen.intern
 
 import org.jetbrains.exposed.v1.core.AbstractQuery
 import org.jetbrains.exposed.v1.core.Column
@@ -18,19 +18,13 @@ import org.jetbrains.exposed.v1.core.statements.StatementType
 import org.jetbrains.exposed.v1.core.targetTables
 import org.jetbrains.exposed.v1.core.vendors.FunctionProvider
 
-
-public class SyncRowBuilder {
-    internal val columns = mutableListOf<Column<*>>()
-    internal val values = mutableListOf<Expression<*>>()
-
-    public operator fun <T> set(column: Column<T>, value: T) {
-        columns.add(column)
-        values.add(QueryParameter(value, column.columnType))
-    }
-}
+public class SyncRow(
+    public val columns: List<Column<*>>,
+    public val values: List<Expression<*>>
+)
 
 public class SyncKeysBuilder {
-    public val keys: MutableMap<Column<*>, QueryParameter<*>> = mutableMapOf<Column<*>, QueryParameter<*>>()
+    public val keys: MutableMap<Column<*>, QueryParameter<*>> = mutableMapOf()
 
     public operator fun <T> set(column: Column<T>, value: T) {
         keys[column] = QueryParameter(value, column.columnType)
@@ -41,14 +35,14 @@ public abstract class SyncBuilder<out T>(targets: List<Table>) : Statement<T>(St
     public var builderValuesColumns: List<Column<*>>? = null
     public val builderValuesRows: MutableList<List<Expression<*>>> = mutableListOf()
 
-    public fun addRow(rowBuilder: SyncRowBuilder) {
+    public fun addRow(row: SyncRow) {
         if (builderValuesColumns == null)
-            builderValuesColumns = rowBuilder.columns
+            builderValuesColumns = row.columns
         else
-            require(builderValuesColumns == rowBuilder.columns) {
+            require(builderValuesColumns == row.columns) {
                 "Columns of current row don't match columns of previous values"
             }
-        builderValuesRows.add(rowBuilder.values)
+        builderValuesRows.add(row.values)
     }
 }
 
