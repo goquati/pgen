@@ -156,3 +156,10 @@ create table public.ips
     i          inet not null,
     i_nullable inet
 );
+
+create table public.enum_array_test_table
+(
+    key           text primary key,
+    data          public.order_status[] not null,
+    data_nullable public.order_status[]
+);

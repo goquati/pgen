@@ -110,6 +110,27 @@ tables:
   - "documents_owner_title_unique"
   checkConstraints:
   - "documents_updated_after_created"
+- name: "foo.public.enum_array_test_table"
+  columns:
+  - name: "key"
+    type: "text"
+  - name: "data"
+    type:
+      type: "array"
+      elementType:
+        type: "enum"
+        name: "foo.public.order_status"
+  - name: "data_nullable"
+    type:
+      type: "array"
+      elementType:
+        type: "enum"
+        name: "foo.public.order_status"
+    isNullable: true
+  primaryKey:
+    keyName: "enum_array_test_table_pkey"
+    columnNames:
+    - "key"
 - name: "foo.public.flyway_schema_history"
   columns:
   - name: "installed_rank"

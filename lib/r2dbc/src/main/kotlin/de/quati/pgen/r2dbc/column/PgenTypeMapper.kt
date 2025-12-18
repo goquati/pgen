@@ -1,6 +1,7 @@
 package de.quati.pgen.r2dbc.column
 
 import de.quati.pgen.core.column.CompositeColumnType
+import de.quati.pgen.core.column.PgEnum
 import de.quati.pgen.core.column.PgenColumnType
 import de.quati.pgen.core.model.PgenMultiRange
 import de.quati.pgen.core.model.PgenRange
@@ -9,6 +10,8 @@ import io.r2dbc.postgresql.codec.PostgresqlObjectId
 import io.r2dbc.spi.Parameters
 import io.r2dbc.spi.Statement
 import io.r2dbc.spi.Type
+import org.jetbrains.exposed.v1.core.ArrayColumnType
+import org.jetbrains.exposed.v1.core.CustomEnumerationColumnType
 import org.jetbrains.exposed.v1.core.IColumnType
 import org.jetbrains.exposed.v1.core.vendors.DatabaseDialect
 import org.jetbrains.exposed.v1.core.vendors.PostgreSQLDialect
@@ -29,6 +32,7 @@ public class PgenTypeMapper : TypeMapper {
         IntervalColumnType::class,
         CompositeColumnType::class,
         PgenColumnType::class,
+        ArrayColumnType::class,
     )
 
     override fun setValue(
@@ -101,6 +105,14 @@ public class PgenTypeMapper : TypeMapper {
 
             is PgenColumnType -> {
                 statement.bind(index - 1, Parameters.`in`(columnType.typeInfo.toPostgresType(), value))
+                true
+            }
+
+            is ArrayColumnType<*, *> -> { // support pgen enum arrays
+                if (columnType.dimensions != 1 || columnType.delegate !is CustomEnumerationColumnType) return false
+                if ((value as? Array<*>)?.any { it !is PgEnum } ?: return false) return false
+                val value = value.joinToString(",", "{", "}") { it.toString() }
+                statement.bind(index - 1, Parameters.`in`(PostgresqlObjectId.UNSPECIFIED, value))
                 true
             }
 

@@ -4,7 +4,9 @@ import de.quati.pgen.jdbc.util.sync
 import de.quati.pgen.jdbc.util.transaction
 import de.quati.pgen.shared.RegClass
 import de.quati.pgen.tests.jdbc.basic.generated.db.foo._public.Address
+import de.quati.pgen.tests.jdbc.basic.generated.db.foo._public.EnumArrayTestTable
 import de.quati.pgen.tests.jdbc.basic.generated.db.foo._public.Ips
+import de.quati.pgen.tests.jdbc.basic.generated.db.foo._public.OrderStatus
 import de.quati.pgen.tests.jdbc.basic.generated.db.foo._public.PgenTestTable
 import de.quati.pgen.tests.jdbc.basic.generated.db.foo._public.SyncTestTable
 import inet.ipaddr.IPAddressString
@@ -164,5 +166,38 @@ class PgenTestTableTest {
         }
 
         db.transaction(readOnly = true) { Ips.selectAll().count() } shouldBe 2
+    }
+
+    @Test
+    fun `test enum array`() {
+        val a1 = listOf(OrderStatus.PENDING, OrderStatus.PAID)
+        val a2 = listOf<OrderStatus>()
+        val a3 = listOf(OrderStatus.CANCELLED)
+
+        db.transaction {
+            EnumArrayTestTable.insert {
+                it[EnumArrayTestTable.key] = "foo"
+                it[EnumArrayTestTable.data] = a1
+            }
+
+            EnumArrayTestTable.selectAll().where { EnumArrayTestTable.key eq "foo" }.single()
+                .let(EnumArrayTestTable.Entity::create)
+        }.also { row ->
+            row.data shouldBe a1
+            row.dataNullable shouldBe null
+        }
+
+        db.transaction {
+            EnumArrayTestTable.insert {
+                it[EnumArrayTestTable.key] = "bar"
+                it[EnumArrayTestTable.data] = a2
+                it[EnumArrayTestTable.dataNullable] = a3
+            }
+            EnumArrayTestTable.selectAll().where { EnumArrayTestTable.key eq "bar" }.single()
+                .let(EnumArrayTestTable.Entity::create)
+        }.also { row ->
+            row.data shouldBe a2
+            row.dataNullable shouldBe a3
+        }
     }
 }
