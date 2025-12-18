@@ -239,9 +239,6 @@ object Poet {
         val getColumnWithAlias = packageNameCoreUtil.className("get")
 
         context(c: CodeGenContext)
-        val toDbObject get() = packageNameDriverColumnType.className("toDbObject")
-
-        context(c: CodeGenContext)
         val setLocalConfig
             get() = when (c.connectionType) {
                 Config.ConnectionType.JDBC -> throw NotImplementedError("setLocalConfig")
