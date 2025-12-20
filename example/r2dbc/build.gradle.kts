@@ -1,6 +1,5 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
-import de.quati.pgen.plugin.model.config.Config
 
 plugins {
     kotlin("jvm") version "2.2.0"
@@ -71,5 +70,5 @@ pgen {
     packageName("$group.r2dbc.generated")
     outputPath("$projectDir/src/main/kotlin/de/quati/pgen/example/r2dbc/generated")
     specFilePath("$projectDir/src/main/resources/pgen-spec.yaml")
-    connectionType(Config.ConnectionType.R2DBC)
+    setConnectionTypeR2dbc()
 }

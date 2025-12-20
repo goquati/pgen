@@ -18,7 +18,7 @@ import java.sql.ResultSet
 class DbService(
     val dbName: DbName,
     columnTypeMappings: Collection<ColumnTypeMapping>,
-    connectionConfig: Config.Db.DbConnectionConfig
+    connectionConfig: Config.Db.Connection
 ) : Closeable {
     val columnTypeMappings = columnTypeMappings.associateBy { it.sqlType }
     private val connection = DriverManager.getConnection(

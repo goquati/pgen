@@ -7,13 +7,13 @@ internal const val INDENT = "  "
 
 internal enum class DtoType { GET, CREATE, UPDATE }
 
-internal val Config.OasConfig.CRUD.requiredDtos
+internal val Config.Oas.CRUD.requiredDtos
     get() = when (this) {
-        Config.OasConfig.CRUD.CREATE -> setOf(DtoType.CREATE, DtoType.GET)
-        Config.OasConfig.CRUD.READ -> setOf(DtoType.GET)
-        Config.OasConfig.CRUD.UPDATE -> setOf(DtoType.UPDATE, DtoType.GET)
-        Config.OasConfig.CRUD.DELETE -> setOf()
-        Config.OasConfig.CRUD.READ_ALL -> setOf(DtoType.GET)
+        Config.Oas.CRUD.CREATE -> setOf(DtoType.CREATE, DtoType.GET)
+        Config.Oas.CRUD.READ -> setOf(DtoType.GET)
+        Config.Oas.CRUD.UPDATE -> setOf(DtoType.UPDATE, DtoType.GET)
+        Config.Oas.CRUD.DELETE -> setOf()
+        Config.Oas.CRUD.READ_ALL -> setOf(DtoType.GET)
     }
 private fun String.indent(level: Int) = INDENT.repeat(level) + this
 private fun List<String>.indent(level: Int) = map { it.indent(level) }

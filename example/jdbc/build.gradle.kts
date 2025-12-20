@@ -1,6 +1,5 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
-import de.quati.pgen.plugin.model.config.Config
 
 plugins {
     kotlin("jvm") version "2.2.0"
@@ -51,7 +50,7 @@ tasks.compileKotlin {
 
 pgen {
     addDb("base") {
-        connectionConfig {
+        connection {
             url("jdbc:postgresql://localhost:55421/postgres")
             user("postgres")
             password("postgres")
@@ -70,5 +69,5 @@ pgen {
     packageName("$group.jdbc.generated")
     outputPath("$projectDir/src/main/kotlin/de/quati/pgen/example/jdbc/generated")
     specFilePath("$projectDir/src/main/resources/pgen-spec.yaml")
-    connectionType(Config.ConnectionType.JDBC)
+    setConnectionTypeJdbc()
 }

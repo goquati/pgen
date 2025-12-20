@@ -4,7 +4,6 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 plugins {
     alias(libs.plugins.gradlePluginPublish)
     alias(libs.plugins.kotlinJvm)
-    alias(libs.plugins.serialization)
 }
 
 val groupStr = "de.quati.pgen"
@@ -18,19 +17,21 @@ repositories {
 }
 
 dependencies {
+    implementation(project(":intern"))
     implementation(libs.poet)
     implementation(libs.kaml)
-    implementation(libs.kotlinx.serialization.json)
     implementation(libs.bundles.flyway)
 }
 
 kotlin {
     jvmToolchain(21)
+    explicitApi()
     compilerOptions {
-        freeCompilerArgs.add("-Xjsr305=strict")
-        freeCompilerArgs.add("-Xcontext-parameters")
+        allWarningsAsErrors = true
         jvmTarget.set(JvmTarget.JVM_21)
-        languageVersion.set(KotlinVersion.KOTLIN_2_1)
+        apiVersion.set(KotlinVersion.KOTLIN_2_2)
+        languageVersion.set(KotlinVersion.KOTLIN_2_2)
+        freeCompilerArgs.add("-Xcontext-parameters")
     }
 }
 

@@ -48,7 +48,7 @@ private fun generateSpec(config: Config) {
         DbService(
             dbName = configDb.dbName,
             columnTypeMappings = configDb.columnTypeMappings,
-            connectionConfig = configDb.connectionConfig ?: error("no DB connection config defined")
+            connectionConfig = configDb.connection ?: error("no DB connection config defined")
         ).use { dbService ->
             val statements = dbService.getStatements(parseStatements(configDb.statementScripts))
             val tables = dbService.getTablesWithForeignTables(configDb.tableFilter)
@@ -78,7 +78,7 @@ private fun generateSpec(config: Config) {
 }
 
 private fun getOasTables(config: Config, spec: PgenSpec): List<TableOasData> {
-    val oasConfig = config.oasConfig ?: return emptyList()
+    val oasConfig = config.oas ?: return emptyList()
     val tableConfigs = oasConfig.tables.associateBy { it.name }
     val oasTables = spec.tables.mapNotNull { table ->
         val tableConfig = tableConfigs[table.name] ?: return@mapNotNull null
@@ -106,7 +106,7 @@ private fun Config.loadSpec(): PgenSpec {
 
 private fun generateOas(config: Config, spec: PgenSpec? = null) {
     val spec = spec ?: config.loadSpec()
-    val oasConfig = config.oasConfig ?: return
+    val oasConfig = config.oas ?: return
     val oasTables = getOasTables(config, spec).takeIf { it.isNotEmpty() } ?: return
     val commonData = getOasCommon(config, spec)
     OasGenContext(
@@ -144,7 +144,7 @@ private fun generateCode(config: Config) {
         columnTypeMappings = config.dbConfigs.flatMap(Config.Db::columnTypeMappings),
         typeGroups = spec.tables.getColumnTypeGroups(),
         connectionType = config.connectionType,
-        localConfigContext = config.oasConfig?.localConfigContext
+        localConfigContext = config.oas?.localConfigContext
     ).run {
         println("sync code files to ${config.outputPath}")
         directorySync(config.outputPath) {
@@ -164,7 +164,7 @@ private fun generateCode(config: Config) {
 
 context(c: CodeGenContext)
 private fun DirectorySyncService.syncOasMappers(config: Config, spec: PgenSpec) {
-    val mapperConfig = config.oasConfig?.mapper ?: return
+    val mapperConfig = config.oas?.mapper ?: return
     val oasTables = getOasTables(config, spec).takeIf { it.isNotEmpty() } ?: return
     val enums = getOasCommon(config, spec)?.enums ?: emptyList()
     with(mapperConfig) {
@@ -182,10 +182,10 @@ private fun flywayMigration(config: Config) {
 }
 
 @Suppress("unused")
-class PgenPlugin : Plugin<Project> {
+public class PgenPlugin : Plugin<Project> {
 
     override fun apply(project: Project) {
-        val configBuilder = project.extensions.create("pgen", Config.Builder::class.java)
+        val configBuilder = project.extensions.create("pgen", ConfigBuilder::class.java)
         fun register(name: String, block: Task.(Config) -> Unit) = project.tasks.register(name) { task ->
             task.group = TASK_GROUP
             task.doLast { task ->
@@ -194,19 +194,17 @@ class PgenPlugin : Plugin<Project> {
             }
         }
 
-        register("pgenGenerate") { config -> generate(config) }
+        register("pgenGenerate") { config ->
+            generateSpec(config = config)
+            generateCode(config = config)
+        }
         register("pgenGenerateSpec") { config -> generateSpec(config) }
         register("pgenGenerateCode") { config -> generateCode(config) }
         register("pgenGenerateOas") { config -> generateOas(config) }
         register("pgenFlywayMigration") { config -> flywayMigration(config) }
     }
 
-    companion object {
+    private companion object {
         private const val TASK_GROUP = "quati tools"
-
-        fun generate(config: Config) {
-            generateSpec(config = config)
-            generateCode(config = config)
-        }
     }
 }

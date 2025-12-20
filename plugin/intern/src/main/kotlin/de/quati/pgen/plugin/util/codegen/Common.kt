@@ -321,7 +321,7 @@ fun DirectorySyncService.sync(
     )
 }
 
-context(c: CodeGenContext, mapperConfig: Config.OasConfig.Mapper)
+context(c: CodeGenContext, mapperConfig: Config.Oas.Mapper)
 fun DirectorySyncService.sync(
     obj: EnumOasData,
     block: FileSpec.Builder.() -> Unit = {},
@@ -341,7 +341,7 @@ fun DirectorySyncService.sync(
     )
 }
 
-context(c: CodeGenContext, mapperConfig: Config.OasConfig.Mapper)
+context(c: CodeGenContext, mapperConfig: Config.Oas.Mapper)
 fun DirectorySyncService.sync(
     obj: TableOasData,
     block: FileSpec.Builder.() -> Unit = {},

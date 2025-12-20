@@ -11,7 +11,7 @@ data class EnumOasData(
 ) {
     val nameCapitalized = name.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
 
-    context(mapperConfig: Config.OasConfig.Mapper)
+    context(mapperConfig: Config.Oas.Mapper)
     fun getOasType() = ClassName(mapperConfig.packageOasModel, "${nameCapitalized}Dto")
 
     companion object {

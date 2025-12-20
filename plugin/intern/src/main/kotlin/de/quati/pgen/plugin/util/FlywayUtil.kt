@@ -6,7 +6,7 @@ import org.postgresql.ds.PGSimpleDataSource
 
 
 fun Config.Db.toFlywayOrNull(): Flyway? {
-    val connConfig = connectionConfig ?: return null
+    val connConfig = connection ?: return null
     val flywayConfig = flyway ?: return null
     val dataSource = PGSimpleDataSource().apply {
         setUrl(connConfig.url)

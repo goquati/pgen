@@ -16,19 +16,19 @@ fun TableOasData.toOpenApi() = yaml(level = 0) {
 
     if (endpoints.isNotEmpty())
         indent("paths:") {
-            if (Config.OasConfig.CRUD.READ_ALL in endpoints || Config.OasConfig.CRUD.CREATE in endpoints)
+            if (Config.Oas.CRUD.READ_ALL in endpoints || Config.Oas.CRUD.CREATE in endpoints)
                 indent("${c.pathPrefix}/$path:") {
-                    if (Config.OasConfig.CRUD.READ_ALL in endpoints) addReadAllEndpoint(this@toOpenApi)
-                    if (Config.OasConfig.CRUD.CREATE in endpoints) addCreateEndpoint(this@toOpenApi)
+                    if (Config.Oas.CRUD.READ_ALL in endpoints) addReadAllEndpoint(this@toOpenApi)
+                    if (Config.Oas.CRUD.CREATE in endpoints) addCreateEndpoint(this@toOpenApi)
                 }
 
-            if (Config.OasConfig.CRUD.READ in endpoints || Config.OasConfig.CRUD.UPDATE in endpoints ||
-                Config.OasConfig.CRUD.DELETE in endpoints
+            if (Config.Oas.CRUD.READ in endpoints || Config.Oas.CRUD.UPDATE in endpoints ||
+                Config.Oas.CRUD.DELETE in endpoints
             )
                 indent("${c.pathPrefix}/$path/{id}:") {
-                    if (Config.OasConfig.CRUD.READ in endpoints) addReadEndpoint(this@toOpenApi)
-                    if (Config.OasConfig.CRUD.UPDATE in endpoints) addUpdateEndpoint(this@toOpenApi)
-                    if (Config.OasConfig.CRUD.DELETE in endpoints) addDeleteEndpoint(this@toOpenApi)
+                    if (Config.Oas.CRUD.READ in endpoints) addReadEndpoint(this@toOpenApi)
+                    if (Config.Oas.CRUD.UPDATE in endpoints) addUpdateEndpoint(this@toOpenApi)
+                    if (Config.Oas.CRUD.DELETE in endpoints) addDeleteEndpoint(this@toOpenApi)
                 }
 
         }

@@ -1,6 +1,5 @@
 import de.quati.pgen.build.DbTestcontainerConfig
 import de.quati.pgen.build.StartDbTestcontainerTask
-import de.quati.pgen.plugin.model.config.Config
 
 dependencies {
     implementation("de.quati.pgen:r2dbc:1.0.0-SNAPSHOT")
@@ -29,7 +28,7 @@ pgen {
     val sharedModule = "$baseModule.shared"
     val outputModule = "$baseModule.generated"
     addDb("foo") {
-        connectionConfig {
+        connection {
             url(Db.FOO.jdbcUrl)
             user("postgres")
             password("postgres")
@@ -63,7 +62,7 @@ pgen {
         }
     }
     addDb("bar") {
-        connectionConfig {
+        connection {
             url(Db.BAR.jdbcUrl)
             user("postgres")
             password("postgres")
@@ -86,5 +85,5 @@ pgen {
     packageName(outputModule)
     outputPath("$projectDir/src/main/kotlin/${outputModule.replace('.', '/')}")
     specFilePath("$projectDir/src/main/resources/pgen-spec.yaml")
-    connectionType(Config.ConnectionType.R2DBC)
+    setConnectionTypeR2dbc()
 }

@@ -50,7 +50,7 @@ pgen {
     val outputModule = "$baseModule.generated"
 
     addDb("base") {
-        connectionConfig {
+        connection {
             url("jdbc:postgresql://localhost:53333/postgres")
             user("postgres")
             password("postgres")
@@ -71,7 +71,7 @@ pgen {
     packageName(outputModule)
     outputPath("$projectDir/src/main/kotlin/${outputModule.replace('.', '/')}")
     specFilePath("$projectDir/src/main/resources/pgen-spec.yaml")
-    connectionType(Config.ConnectionType.R2DBC) // or JDBC
+    setConnectionTypeR2dbc() // or setConnectionTypeJdbc()
 }
 ```
 

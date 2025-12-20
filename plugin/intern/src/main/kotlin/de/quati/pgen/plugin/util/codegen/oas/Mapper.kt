@@ -13,7 +13,7 @@ import de.quati.pgen.plugin.model.oas.TableOasData
 import de.quati.pgen.plugin.util.codegen.CodeGenContext
 import de.quati.pgen.plugin.util.codegen.Poet
 
-context(c: CodeGenContext, mapperConfig: Config.OasConfig.Mapper)
+context(c: CodeGenContext, mapperConfig: Config.Oas.Mapper)
 fun FileSpec.Builder.addEnumMapper(data: EnumOasData) {
     addFunction("toDto") {
         val dstType = data.getOasType()
@@ -44,7 +44,7 @@ fun FileSpec.Builder.addEnumMapper(data: EnumOasData) {
 }
 
 
-context(c: CodeGenContext, mapperConfig: Config.OasConfig.Mapper)
+context(c: CodeGenContext, mapperConfig: Config.Oas.Mapper)
 fun FileSpec.Builder.addTableMapper(data: TableOasData) {
     addFunction("toDto") {
         val srcType = data.sqlData.entityTypeName

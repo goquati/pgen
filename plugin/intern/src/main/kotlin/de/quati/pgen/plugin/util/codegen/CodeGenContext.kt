@@ -4,7 +4,7 @@ import com.squareup.kotlinpoet.ClassName
 import de.quati.pgen.plugin.dsl.PackageName
 import de.quati.pgen.plugin.model.config.ColumnTypeMapping
 import de.quati.pgen.plugin.model.config.Config
-import de.quati.pgen.plugin.model.config.Config.OasConfig.LocalConfigContext
+import de.quati.pgen.plugin.model.config.Config.Oas.LocalConfigContext
 import de.quati.pgen.plugin.model.sql.Column
 import de.quati.pgen.plugin.model.sql.KotlinEnumClass
 import de.quati.pgen.plugin.model.sql.KotlinValueClass

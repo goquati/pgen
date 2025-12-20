@@ -3,3 +3,4 @@ plugins {
 }
 rootProject.name = "plugin"
 
+include(":intern")

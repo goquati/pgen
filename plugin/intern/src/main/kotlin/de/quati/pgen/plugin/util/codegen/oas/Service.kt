@@ -18,7 +18,7 @@ import de.quati.pgen.plugin.util.codegen.Poet
 import de.quati.pgen.plugin.util.codegen.getColumnTypeName
 
 @OptIn(ExperimentalKotlinPoetApi::class)
-context(c: CodeGenContext, mapperConfig: Config.OasConfig.Mapper)
+context(c: CodeGenContext, mapperConfig: Config.Oas.Mapper)
 fun FileSpec.Builder.addTableService(data: TableOasData) = addInterface(data.getOasServiceName()) {
 
     val idType = with(data.sqlData.dbName.toContext()) {
@@ -30,7 +30,7 @@ fun FileSpec.Builder.addTableService(data: TableOasData) = addInterface(data.get
     addProperty("db", Poet.Exposed.database())
 
     addFunction("getById") {
-        val localConfigContext = c.localConfigContext?.takeIf { Config.OasConfig.CRUD.READ in it.atMethods }
+        val localConfigContext = c.localConfigContext?.takeIf { Config.Oas.CRUD.READ in it.atMethods }
         localConfigContext?.also { contextParameter("c", it.type) }
         addModifiers(KModifier.SUSPEND)
         addParameter("id", idType)
@@ -48,7 +48,7 @@ fun FileSpec.Builder.addTableService(data: TableOasData) = addInterface(data.get
     }
 
     addFunction("getAll") {
-        val localConfigContext = c.localConfigContext?.takeIf { Config.OasConfig.CRUD.READ in it.atMethods }
+        val localConfigContext = c.localConfigContext?.takeIf { Config.Oas.CRUD.READ in it.atMethods }
         localConfigContext?.also { contextParameter("c", it.type) }
         addModifiers(KModifier.SUSPEND)
         addParameter(
@@ -98,7 +98,7 @@ fun FileSpec.Builder.addTableService(data: TableOasData) = addInterface(data.get
     }
 
     addFunction("create") {
-        val localConfigContext = c.localConfigContext?.takeIf { Config.OasConfig.CRUD.CREATE in it.atMethods }
+        val localConfigContext = c.localConfigContext?.takeIf { Config.Oas.CRUD.CREATE in it.atMethods }
         localConfigContext?.also { contextParameter("c", it.type) }
         addModifiers(KModifier.SUSPEND)
         addParameter("data", data.sqlData.updateEntityTypeName)
@@ -126,7 +126,7 @@ fun FileSpec.Builder.addTableService(data: TableOasData) = addInterface(data.get
     }
 
     addFunction("delete") {
-        val localConfigContext = c.localConfigContext?.takeIf { Config.OasConfig.CRUD.DELETE in it.atMethods }
+        val localConfigContext = c.localConfigContext?.takeIf { Config.Oas.CRUD.DELETE in it.atMethods }
         localConfigContext?.also { contextParameter("c", it.type) }
         addModifiers(KModifier.SUSPEND)
         addParameter("id", idType)
@@ -156,7 +156,7 @@ fun FileSpec.Builder.addTableService(data: TableOasData) = addInterface(data.get
     }
 
     addFunction("update") {
-        val localConfigContext = c.localConfigContext?.takeIf { Config.OasConfig.CRUD.UPDATE in it.atMethods }
+        val localConfigContext = c.localConfigContext?.takeIf { Config.Oas.CRUD.UPDATE in it.atMethods }
         localConfigContext?.also { contextParameter("c", it.type) }
         addModifiers(KModifier.SUSPEND)
         addParameter("id", idType)
