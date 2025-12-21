@@ -29,6 +29,8 @@ public class PgenTypeMapper : TypeMapper {
         CitextColumnType::class,
         Int4RangeColumnType::class,
         Int8RangeColumnType::class,
+        Int4MultiRangeColumnType::class,
+        Int8MultiRangeColumnType::class,
         IntervalColumnType::class,
         CompositeColumnType::class,
         PgenColumnType::class,

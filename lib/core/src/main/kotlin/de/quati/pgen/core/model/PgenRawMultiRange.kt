@@ -7,10 +7,15 @@ public value class PgenRawMultiRange(public val ranges: List<PgenRawRange>) {
     public fun toInt8MultiRange(): PgenMultiRange<Long> = PgenMultiRange(ranges.map { it.toInt8Range() }.toSet())
 
     public companion object {
-        public fun parse(value: String): PgenRawMultiRange = value.trimStart('{').trimEnd('}')
-            .split(',').chunked(2)
-            .map { borders -> borders.joinToString(",") }
-            .map { PgenRawRange.parse(it) }
-            .let { PgenRawMultiRange(it) }
+        public fun parse(value: String): PgenRawMultiRange {
+            return if (value == "{}")
+                PgenRawMultiRange(emptyList())
+            else
+                value.trimStart('{').trimEnd('}')
+                    .split(',').chunked(2)
+                    .map { borders -> borders.joinToString(",") }
+                    .map { PgenRawRange.parse(it) }
+                    .let { PgenRawMultiRange(it) }
+        }
     }
 }

@@ -60,6 +60,19 @@ tables:
   - "item_embeddings_item_uuid_unique"
   checkConstraints:
   - "item_embeddings_title_not_empty"
+- name: "foo.public.citext_test_table"
+  columns:
+  - name: "key"
+    type: "text"
+  - name: "text_nullable"
+    type: "citext"
+    isNullable: true
+  - name: "text"
+    type: "citext"
+  primaryKey:
+    keyName: "citext_test_table_pkey"
+    columnNames:
+    - "key"
 - name: "foo.public.documents"
   columns:
   - name: "id"
@@ -110,6 +123,19 @@ tables:
   - "documents_owner_title_unique"
   checkConstraints:
   - "documents_updated_after_created"
+- name: "foo.public.duration_test_table"
+  columns:
+  - name: "key"
+    type: "text"
+  - name: "duration"
+    type: "interval"
+  - name: "duration_nullable"
+    type: "interval"
+    isNullable: true
+  primaryKey:
+    keyName: "duration_test_table_pkey"
+    columnNames:
+    - "key"
 - name: "foo.public.enum_array_test_table"
   columns:
   - name: "key"
@@ -160,7 +186,7 @@ tables:
     keyName: "flyway_schema_history_pk"
     columnNames:
     - "installed_rank"
-- name: "foo.public.ips"
+- name: "foo.public.ips_test_table"
   columns:
   - name: "key"
     type: "text"
@@ -170,7 +196,25 @@ tables:
     type: "pg_catalog.inet"
     isNullable: true
   primaryKey:
-    keyName: "ips_pkey"
+    keyName: "ips_test_table_pkey"
+    columnNames:
+    - "key"
+- name: "foo.public.multi_ranges_test_table"
+  columns:
+  - name: "key"
+    type: "text"
+  - name: "i_mrange_nullable"
+    type: "int4multirange"
+    isNullable: true
+  - name: "i_mrange"
+    type: "int4multirange"
+  - name: "l_mrange_nullable"
+    type: "int8multirange"
+    isNullable: true
+  - name: "l_mrange"
+    type: "int8multirange"
+  primaryKey:
+    keyName: "multi_ranges_test_table_pkey"
     columnNames:
     - "key"
 - name: "foo.public.orders"
@@ -240,43 +284,6 @@ tables:
   checkConstraints:
   - "orders_processed_after_placed"
   - "orders_total_positive"
-- name: "foo.public.pgen_test_table"
-  columns:
-  - name: "key"
-    type: "citext"
-  - name: "duration"
-    type: "interval"
-  - name: "duration_nullable"
-    type: "interval"
-    isNullable: true
-  - name: "i_range_nullable"
-    type: "int4range"
-    isNullable: true
-  - name: "i_range"
-    type: "int4range"
-  - name: "l_range_nullable"
-    type: "int8range"
-    isNullable: true
-  - name: "l_range"
-    type: "int8range"
-  - name: "address_nullable"
-    type:
-      type: "composite"
-      name: "foo.public.address"
-    isNullable: true
-  - name: "address"
-    type:
-      type: "composite"
-      name: "foo.public.address"
-  - name: "table_nullable"
-    type: "regclass"
-    isNullable: true
-  - name: "table"
-    type: "regclass"
-  primaryKey:
-    keyName: "pgen_test_table_pkey"
-    columnNames:
-    - "key"
 - name: "foo.public.products"
   columns:
   - name: "id"
@@ -317,6 +324,54 @@ tables:
   - "products_sku_unique"
   checkConstraints:
   - "products_price_positive"
+- name: "foo.public.ranges_test_table"
+  columns:
+  - name: "key"
+    type: "text"
+  - name: "i_range_nullable"
+    type: "int4range"
+    isNullable: true
+  - name: "i_range"
+    type: "int4range"
+  - name: "l_range_nullable"
+    type: "int8range"
+    isNullable: true
+  - name: "l_range"
+    type: "int8range"
+  primaryKey:
+    keyName: "ranges_test_table_pkey"
+    columnNames:
+    - "key"
+- name: "foo.public.regclass_test_table"
+  columns:
+  - name: "key"
+    type: "text"
+  - name: "table_nullable"
+    type: "regclass"
+    isNullable: true
+  - name: "table"
+    type: "regclass"
+  primaryKey:
+    keyName: "regclass_test_table_pkey"
+    columnNames:
+    - "key"
+- name: "foo.public.struct_test_table"
+  columns:
+  - name: "key"
+    type: "text"
+  - name: "address_nullable"
+    type:
+      type: "composite"
+      name: "foo.public.address"
+    isNullable: true
+  - name: "address"
+    type:
+      type: "composite"
+      name: "foo.public.address"
+  primaryKey:
+    keyName: "struct_test_table_pkey"
+    columnNames:
+    - "key"
 - name: "foo.public.sync_test_table"
   columns:
   - name: "group_id"

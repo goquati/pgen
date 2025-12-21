@@ -8,16 +8,12 @@ import de.quati.pgen.r2dbc.util.suspendTransactionCatching
 import de.quati.pgen.shared.PgenException
 import de.quati.pgen.tests.r2dbc.basic.createDb
 import de.quati.pgen.tests.r2dbc.basic.generated.db.foo._public.Documents
-import de.quati.pgen.tests.r2dbc.basic.generated.db.foo._public.EnumArrayTestTable
-import de.quati.pgen.tests.r2dbc.basic.generated.db.foo._public.Ips
 import de.quati.pgen.tests.r2dbc.basic.generated.db.foo._public.NonEmptyTextDomain
 import de.quati.pgen.tests.r2dbc.basic.generated.db.foo._public.OrderId
 import de.quati.pgen.tests.r2dbc.basic.generated.db.foo._public.OrderStatus
 import de.quati.pgen.tests.r2dbc.basic.generated.db.foo._public.Orders
-import de.quati.pgen.tests.r2dbc.basic.generated.db.foo._public.PgenTestTable
 import de.quati.pgen.tests.r2dbc.basic.generated.db.foo._public.ProductType
 import de.quati.pgen.tests.r2dbc.basic.generated.db.foo._public.Products
-import de.quati.pgen.tests.r2dbc.basic.generated.db.foo._public.SyncTestTable
 import de.quati.pgen.tests.r2dbc.basic.generated.db.foo._public.Users
 import de.quati.pgen.tests.r2dbc.basic.shared.UserId
 import io.kotest.matchers.shouldBe
@@ -36,10 +32,6 @@ internal suspend fun cleanUpAll(): Unit = db.suspendTransaction {
     Orders.deleteAll()
     Products.deleteAll()
     Users.deleteAll()
-    PgenTestTable.deleteAll()
-    SyncTestTable.deleteAll()
-    Ips.deleteAll()
-    EnumArrayTestTable.deleteAll()
 }
 
 internal suspend fun createUserFixture(

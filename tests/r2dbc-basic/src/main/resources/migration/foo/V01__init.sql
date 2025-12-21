@@ -127,22 +127,6 @@ create table public.documents
         )
 );
 
-
-create table public.pgen_test_table
-(
-    key               citext primary key,
-    duration          interval       not null,
-    duration_nullable interval,
-    i_range_nullable  int4range,
-    i_range           int4range      not null,
-    l_range_nullable  int8range,
-    l_range           int8range      not null,
-    address_nullable  public.address,
-    address           public.address not null,
-    table_nullable    regclass,
-    "table"           regclass       not null
-);
-
 create table public.sync_test_table
 (
     group_id int  not null,
@@ -150,7 +134,54 @@ create table public.sync_test_table
     constraint sync_test_table_pk primary key (group_id, name)
 );
 
-create table public.ips
+create table public.citext_test_table
+(
+    key           text primary key,
+    text_nullable citext,
+    text          citext not null
+);
+
+create table public.regclass_test_table
+(
+    key            text primary key,
+    table_nullable regclass,
+    "table"        regclass not null
+);
+
+create table public.struct_test_table
+(
+    key              text primary key,
+    address_nullable public.address,
+    address          public.address not null
+);
+
+create table public.duration_test_table
+(
+    key               text primary key,
+    duration          interval not null,
+    duration_nullable interval
+);
+
+create table public.ranges_test_table
+(
+    key              text primary key,
+    i_range_nullable int4range,
+    i_range          int4range not null,
+    l_range_nullable int8range,
+    l_range          int8range not null
+);
+
+
+create table public.multi_ranges_test_table
+(
+    key               text primary key,
+    i_mrange_nullable int4multirange,
+    i_mrange          int4multirange not null,
+    l_mrange_nullable int8multirange,
+    l_mrange          int8multirange not null
+);
+
+create table public.ips_test_table
 (
     key        text primary key,
     i          inet not null,

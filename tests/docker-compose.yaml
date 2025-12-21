@@ -1,0 +1,37 @@
+x-postgres-common: &postgres-common
+  environment:
+    POSTGRES_DB: postgres
+    POSTGRES_USER: postgres
+    POSTGRES_PASSWORD: postgres
+  healthcheck:
+    test: [ "CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}" ]
+    interval: 1s
+    timeout: 1s
+    retries: 30
+    start_period: 2s
+
+services:
+  jdbc-base:
+    image: postgres:17.2
+    <<: *postgres-common
+    ports:
+      - "55432:5432"
+    profiles: [ jdbc-base ]
+  jdbc-base-vector:
+    image: pgvector/pgvector:0.8.0-pg17
+    <<: *postgres-common
+    ports:
+      - "55433:5432"
+    profiles: [ jdbc-base ]
+  r2dbc-base:
+    image: postgres:17.2
+    <<: *postgres-common
+    ports:
+      - "55430:5432"
+    profiles: [ r2dbc-base ]
+  r2dbc-base-vector:
+    image: pgvector/pgvector:0.8.0-pg17
+    <<: *postgres-common
+    ports:
+      - "55431:5432"
+    profiles: [ r2dbc-base ]

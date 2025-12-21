@@ -8,16 +8,12 @@ import de.quati.pgen.jdbc.util.transactionCatching
 import de.quati.pgen.shared.PgenException
 import de.quati.pgen.tests.jdbc.basic.createDb
 import de.quati.pgen.tests.jdbc.basic.generated.db.foo._public.Documents
-import de.quati.pgen.tests.jdbc.basic.generated.db.foo._public.EnumArrayTestTable
-import de.quati.pgen.tests.jdbc.basic.generated.db.foo._public.Ips
 import de.quati.pgen.tests.jdbc.basic.generated.db.foo._public.NonEmptyTextDomain
 import de.quati.pgen.tests.jdbc.basic.generated.db.foo._public.OrderId
 import de.quati.pgen.tests.jdbc.basic.generated.db.foo._public.OrderStatus
 import de.quati.pgen.tests.jdbc.basic.generated.db.foo._public.Orders
-import de.quati.pgen.tests.jdbc.basic.generated.db.foo._public.PgenTestTable
 import de.quati.pgen.tests.jdbc.basic.generated.db.foo._public.ProductType
 import de.quati.pgen.tests.jdbc.basic.generated.db.foo._public.Products
-import de.quati.pgen.tests.jdbc.basic.generated.db.foo._public.SyncTestTable
 import de.quati.pgen.tests.jdbc.basic.generated.db.foo._public.Users
 import de.quati.pgen.tests.jdbc.basic.shared.UserId
 import io.kotest.matchers.shouldBe
@@ -36,10 +32,6 @@ internal fun cleanUpAll(): Unit = db.transaction {
     Orders.deleteAll()
     Products.deleteAll()
     Users.deleteAll()
-    PgenTestTable.deleteAll()
-    SyncTestTable.deleteAll()
-    Ips.deleteAll()
-    EnumArrayTestTable.deleteAll()
 }
 
 internal fun createUserFixture(
