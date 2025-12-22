@@ -4,7 +4,6 @@ import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.asTypeName
 import com.squareup.kotlinpoet.buildCodeBlock
-import de.quati.pgen.plugin.model.config.Config
 import de.quati.pgen.plugin.model.sql.Column
 import de.quati.pgen.plugin.util.codegen.oas.DbContext
 
@@ -51,22 +50,9 @@ fun PropertySpec.Builder.initializer(column: Column, postfix: String, postArgs: 
         is Column.Type.NonPrimitive.Array -> {
             when (val elementType = type.elementType) {
                 is Column.Type.NonPrimitive.Enum -> initializer(buildCodeBlock {
-                    add("%T<%T>(\n", Poet.Pgen.customEnumerationArray, type.getTypeName())
+                    add("%T<%T>(\n", Poet.Pgen.pgenEnumArray, type.getTypeName())
                     add("    name = %S,\n", columnName)
                     add("    sql = %S,\n", "${elementType.name.schema.schemaName}.${elementType.name.name}")
-                    add(
-                        "    fromDb = { %T<%T>(it as String) },\n",
-                        Poet.Pgen.getPgEnumByLabel,
-                        elementType.name.typeName,
-                    )
-                    when (c.connectionType) {
-                        Config.ConnectionType.JDBC -> add(
-                            "    toDb = { %T().apply { value = it.pgEnumLabel; type = it.pgEnumTypeName } },\n",
-                            Poet.Jdbc.PGobject
-                        )
-
-                        Config.ConnectionType.R2DBC -> add("    toDb = { it },\n")
-                    }
                     @Suppress("SpreadOperator") add(")$postfix", *postArgs)
                 })
 
@@ -83,18 +69,9 @@ fun PropertySpec.Builder.initializer(column: Column, postfix: String, postArgs: 
         }
 
         is Column.Type.NonPrimitive.Enum -> initializer(buildCodeBlock {
-            add("customEnumeration(\n")
+            add("%T<%T>(\n", Poet.Pgen.pgenEnum, type.getTypeName())
             add("    name = %S,\n", columnName)
             add("    sql = %S,\n", "${type.name.schema.schemaName}.${type.name.name}")
-            add("    fromDb = { %T<%T>(it as String) },\n", Poet.Pgen.getPgEnumByLabel, type.name.typeName)
-            when (c.connectionType) {
-                Config.ConnectionType.JDBC -> add(
-                    "    toDb = { %T().apply { value = it.pgEnumLabel; type = it.pgEnumTypeName } },\n",
-                    Poet.Jdbc.PGobject
-                )
-
-                Config.ConnectionType.R2DBC -> add("    toDb = { it },\n")
-            }
             @Suppress("SpreadOperator") add(")$postfix", *postArgs)
         })
 

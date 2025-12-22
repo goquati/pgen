@@ -1,7 +1,7 @@
 package de.quati.pgen.tests.r2dbc.basic
 
 import de.quati.pgen.r2dbc.util.r2dbcDatabasePooled
-import de.quati.pgen.tests.r2dbc.basic.generated.db.allR2dbcCodecs
+import de.quati.pgen.tests.r2dbc.basic.generated.db.pgenCodec
 import io.r2dbc.postgresql.client.SSLMode
 import io.r2dbc.spi.ValidationDepth
 import org.jetbrains.exposed.v1.r2dbc.R2dbcDatabase
@@ -9,7 +9,7 @@ import java.time.Duration
 
 fun createDb(port: Int): R2dbcDatabase = r2dbcDatabasePooled {
     url("jdbc:postgresql://localhost:$port/postgres")
-    codecs(allR2dbcCodecs)
+    codecs(pgenCodec)
     username("postgres")
     password("postgres")
     connectionConfig {

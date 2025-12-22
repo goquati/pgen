@@ -31,6 +31,7 @@ public class R2dbcDatabasePooledBuilder {
     public fun username(value: String): R2dbcDatabasePooledBuilder = apply { this.username = value }
     public fun password(value: String): R2dbcDatabasePooledBuilder = apply { this.password = value }
     public fun codecs(values: Iterable<CodecRegistrar>): R2dbcDatabasePooledBuilder = apply { codecs.addAll(values) }
+    public fun codecs(vararg values: CodecRegistrar): R2dbcDatabasePooledBuilder = apply { codecs.addAll(values) }
     public fun poolConfig(block: ConnectionPoolConfiguration.Builder.() -> Unit): R2dbcDatabasePooledBuilder =
         apply { poolConfig = block }
 

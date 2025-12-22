@@ -70,35 +70,25 @@ internal fun Enum.toTypeSpecInternal() = buildEnum(this@toTypeSpecInternal.name.
             }
         }
 
-    if (c.connectionType == Config.ConnectionType.R2DBC)
+    if (enumMapping != null)
         addCompanionObject {
-            addProperty(name = "codec", type = Poet.codecRegistrar) {
-                initializer(
-                    "%T.builder().withEnum(%S.lowercase(), " +
-                            "${this@toTypeSpecInternal.name.prettyName}::class.java).build()",
-                    ClassName("io.r2dbc.postgresql.codec", "EnumCodec"),
-                    this@toTypeSpecInternal.name.name.lowercase(),
-                )
-            }
-
-            if (enumMapping != null)
-                addFunction("toEntity") {
-                    receiver(enumMapping.name.poet)
-                    returns(this@toTypeSpecInternal.name.typeName)
-                    addCode {
-                        beginControlFlow("return when (this)")
-                        this@toTypeSpecInternal.fields.forEach { field ->
-                            val (enumName, otherName) = enumMapping.getMappingPair(field)
-                            add(
-                                "%T.%L -> %T.%L\n",
-                                enumMapping.name.poet,
-                                otherName,
-                                this@toTypeSpecInternal.name.typeName,
-                                enumName,
-                            )
-                        }
-                        endControlFlow()
+            addFunction("toEntity") {
+                receiver(enumMapping.name.poet)
+                returns(this@toTypeSpecInternal.name.typeName)
+                addCode {
+                    beginControlFlow("return when (this)")
+                    this@toTypeSpecInternal.fields.forEach { field ->
+                        val (enumName, otherName) = enumMapping.getMappingPair(field)
+                        add(
+                            "%T.%L -> %T.%L\n",
+                            enumMapping.name.poet,
+                            otherName,
+                            this@toTypeSpecInternal.name.typeName,
+                            enumName,
+                        )
                     }
+                    endControlFlow()
                 }
+            }
         }
 }

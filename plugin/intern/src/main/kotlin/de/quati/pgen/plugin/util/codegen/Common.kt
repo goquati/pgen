@@ -40,7 +40,11 @@ object Poet {
         val PGobject = ClassName("org.postgresql.util", "PGobject")
     }
 
-    val codecRegistrar = ClassName("io.r2dbc.postgresql.extension", "CodecRegistrar")
+    object R2dbc {
+        val codecRegistrar = ClassName("io.r2dbc.postgresql.extension", "CodecRegistrar")
+        val enumCodec = ClassName("io.r2dbc.postgresql.codec", "EnumCodec")
+    }
+
     val flowSingleOrNull = ClassName("kotlinx.coroutines.flow", "singleOrNull")
     val channelFlow = ClassName("kotlinx.coroutines.flow", "channelFlow")
     val flowMap = ClassName("kotlinx.coroutines.flow", "map")
@@ -164,6 +168,7 @@ object Poet {
         val columnValue = packageNameCore.className("ColumnValue")
 
         val compositeColumnType = packageNameCoreColumnType.className("CompositeColumnType")
+
         context(c: CodeGenContext)
         val regClassColumn get() = packageNameDriverColumnType.className("regClass")
 
@@ -174,7 +179,6 @@ object Poet {
         val domainTypeColumn = packageNameCoreColumnType.className("DomainTypeColumn")
 
         val getArrayColumnType = packageNameCoreColumnType.className("getArrayColumnType")
-        val customEnumerationArray = packageNameCoreColumnType.className("customEnumerationArray")
 
         val defaultJsonColumnType = packageNameCoreColumnType.className("DefaultJsonColumnType")
         val unconstrainedNumericColumnType = packageNameCoreColumnType.className("UnconstrainedNumericColumnType")
@@ -184,7 +188,6 @@ object Poet {
         val pgStructFieldJoin = packageNameCoreColumnType.className("join")
 
         val pgEnum = packageNameCoreColumnType.className("PgEnum")
-        val getPgEnumByLabel = packageNameCoreColumnType.className("getPgEnumByLabel")
 
         val fKeyConstraint = packageNameCore.className("Constraint", "ForeignKey")
         val pKeyConstraint = packageNameCore.className("Constraint", "PrimaryKey")
@@ -235,6 +238,12 @@ object Poet {
 
         context(c: CodeGenContext)
         val interval get() = packageNameDriverColumnType.className("interval")
+
+        context(c: CodeGenContext)
+        val pgenEnum get() = packageNameDriverColumnType.className("pgenEnum")
+
+        context(c: CodeGenContext)
+        val pgenEnumArray get() = packageNameDriverColumnType.className("pgenEnumArray")
 
         val getColumnWithAlias = packageNameCoreUtil.className("get")
 

@@ -10,21 +10,6 @@ import org.jetbrains.exposed.v1.core.Table
 public fun <E> getArrayColumnType(columnType: ColumnType<E & Any>): ArrayColumnType<E, List<E>> =
     ArrayColumnType<E, List<E>>(delegate = columnType)
 
-public fun <T : Enum<T>> Table.customEnumerationArray(
-    name: String,
-    sql: String?,
-    fromDb: (Any) -> T,
-    toDb: (T) -> Any
-): Column<List<T>> {
-    val enumColumnType = CustomEnumerationColumnType(
-        name = "${name}_element",
-        sql = sql,
-        fromDb = fromDb,
-        toDb = toDb,
-    )
-    return array(name = name, columnType = enumColumnType)
-}
-
 public fun parseFloatArray(data: String): FloatArray {
     val cleaned = data.trim().removePrefix("[").removeSuffix("]")
     return cleaned.split(",").map { it.trim().toFloat() }.toFloatArray()
