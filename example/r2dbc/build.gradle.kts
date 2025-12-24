@@ -51,7 +51,7 @@ tasks.compileKotlin {
 
 pgen {
     addDb("base") {
-        connectionConfig {
+        connection {
             url("jdbc:postgresql://localhost:55420/postgres")
             user("postgres")
             password("postgres")
