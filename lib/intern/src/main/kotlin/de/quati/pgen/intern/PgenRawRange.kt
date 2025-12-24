@@ -1,4 +1,4 @@
-package de.quati.pgen.core.model
+package de.quati.pgen.intern
 
 
 public sealed interface PgenRawRange {

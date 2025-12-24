@@ -8,22 +8,26 @@ import org.jetbrains.exposed.v1.core.CustomEnumerationColumnType
 import org.jetbrains.exposed.v1.core.Table
 import org.jetbrains.exposed.v1.core.statements.api.RowApi
 
+public inline fun <reified T> Table.pgenEnumColumnType(
+    name: String,
+    sql: String,
+): CustomEnumerationColumnType<T> where T : PgEnum, T : Enum<T> = CustomEnumerationColumnType(
+    name = name,
+    sql = sql,
+    fromDb = {
+        when (it) {
+            is T -> it
+            else -> getPgEnumByLabel(clazz = T::class, label = it.toString())
+        }
+    },
+    toDb = { it },
+)
 
 public inline fun <reified T> Table.pgenEnum(
     name: String,
     sql: String,
 ): Column<T> where T : PgEnum, T : Enum<T> {
-    val enumColumnType = CustomEnumerationColumnType(
-        name = name,
-        sql = sql,
-        fromDb = {
-            when (it) {
-                is T -> it
-                else -> getPgEnumByLabel(clazz = T::class, label = it.toString())
-            }
-        },
-        toDb = { it },
-    )
+    val enumColumnType = pgenEnumColumnType<T>(name = name, sql = sql)
     return registerColumn(name = name, type = enumColumnType)
 }
 
@@ -31,17 +35,7 @@ public inline fun <reified T> Table.pgenEnumArray(
     name: String,
     sql: String,
 ): Column<List<T>> where T : PgEnum, T : Enum<T> {
-    val enumColumnType = CustomEnumerationColumnType(
-        name = "${name}_element",
-        sql = sql,
-        fromDb = {
-            when (it) {
-                is T -> it
-                else -> getPgEnumByLabel(clazz = T::class, label = it.toString())
-            }
-        },
-        toDb = { it },
-    )
+    val enumColumnType = pgenEnumColumnType<T>(name = "${name}_element", sql = sql)
     return registerColumn(name = name, type = PgenEnumArrayColumnType(enumColumnType))
 }
 
@@ -53,8 +47,10 @@ public class PgenEnumArrayColumnType<T, R : List<Any?>>(
     override fun sqlType(): String = delegate.sqlType() + "[]"
 
     @Suppress("UNCHECKED_CAST")
-    override fun notNullValueToDB(value: R): Array<Any?> =
-        (value as List<T>).map { it.let { delegate.notNullValueToDB(it) } }.toTypedArray()
+    override fun notNullValueToDB(value: R): Any = (value as List<T>)
+        .map { delegate.notNullValueToDB(it) }
+        .map { (it as PgEnum).pgEnumLabel }
+        .joinToString(separator = ",", prefix = "{", postfix = "}") { it }
 
     @Suppress("UNCHECKED_CAST")
     override fun valueFromDB(value: Any): R? {

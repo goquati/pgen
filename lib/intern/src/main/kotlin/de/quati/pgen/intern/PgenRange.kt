@@ -1,4 +1,4 @@
-package de.quati.pgen.core.model
+package de.quati.pgen.intern
 
 public object PgenRange {
     public fun <T : Comparable<T>, R : ClosedRange<T>> toPostgresqlValue(range: R): String =

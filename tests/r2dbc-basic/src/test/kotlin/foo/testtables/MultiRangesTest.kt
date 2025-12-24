@@ -1,6 +1,6 @@
 package foo.testtables
 
-import de.quati.pgen.core.model.PgenMultiRange
+import de.quati.pgen.shared.PgenMultiRange
 import de.quati.pgen.r2dbc.util.suspendTransaction
 import de.quati.pgen.tests.r2dbc.basic.generated.db.foo._public.MultiRangesTestTable
 import io.kotest.matchers.shouldBe

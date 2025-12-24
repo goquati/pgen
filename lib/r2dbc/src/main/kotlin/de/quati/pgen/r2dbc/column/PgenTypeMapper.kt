@@ -3,23 +3,17 @@ package de.quati.pgen.r2dbc.column
 import de.quati.pgen.core.column.CompositeColumnType
 import de.quati.pgen.core.column.PgEnum
 import de.quati.pgen.core.column.PgenColumnType
-import de.quati.pgen.core.model.PgenMultiRange
-import de.quati.pgen.core.model.PgenRange
 import io.r2dbc.postgresql.codec.PostgresTypes
 import io.r2dbc.postgresql.codec.PostgresqlObjectId
 import io.r2dbc.spi.Parameters
-import io.r2dbc.spi.Row
 import io.r2dbc.spi.Statement
 import io.r2dbc.spi.Type
-import org.jetbrains.exposed.v1.core.ArrayColumnType
 import org.jetbrains.exposed.v1.core.CustomEnumerationColumnType
 import org.jetbrains.exposed.v1.core.IColumnType
 import org.jetbrains.exposed.v1.core.vendors.DatabaseDialect
 import org.jetbrains.exposed.v1.core.vendors.PostgreSQLDialect
-import org.jetbrains.exposed.v1.r2dbc.mappers.NoValueContainer
 import org.jetbrains.exposed.v1.r2dbc.mappers.R2dbcTypeMapping
 import org.jetbrains.exposed.v1.r2dbc.mappers.TypeMapper
-import org.jetbrains.exposed.v1.r2dbc.mappers.ValueContainer
 import kotlin.reflect.KClass
 
 
@@ -61,18 +55,11 @@ public class PgenTypeMapper : TypeMapper {
             is IntervalColumnType -> bind(PostgresqlObjectId.INTERVAL, value)
             is CompositeColumnType<*> -> bind(PostgresqlObjectId.UNSPECIFIED, value)
             is PgenColumnType -> bind(columnType.typeInfo.toPostgresType(), value)
-            is Int4RangeColumnType -> bind(INT4RANGE_TYPE, PgenRange.toPostgresqlValue(value as IntRange))
-            is Int8RangeColumnType -> bind(INT8RANGE_TYPE, PgenRange.toPostgresqlValue(value as LongRange))
-            is Int4MultiRangeColumnType -> bind(INT4MULTIRANGE_TYPE, (value as PgenMultiRange<*>).toPostgresqlValue())
-            is Int8MultiRangeColumnType -> bind(INT8MULTIRANGE_TYPE, (value as PgenMultiRange<*>).toPostgresqlValue())
-            is PgenEnumArrayColumnType<*, *> -> {
-                if (value !is Array<*>) return false
-                val value = value.takeIf { v -> v.all { it is PgEnum } }
-                    ?.map { (it as PgEnum).pgEnumLabel }
-                    ?.joinToString(separator = ",", prefix = "{", postfix = "}") { it }
-                    ?: return false
-                bind(PostgresqlObjectId.UNSPECIFIED, value)
-            }
+            is Int4RangeColumnType -> bind(INT4RANGE_TYPE, value)
+            is Int8RangeColumnType -> bind(INT8RANGE_TYPE, value)
+            is Int4MultiRangeColumnType -> bind(INT4MULTIRANGE_TYPE, value)
+            is Int8MultiRangeColumnType -> bind(INT8MULTIRANGE_TYPE, value)
+            is PgenEnumArrayColumnType<*, *> -> bind(PostgresqlObjectId.UNSPECIFIED, value)
 
             is CustomEnumerationColumnType -> if (value !is PgEnum)
                 false // only pgen enums, skip other enum types

@@ -1,4 +1,6 @@
-package de.quati.pgen.core.model
+package de.quati.pgen.intern
+
+import de.quati.pgen.shared.PgenMultiRange
 
 
 @JvmInline
@@ -19,3 +21,8 @@ public value class PgenRawMultiRange(public val ranges: List<PgenRawRange>) {
         }
     }
 }
+
+public fun <T : Comparable<T>> PgenMultiRange<T>.toPostgresqlValue(): String =
+    joinToString(separator = ",", prefix = "{", postfix = "}") {
+        PgenRange.toPostgresqlValue(it)
+    }

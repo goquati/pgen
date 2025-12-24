@@ -82,7 +82,6 @@ object Poet {
         val alias = packageNameCore.className("Alias")
         val resultRow = packageNameCore.className("ResultRow")
         val uuidColumnType = packageNameCore.className("UUIDColumnType")
-        val enumerationColumnType = packageNameCore.className("EnumerationColumnType")
         val decimalColumnType = packageNameCore.className("DecimalColumnType")
         val longColumnType = packageNameCore.className("LongColumnType")
         val booleanColumnType = packageNameCore.className("BooleanColumnType")
@@ -201,7 +200,7 @@ object Poet {
         context(c: CodeGenContext)
         val pgVectorColumnType get() = packageNameDriverColumnType.className("PgVectorColumnType")
 
-        val multiRange = packageNameCoreModel.className("PgenMultiRange")
+        val multiRange = packageNameShared.className("PgenMultiRange")
 
         context(c: CodeGenContext)
         val int4RangeColumnType get() = packageNameDriverColumnType.className("Int4RangeColumnType")
@@ -244,6 +243,9 @@ object Poet {
 
         context(c: CodeGenContext)
         val pgenEnumArray get() = packageNameDriverColumnType.className("pgenEnumArray")
+
+        context(c: CodeGenContext)
+        val pgenEnumColumnType get() = packageNameDriverColumnType.className("pgenEnumColumnType")
 
         val getColumnWithAlias = packageNameCoreUtil.className("get")
 

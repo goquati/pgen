@@ -1,6 +1,6 @@
 package foo.testtables
 
-import de.quati.pgen.core.model.PgenMultiRange
+import de.quati.pgen.shared.PgenMultiRange
 import de.quati.pgen.jdbc.util.transaction
 import de.quati.pgen.tests.jdbc.basic.generated.db.foo._public.MultiRangesTestTable
 import io.kotest.matchers.shouldBe

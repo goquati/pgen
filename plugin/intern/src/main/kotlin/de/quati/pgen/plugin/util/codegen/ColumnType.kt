@@ -64,7 +64,12 @@ fun Column.Type.getExposedColumnType(): CodeBlock = when (this) {
         codeBlock("%T(sqlType=%S)", getColumnTypeTypeName(), sqlType)
 
     is Column.Type.NonPrimitive.Enum ->
-        codeBlock("%T(%T::class)", Poet.Exposed.enumerationColumnType, name.typeName)
+        codeBlock(
+            "%T(name=%S, sql=%s)",
+            Poet.Pgen.pgenEnumColumnType,
+            name.name,
+            sqlType
+        )
 
     is Column.Type.NonPrimitive.Numeric ->
         codeBlock("%T(precision = $precision, scale = $scale)", Poet.Exposed.decimalColumnType)

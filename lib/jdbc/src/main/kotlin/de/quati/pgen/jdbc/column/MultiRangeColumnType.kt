@@ -1,53 +1,49 @@
 package de.quati.pgen.jdbc.column
 
-import de.quati.pgen.core.model.PgenMultiRange
-import de.quati.pgen.core.model.PgenRange
-import de.quati.pgen.core.model.PgenRawMultiRange
+import de.quati.pgen.intern.MultiRangeColumnType
+import de.quati.pgen.shared.PgenMultiRange
+import de.quati.pgen.intern.PgenRawMultiRange
+import de.quati.pgen.intern.toPostgresqlValue
 import org.jetbrains.exposed.v1.core.Column
-import org.jetbrains.exposed.v1.core.ColumnType
 import org.jetbrains.exposed.v1.core.Table
-import org.jetbrains.exposed.v1.core.statements.api.PreparedStatementApi
 import org.postgresql.util.PGobject
 
 
-public abstract class MultiRangeColumnType<T : Comparable<T>> : ColumnType<PgenMultiRange<T>>() {
-    public abstract fun parse(value: String): PgenMultiRange<T>
+private fun <T : Comparable<T>> fromDb(
+    value: Any,
+    mapper: (PgenRawMultiRange) -> PgenMultiRange<T>,
+): PgenMultiRange<T>? = when (value) {
+    is PGobject -> value.value?.takeIf { it.isNotBlank() }
+        ?.let { PgenRawMultiRange.parse(it) }
+        ?.let { mapper(it) }
 
-    override fun nonNullValueToString(value: PgenMultiRange<T>): String =
-        value.joinToString(separator = ",", prefix = "{", postfix = "}") { PgenRange.toPostgresqlValue(it) }
-
-    override fun nonNullValueAsDefaultString(value: PgenMultiRange<T>): String =
-        "'${nonNullValueToString(value)}'"
-
-    override fun setParameter(stmt: PreparedStatementApi, index: Int, value: Any?) {
-        val parameterValue: PGobject? = value?.let {
-            PGobject().apply {
-                type = sqlType()
-                this.value = @Suppress("UNCHECKED_CAST") nonNullValueToString(it as PgenMultiRange<T>)
-            }
-        }
-        super.setParameter(stmt, index, parameterValue)
-    }
-
-    override fun valueFromDB(value: Any): PgenMultiRange<T>? = when (value) {
-        is PGobject -> value.value?.takeIf { it.isNotBlank() }?.let { parse(it) }
-        else -> error("Retrieved unexpected value of type ${value::class.simpleName}")
-    }
+    else -> error("Retrieved unexpected value of type ${value::class.simpleName}")
 }
-
 
 public fun Table.int4MultiRange(name: String): Column<PgenMultiRange<Int>> =
     registerColumn(name, Int4MultiRangeColumnType())
 
-public class Int4MultiRangeColumnType : MultiRangeColumnType<Int>() {
-    override fun sqlType(): String = "INT4MULTIRANGE"
-    override fun parse(value: String): PgenMultiRange<Int> = PgenRawMultiRange.parse(value).toInt4MultiRange()
-}
+public class Int4MultiRangeColumnType : MultiRangeColumnType<Int>(
+    sqlType = "INT4MULTIRANGE",
+    fromDb = { value -> fromDb(value) { it.toInt4MultiRange() } },
+    toDb = {
+        PGobject().apply {
+            type = "INT4MULTIRANGE"
+            this.value = it.toPostgresqlValue()
+        }
+    }
+)
 
 public fun Table.int8MultiRange(name: String): Column<PgenMultiRange<Long>> =
     registerColumn(name, Int8MultiRangeColumnType())
 
-public class Int8MultiRangeColumnType : MultiRangeColumnType<Long>() {
-    override fun sqlType(): String = "INT8MULTIRANGE"
-    override fun parse(value: String): PgenMultiRange<Long> = PgenRawMultiRange.parse(value).toInt8MultiRange()
-}
+public class Int8MultiRangeColumnType : MultiRangeColumnType<Long>(
+    sqlType = "INT8MULTIRANGE",
+    fromDb = { value -> fromDb(value) { it.toInt8MultiRange() } },
+    toDb = {
+        PGobject().apply {
+            type = "INT8MULTIRANGE"
+            this.value = it.toPostgresqlValue()
+        }
+    }
+)
