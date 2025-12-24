@@ -1,7 +1,7 @@
 package de.quati.pgen.jdbc.util
 
-import de.quati.pgen.intern.BatchUpdateRow
-import de.quati.pgen.intern.BatchUpdateStatement
+import de.quati.pgen.core.statement.BatchUpdateRow
+import de.quati.pgen.core.statement.BatchUpdateStatement
 import org.jetbrains.exposed.v1.core.Column
 import org.jetbrains.exposed.v1.core.Table
 import org.jetbrains.exposed.v1.jdbc.JdbcTransaction

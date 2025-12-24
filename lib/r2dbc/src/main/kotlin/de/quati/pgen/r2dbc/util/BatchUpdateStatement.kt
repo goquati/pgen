@@ -1,7 +1,7 @@
 package de.quati.pgen.r2dbc.util
 
-import de.quati.pgen.intern.BatchUpdateRow
-import de.quati.pgen.intern.BatchUpdateStatement
+import de.quati.pgen.core.statement.BatchUpdateRow
+import de.quati.pgen.core.statement.BatchUpdateStatement
 import kotlinx.coroutines.flow.reduce
 import org.jetbrains.exposed.v1.core.Column
 import org.jetbrains.exposed.v1.core.Table

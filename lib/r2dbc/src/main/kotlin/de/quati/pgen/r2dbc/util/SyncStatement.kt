@@ -1,8 +1,8 @@
 package de.quati.pgen.r2dbc.util
 
-import de.quati.pgen.intern.SyncKeysBuilder
-import de.quati.pgen.intern.SyncRow
-import de.quati.pgen.intern.SyncStatement
+import de.quati.pgen.core.statement.SyncKeysBuilder
+import de.quati.pgen.core.statement.SyncRow
+import de.quati.pgen.core.statement.SyncStatement
 import org.jetbrains.exposed.v1.core.Column
 import org.jetbrains.exposed.v1.core.Expression
 import org.jetbrains.exposed.v1.core.QueryParameter

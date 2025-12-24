@@ -1,9 +1,9 @@
 package de.quati.pgen.jdbc.column
 
-import de.quati.pgen.intern.MultiRangeColumnType
+import de.quati.pgen.core.column.MultiRangeColumnType
 import de.quati.pgen.shared.PgenMultiRange
-import de.quati.pgen.intern.PgenRawMultiRange
-import de.quati.pgen.intern.toPostgresqlValue
+import de.quati.pgen.core.util.PgenRawMultiRange
+import de.quati.pgen.core.util.toPostgresqlValue
 import org.jetbrains.exposed.v1.core.Column
 import org.jetbrains.exposed.v1.core.Table
 import org.postgresql.util.PGobject

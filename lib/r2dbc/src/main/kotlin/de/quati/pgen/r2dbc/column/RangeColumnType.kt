@@ -1,8 +1,8 @@
 package de.quati.pgen.r2dbc.column
 
-import de.quati.pgen.intern.PgenRange
-import de.quati.pgen.intern.PgenRawRange
-import de.quati.pgen.intern.RangeColumnType
+import de.quati.pgen.core.util.PgenRange
+import de.quati.pgen.core.util.PgenRawRange
+import de.quati.pgen.core.column.RangeColumnType
 import org.jetbrains.exposed.v1.core.Column
 import org.jetbrains.exposed.v1.core.Table
 

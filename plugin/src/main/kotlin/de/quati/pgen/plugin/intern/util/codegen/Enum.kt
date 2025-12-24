@@ -1,0 +1,87 @@
+package de.quati.pgen.plugin.intern.util.codegen
+
+import com.squareup.kotlinpoet.KModifier
+import com.squareup.kotlinpoet.asTypeName
+import de.quati.pgen.plugin.intern.dsl.addCode
+import de.quati.pgen.plugin.intern.dsl.addCompanionObject
+import de.quati.pgen.plugin.intern.dsl.addEnumConstant
+import de.quati.pgen.plugin.intern.dsl.addFunction
+import de.quati.pgen.plugin.intern.dsl.addProperty
+import de.quati.pgen.plugin.intern.dsl.buildEnum
+import de.quati.pgen.plugin.intern.dsl.primaryConstructor
+import de.quati.pgen.plugin.intern.model.sql.Enum
+import de.quati.pgen.plugin.intern.model.sql.KotlinEnumClass
+import de.quati.pgen.plugin.intern.util.toSnakeCase
+
+private fun String.toEnumName() = this.toSnakeCase(uppercase = true)
+
+private fun KotlinEnumClass.getMappingPair(field: String): Pair<String, String> {
+    val enumName = field.toEnumName()
+    val otherName = mappings[enumName] ?: enumName
+    return enumName to otherName
+}
+
+context(c: CodeGenContext)
+internal fun Enum.toTypeSpecInternal() = buildEnum(this@toTypeSpecInternal.name.prettyName) {
+    addSuperinterface(Poet.Pgen.pgEnum)
+    primaryConstructor {
+        addParameter("pgEnumLabel", String::class)
+        addProperty(name = "pgEnumLabel", type = String::class.asTypeName()) {
+            addModifiers(KModifier.OVERRIDE)
+            initializer("pgEnumLabel")
+        }
+    }
+    this@toTypeSpecInternal.fields.forEach { field ->
+        val enumName = field.toEnumName()
+        addEnumConstant(enumName) {
+            addSuperclassConstructorParameter("pgEnumLabel = %S", field)
+        }
+    }
+    val pgEnumTypeNameValue = "${this@toTypeSpecInternal.name.schema.schemaName}.${this@toTypeSpecInternal.name.name}"
+    addProperty(name = "pgEnumTypeName", type = String::class.asTypeName()) {
+        initializer("%S", pgEnumTypeNameValue)
+        addModifiers(KModifier.OVERRIDE)
+    }
+
+    val enumMapping = c.enumMappings[name]
+    if (enumMapping != null)
+        addFunction("toDto") {
+            returns(enumMapping.name.poet)
+            addCode {
+                beginControlFlow("return when (this)")
+                this@toTypeSpecInternal.fields.forEach { field ->
+                    val (enumName, otherName) = enumMapping.getMappingPair(field)
+                    add(
+                        "%T.%L -> %T.%L\n",
+                        this@toTypeSpecInternal.name.typeName,
+                        enumName,
+                        enumMapping.name.poet,
+                        otherName,
+                    )
+                }
+                endControlFlow()
+            }
+        }
+
+    if (enumMapping != null)
+        addCompanionObject {
+            addFunction("toEntity") {
+                receiver(enumMapping.name.poet)
+                returns(this@toTypeSpecInternal.name.typeName)
+                addCode {
+                    beginControlFlow("return when (this)")
+                    this@toTypeSpecInternal.fields.forEach { field ->
+                        val (enumName, otherName) = enumMapping.getMappingPair(field)
+                        add(
+                            "%T.%L -> %T.%L\n",
+                            enumMapping.name.poet,
+                            otherName,
+                            this@toTypeSpecInternal.name.typeName,
+                            enumName,
+                        )
+                    }
+                    endControlFlow()
+                }
+            }
+        }
+}

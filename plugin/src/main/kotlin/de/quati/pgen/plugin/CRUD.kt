@@ -1,6 +1,6 @@
 package de.quati.pgen.plugin
 
-import de.quati.pgen.plugin.model.config.Config
+import de.quati.pgen.plugin.intern.model.config.Config
 
 public enum class CRUD {
     CREATE, READ, READ_ALL, UPDATE, DELETE;
