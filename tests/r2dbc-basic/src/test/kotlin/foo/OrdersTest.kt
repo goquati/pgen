@@ -50,7 +50,7 @@ class OrdersTest {
         entity.id shouldBe orderId
         entity.userId shouldBe userId
         entity.productId shouldBe productId
-        entity.status shouldBe OrderStatus.paid
+        entity.status shouldBe OrderStatus.PAID
         entity.totalCents shouldBe 5000
         entity.notes shouldBe "Initial order"
         entity.placedAt shouldNotBe null
@@ -73,7 +73,7 @@ class OrdersTest {
                     orderUuid = Option.Undefined,
                     userId = Option.Undefined,
                     productId = Option.Undefined,
-                    status = Option.Some(OrderStatus.refunded),
+                    status = Option.Some(OrderStatus.REFUNDED),
                     totalCents = Option.Some(2000),
                     notes = Option.Some("After update"),
                     placedAt = Option.Undefined,
@@ -91,7 +91,7 @@ class OrdersTest {
                 .where { Orders.id eq orderId }
                 .single().let(Orders.Entity::create)
         }
-        entity.status shouldBe OrderStatus.refunded
+        entity.status shouldBe OrderStatus.REFUNDED
         entity.totalCents shouldBe 2000
         entity.notes shouldBe "After update"
         entity.processedAt!!.minus(processedAt).absoluteValue shouldBeLessThan 1.seconds

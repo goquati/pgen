@@ -388,23 +388,6 @@ fun DirectorySyncService.sync(
 }
 
 context(c: CodeGenContext)
-fun DirectorySyncService.syncCodecs(
-    objs: Collection<Enum>,
-) {
-    if (c.connectionType != Config.ConnectionType.R2DBC) return
-    val fileName = "R2dbcCodecs.kt"
-    val packageName = c.poet.packageDb
-    sync(
-        relativePath = packageName.toRelativePath(fileName),
-        content = fileSpec(
-            packageName = packageName,
-            name = fileName,
-            block = { createCodecCollection(objs) }
-        )
-    )
-}
-
-context(c: CodeGenContext)
 fun PackageName.toRelativePath() = name.removePrefix(c.poet.rootPackageName.name)
     .trimStart('.').replace(".", "/")
 

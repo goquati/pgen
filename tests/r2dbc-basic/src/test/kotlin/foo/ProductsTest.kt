@@ -50,10 +50,10 @@ class ProductsTest {
         entity.id shouldBe productId
         entity.sku shouldBe sku
         entity.name shouldBe NonEmptyTextDomain("Test Product")
-        entity.type shouldBe ProductType.a
+        entity.type shouldBe ProductType.A
         entity.description.shouldBeNull()
         entity.priceCents shouldBe 1234
-        entity.status shouldBe OrderStatus.pending
+        entity.status shouldBe OrderStatus.PENDING
         entity.extraData shouldBe JsonObject(mapOf("bar" to JsonPrimitive("47")))
         entity.createdAt shouldNotBe null
     }
@@ -67,7 +67,7 @@ class ProductsTest {
                     id = Option.Undefined,
                     sku = sku,
                     name = NonEmptyTextDomain("Default Product"),
-                    type = ProductType.b,
+                    type = ProductType.B,
                     description = "Has defaults",
                     priceCents = 5000,
                     status = Option.Undefined,  // let DB default 'pending'
@@ -84,7 +84,7 @@ class ProductsTest {
                 .let(Products.Entity::create)
         }
 
-        entity.status shouldBe OrderStatus.pending
+        entity.status shouldBe OrderStatus.PENDING
         entity.createdAt shouldNotBe null
     }
 
@@ -101,10 +101,10 @@ class ProductsTest {
                     id = Option.Undefined,
                     sku = Option.Undefined,
                     name = Option.Some(NonEmptyTextDomain("Updated Product")),
-                    type = Option.Some(ProductType.c),
+                    type = Option.Some(ProductType.C),
                     description = Option.Some("Updated description"),
                     priceCents = Option.Some(9999),
-                    status = Option.Some(OrderStatus.paid),
+                    status = Option.Some(OrderStatus.PAID),
                     extraData = Option.Some(JsonObject(mapOf("updated" to JsonPrimitive(true)))),
                     createdAt = Option.Undefined,
                 ) applyTo builder
@@ -119,10 +119,10 @@ class ProductsTest {
         }
 
         entity.name shouldBe NonEmptyTextDomain("Updated Product")
-        entity.type shouldBe ProductType.c
+        entity.type shouldBe ProductType.C
         entity.description shouldBe "Updated description"
         entity.priceCents shouldBe 9999
-        entity.status shouldBe OrderStatus.paid
+        entity.status shouldBe OrderStatus.PAID
         entity.extraData shouldBe JsonObject(mapOf("updated" to JsonPrimitive(true)))
     }
 

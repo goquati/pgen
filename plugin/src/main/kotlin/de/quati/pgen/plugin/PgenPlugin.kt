@@ -18,7 +18,6 @@ import de.quati.pgen.plugin.service.DirectorySyncService.Companion.directorySync
 import de.quati.pgen.plugin.util.codegen.CodeGenContext
 import de.quati.pgen.plugin.util.codegen.CodeGenContext.Companion.getColumnTypeGroups
 import de.quati.pgen.plugin.util.codegen.sync
-import de.quati.pgen.plugin.util.codegen.syncCodecs
 import de.quati.pgen.plugin.util.codegen.oas.toOpenApi
 import de.quati.pgen.plugin.util.codegen.syncQueries
 import de.quati.pgen.plugin.util.parseStatements
@@ -149,7 +148,6 @@ private fun generateCode(config: Config) {
         println("sync code files to ${config.outputPath}")
         directorySync(config.outputPath) {
             spec.enums.forEach { sync(it) }
-            syncCodecs(spec.enums)
             spec.compositeTypes.forEach { sync(it) }
             spec.domains.filter { it.name !in typeMappings }.forEach { sync(it) }
             spec.tables.map { it.update() }

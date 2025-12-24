@@ -1,6 +1,5 @@
 package de.quati.pgen.plugin.util.codegen
 
-import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.asTypeName
 import de.quati.pgen.plugin.dsl.addCode
@@ -10,18 +9,12 @@ import de.quati.pgen.plugin.dsl.addFunction
 import de.quati.pgen.plugin.dsl.addProperty
 import de.quati.pgen.plugin.dsl.buildEnum
 import de.quati.pgen.plugin.dsl.primaryConstructor
-import de.quati.pgen.plugin.model.config.Config
 import de.quati.pgen.plugin.model.sql.Enum
 import de.quati.pgen.plugin.model.sql.KotlinEnumClass
 import de.quati.pgen.plugin.util.toSnakeCase
 
-context(c: CodeGenContext)
-private fun String.toEnumName() = when (c.connectionType) {
-    Config.ConnectionType.JDBC -> this.toSnakeCase(uppercase = true)
-    Config.ConnectionType.R2DBC -> this
-}
+private fun String.toEnumName() = this.toSnakeCase(uppercase = true)
 
-context(c: CodeGenContext)
 private fun KotlinEnumClass.getMappingPair(field: String): Pair<String, String> {
     val enumName = field.toEnumName()
     val otherName = mappings[enumName] ?: enumName

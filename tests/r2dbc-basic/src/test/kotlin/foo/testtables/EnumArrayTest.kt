@@ -18,9 +18,9 @@ class EnumArrayTest {
 
     @Test
     fun `basic tests`(): Unit = runBlocking {
-        val d1 = listOf(OrderStatus.pending, OrderStatus.paid)
+        val d1 = listOf(OrderStatus.PENDING, OrderStatus.PAID)
         val d2 = listOf<OrderStatus>()
-        val d3 = listOf(OrderStatus.cancelled)
+        val d3 = listOf(OrderStatus.CANCELLED)
 
         db.suspendTransaction {
             EnumArrayTestTable.insert {
