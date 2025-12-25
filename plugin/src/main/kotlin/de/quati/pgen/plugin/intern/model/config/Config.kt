@@ -1,13 +1,13 @@
 package de.quati.pgen.plugin.intern.model.config
 
 import com.squareup.kotlinpoet.ClassName
-import de.quati.pgen.plugin.intern.dsl.PackageName
+import de.quati.pgen.plugin.CRUD
+import de.quati.pgen.plugin.intern.PackageName
 import de.quati.pgen.plugin.intern.model.sql.DbName
 import de.quati.pgen.plugin.intern.model.sql.SqlObjectName
 import java.nio.file.Path
 
-
-data class Config(
+internal data class Config(
     val dbConfigs: List<Db>,
     val packageName: PackageName,
     val outputPath: Path,
@@ -45,10 +45,6 @@ data class Config(
         data class Mapper(
             val packageOasModel: String,
         )
-
-        enum class CRUD {
-            CREATE, READ, READ_ALL, UPDATE, DELETE
-        }
     }
 
     data class Db(

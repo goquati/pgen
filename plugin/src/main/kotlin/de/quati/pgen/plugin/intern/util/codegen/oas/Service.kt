@@ -7,10 +7,11 @@ import com.squareup.kotlinpoet.LambdaTypeName
 import com.squareup.kotlinpoet.ParameterSpec
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.UNIT
-import de.quati.pgen.plugin.intern.dsl.addCode
-import de.quati.pgen.plugin.intern.dsl.addFunction
-import de.quati.pgen.plugin.intern.dsl.addInterface
-import de.quati.pgen.plugin.intern.dsl.addParameter
+import de.quati.pgen.plugin.CRUD
+import de.quati.pgen.plugin.intern.addCode
+import de.quati.pgen.plugin.intern.addFunction
+import de.quati.pgen.plugin.intern.addInterface
+import de.quati.pgen.plugin.intern.addParameter
 import de.quati.pgen.plugin.intern.model.config.Config
 import de.quati.pgen.plugin.intern.model.oas.TableOasData
 import de.quati.pgen.plugin.intern.util.codegen.CodeGenContext
@@ -18,8 +19,8 @@ import de.quati.pgen.plugin.intern.util.codegen.Poet
 import de.quati.pgen.plugin.intern.util.codegen.getColumnTypeName
 
 @OptIn(ExperimentalKotlinPoetApi::class)
-context(c: CodeGenContext, mapperConfig: Config.Oas.Mapper)
-fun FileSpec.Builder.addTableService(data: TableOasData) = addInterface(data.getOasServiceName()) {
+context(c: CodeGenContext, _: Config.Oas.Mapper)
+internal fun FileSpec.Builder.addTableService(data: TableOasData) = addInterface(data.getOasServiceName()) {
 
     val idType = with(data.sqlData.dbName.toContext()) {
         data.sqlData.columns.singleOrNull { it.prettyName == "id" }
@@ -30,16 +31,16 @@ fun FileSpec.Builder.addTableService(data: TableOasData) = addInterface(data.get
     addProperty("db", Poet.Exposed.database())
 
     addFunction("getById") {
-        val localConfigContext = c.localConfigContext?.takeIf { Config.Oas.CRUD.READ in it.atMethods }
+        val localConfigContext = c.localConfigContext?.takeIf { CRUD.READ in it.atMethods }
         localConfigContext?.also { contextParameter("c", it.type) }
         addModifiers(KModifier.SUSPEND)
         addParameter("id", idType)
         returns(data.sqlData.entityTypeName)
         addCode(
-            """
+            $$"""
             return getAll { %T.id eq id }
                 .%T()
-                ?: throw %T.NotFound("${data.namePretty} not found with id: ${'$'}id")
+                ?: throw %T.NotFound("$${data.namePretty} not found with id: $id")
             """.trimIndent(),
             data.sqlData.name.typeName,
             Poet.flowSingleOrNull,
@@ -48,7 +49,7 @@ fun FileSpec.Builder.addTableService(data: TableOasData) = addInterface(data.get
     }
 
     addFunction("getAll") {
-        val localConfigContext = c.localConfigContext?.takeIf { Config.Oas.CRUD.READ in it.atMethods }
+        val localConfigContext = c.localConfigContext?.takeIf { CRUD.READ in it.atMethods }
         localConfigContext?.also { contextParameter("c", it.type) }
         addModifiers(KModifier.SUSPEND)
         addParameter(
@@ -98,7 +99,7 @@ fun FileSpec.Builder.addTableService(data: TableOasData) = addInterface(data.get
     }
 
     addFunction("create") {
-        val localConfigContext = c.localConfigContext?.takeIf { Config.Oas.CRUD.CREATE in it.atMethods }
+        val localConfigContext = c.localConfigContext?.takeIf { CRUD.CREATE in it.atMethods }
         localConfigContext?.also { contextParameter("c", it.type) }
         addModifiers(KModifier.SUSPEND)
         addParameter("data", data.sqlData.updateEntityTypeName)
@@ -126,7 +127,7 @@ fun FileSpec.Builder.addTableService(data: TableOasData) = addInterface(data.get
     }
 
     addFunction("delete") {
-        val localConfigContext = c.localConfigContext?.takeIf { Config.Oas.CRUD.DELETE in it.atMethods }
+        val localConfigContext = c.localConfigContext?.takeIf { CRUD.DELETE in it.atMethods }
         localConfigContext?.also { contextParameter("c", it.type) }
         addModifiers(KModifier.SUSPEND)
         addParameter("id", idType)
@@ -147,7 +148,7 @@ fun FileSpec.Builder.addTableService(data: TableOasData) = addInterface(data.get
             endControlFlow()
             beginControlFlow(".let")
             add(
-                """if (it == 0) throw %T.NotFound("Cannot delete ${data.namePretty} with id: ${'$'}id")${'\n'}""",
+                $$"if (it == 0) throw %T.NotFound(\"Cannot delete $${data.namePretty} with id: $id\")\n",
                 Poet.QuatiUtil.exception,
             )
             add("Unit\n")
@@ -156,7 +157,7 @@ fun FileSpec.Builder.addTableService(data: TableOasData) = addInterface(data.get
     }
 
     addFunction("update") {
-        val localConfigContext = c.localConfigContext?.takeIf { Config.Oas.CRUD.UPDATE in it.atMethods }
+        val localConfigContext = c.localConfigContext?.takeIf { CRUD.UPDATE in it.atMethods }
         localConfigContext?.also { contextParameter("c", it.type) }
         addModifiers(KModifier.SUSPEND)
         addParameter("id", idType)
@@ -165,12 +166,12 @@ fun FileSpec.Builder.addTableService(data: TableOasData) = addInterface(data.get
         addCode {
             beginControlFlow("return %T(db = db)", Poet.Exposed.transactionFun())
             add(
-                """
-                ${"// ".takeIf { localConfigContext == null } ?: ""}%T(c)
+                $$"""
+                $${"// ".takeIf { localConfigContext == null } ?: ""}%T(c)
                 %T.%T(where = { %T.id eq id }) {
                     data applyTo it
                 }.%T()
-                    .let { it ?: throw %T.BadRequest("Cannot update ${data.namePretty} with id: ${'$'}id") }
+                    .let { it ?: throw %T.BadRequest("Cannot update $${data.namePretty} with id: $id") }
                     .let(%T.Entity::create)
                 """.trimIndent(),
                 Poet.Pgen.setLocalConfig,

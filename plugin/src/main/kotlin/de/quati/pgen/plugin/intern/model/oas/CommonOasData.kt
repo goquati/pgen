@@ -1,5 +1,5 @@
 package de.quati.pgen.plugin.intern.model.oas
 
-data class CommonOasData(
+internal data class CommonOasData(
     val enums: List<EnumOasData>,
 )

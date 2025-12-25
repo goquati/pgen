@@ -26,7 +26,7 @@ dependencies {
 
 kotlin {
     jvmToolchain(21)
-    //explicitApi()
+    explicitApi()
     compilerOptions {
         allWarningsAsErrors = true
         jvmTarget.set(JvmTarget.JVM_21)

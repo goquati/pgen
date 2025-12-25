@@ -2,13 +2,13 @@ package de.quati.pgen.plugin.intern.util.codegen
 
 import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.asTypeName
-import de.quati.pgen.plugin.intern.dsl.addCode
-import de.quati.pgen.plugin.intern.dsl.addCompanionObject
-import de.quati.pgen.plugin.intern.dsl.addEnumConstant
-import de.quati.pgen.plugin.intern.dsl.addFunction
-import de.quati.pgen.plugin.intern.dsl.addProperty
-import de.quati.pgen.plugin.intern.dsl.buildEnum
-import de.quati.pgen.plugin.intern.dsl.primaryConstructor
+import de.quati.pgen.plugin.intern.addCode
+import de.quati.pgen.plugin.intern.addCompanionObject
+import de.quati.pgen.plugin.intern.addEnumConstant
+import de.quati.pgen.plugin.intern.addFunction
+import de.quati.pgen.plugin.intern.addProperty
+import de.quati.pgen.plugin.intern.buildEnum
+import de.quati.pgen.plugin.intern.primaryConstructor
 import de.quati.pgen.plugin.intern.model.sql.Enum
 import de.quati.pgen.plugin.intern.model.sql.KotlinEnumClass
 import de.quati.pgen.plugin.intern.util.toSnakeCase

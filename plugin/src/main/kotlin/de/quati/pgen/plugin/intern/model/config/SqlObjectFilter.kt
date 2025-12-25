@@ -1,10 +1,9 @@
 package de.quati.pgen.plugin.intern.model.config
 
-import de.quati.pgen.plugin.intern.model.sql.DbName
 import de.quati.pgen.plugin.intern.model.sql.SchemaName
 import de.quati.pgen.plugin.intern.model.sql.SqlObjectName
 
-sealed interface SqlObjectFilter {
+internal sealed interface SqlObjectFilter {
     fun toFilterString(schemaField: String, tableField: String): String
     fun isEmpty(): Boolean
     fun isNotEmpty(): Boolean = !isEmpty()
@@ -60,27 +59,5 @@ sealed interface SqlObjectFilter {
             .fold<Int?, Int?>(initial = 0) { a, b ->
                 if (a != null && b != null) a + b else null
             }
-    }
-
-    class Builder(
-        private val dbName: DbName,
-    ) {
-        private val schemas: MutableSet<SchemaName> = mutableSetOf()
-        private val tables: MutableSet<SqlObjectName> = mutableSetOf()
-
-        fun addSchema(name: String) = schemas.add(dbName.toSchema(name))
-        fun addSchemas(vararg names: String) = schemas.addAll(names.map { dbName.toSchema(it) })
-        fun addTable(schema: String, table: String) = tables.add(SqlObjectName(dbName.toSchema(schema), table))
-        fun build(): SqlObjectFilter {
-            val schemaFilter = Schemas(schemas).takeIf { it.isNotEmpty() }
-            val tableFilter = Objects(tables).takeIf { it.isNotEmpty() }
-            if (schemaFilter != null && tableFilter != null)
-                return Multi(listOf(schemaFilter, tableFilter))
-            if (tableFilter != null)
-                return tableFilter
-            if (schemaFilter != null)
-                return schemaFilter
-            error("cannot build empty sql filter")
-        }
     }
 }

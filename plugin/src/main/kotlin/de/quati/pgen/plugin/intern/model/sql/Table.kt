@@ -5,7 +5,7 @@ import de.quati.pgen.plugin.intern.util.codegen.CodeGenContext
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class Table(
+internal data class Table(
     override val name: SqlObjectName,
     val columns: List<Column>,
     val primaryKey: PrimaryKey? = null,

@@ -7,7 +7,7 @@ import org.intellij.lang.annotations.Language
 
 @Language("yaml")
 context(c: OasGenContext)
-fun CommonOasData.toOpenApi() = yaml(level = 0) {
+internal fun CommonOasData.toOpenApi() = yaml(level = 0) {
     "openapi: ${c.meta.oasVersion}".let(::add)
     indent("info:") {
         "title: ${c.meta.title}".let(::add)

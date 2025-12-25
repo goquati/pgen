@@ -4,7 +4,7 @@ import de.quati.pgen.plugin.intern.model.sql.Column
 import de.quati.pgen.plugin.intern.model.sql.SqlObjectName
 import de.quati.pgen.plugin.intern.util.toKababCase
 
-sealed interface TableFieldTypeOasData {
+internal sealed interface TableFieldTypeOasData {
     data class Type(
         val type: String,
         val format: String? = null,

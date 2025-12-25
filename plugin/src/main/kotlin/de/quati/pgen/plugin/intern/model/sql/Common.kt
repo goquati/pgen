@@ -2,7 +2,7 @@ package de.quati.pgen.plugin.intern.model.sql
 
 import com.squareup.kotlinpoet.ClassName
 import de.quati.pgen.plugin.intern.util.codegen.CodeGenContext
-import de.quati.pgen.plugin.intern.dsl.PackageName
+import de.quati.pgen.plugin.intern.PackageName
 import de.quati.pgen.plugin.intern.util.KotlinClassNameSerializer
 import de.quati.pgen.plugin.intern.util.SqlColumnNameSerializer
 import de.quati.pgen.plugin.intern.util.SqlObjectNameSerializer
@@ -14,7 +14,7 @@ import de.quati.pgen.plugin.intern.util.toCamelCase
 import kotlinx.serialization.Serializable
 
 @JvmInline
-value class DbName(val name: String) : Comparable<DbName> {
+internal  value class DbName(val name: String) : Comparable<DbName> {
     override fun compareTo(other: DbName) = name.compareTo(other.name)
     override fun toString() = name
 
@@ -27,7 +27,7 @@ value class DbName(val name: String) : Comparable<DbName> {
     val packageName get() = c.poet.packageDb.plus(name)
 }
 
-data class SchemaName(val dbName: DbName, val schemaName: String) : Comparable<SchemaName> {
+internal data class SchemaName(val dbName: DbName, val schemaName: String) : Comparable<SchemaName> {
     override fun toString() = "$dbName->$schemaName"
 
     override fun compareTo(other: SchemaName) =
@@ -35,14 +35,14 @@ data class SchemaName(val dbName: DbName, val schemaName: String) : Comparable<S
             ?: schemaName.compareTo(other.schemaName)
 }
 
-sealed interface SqlObject : Comparable<SqlObject>, DbContext {
+internal sealed interface SqlObject : Comparable<SqlObject>, DbContext {
     val name: SqlObjectName
     override val dbName: DbName get() = name.schema.dbName
     override fun compareTo(other: SqlObject) = name.compareTo(other.name)
 }
 
 @Serializable(with = SqlStatementNameSerializer::class)
-data class SqlStatementName(
+internal data class SqlStatementName(
     val dbName: DbName,
     val name: String,
 ) : Comparable<SqlStatementName> {
@@ -63,7 +63,7 @@ data class SqlStatementName(
 }
 
 @Serializable(with = SqlObjectNameSerializer::class)
-data class SqlObjectName(
+internal data class SqlObjectName(
     val schema: SchemaName,
     val name: String,
 ) : Comparable<SqlObjectName> {
@@ -88,7 +88,7 @@ data class SqlObjectName(
 }
 
 @Serializable(with = SqlColumnNameSerializer::class)
-data class SqlColumnName(
+internal data class SqlColumnName(
     val tableName: SqlObjectName,
     val name: String,
 ) : Comparable<SqlColumnName> {
@@ -98,7 +98,7 @@ data class SqlColumnName(
 }
 
 @Serializable(with = KotlinClassNameSerializer::class)
-data class KotlinClassName(
+internal data class KotlinClassName(
     val packageName: String,
     val className: String,
 ) {
@@ -106,13 +106,13 @@ data class KotlinClassName(
 }
 
 @Serializable
-data class KotlinValueClass(
+internal data class KotlinValueClass(
     val name: KotlinClassName,
     val parseFunction: String? = null,
 )
 
 @Serializable
-data class KotlinEnumClass(
+internal data class KotlinEnumClass(
     val name: KotlinClassName,
     val mappings: Map<String, String> = emptyMap(),
 )

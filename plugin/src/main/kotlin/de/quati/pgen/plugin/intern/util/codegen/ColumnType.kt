@@ -11,7 +11,7 @@ import java.util.UUID
 
 
 context(c: CodeGenContext, _: DbContext)
-fun Column.Type.getTypeName(innerArrayType: Boolean = true): TypeName = when (this) {
+internal fun Column.Type.getTypeName(innerArrayType: Boolean = true): TypeName = when (this) {
     is Column.Type.NonPrimitive.Array -> if (innerArrayType)
         elementType.getTypeName()
     else
@@ -53,7 +53,7 @@ fun Column.Type.getTypeName(innerArrayType: Boolean = true): TypeName = when (th
 private fun codeBlock(format: String, vararg args: Any) = CodeBlock.builder().add(format, *args).build()
 
 context(c: CodeGenContext, _: DbContext)
-fun Column.Type.getExposedColumnType(): CodeBlock = when (this) {
+internal fun Column.Type.getExposedColumnType(): CodeBlock = when (this) {
     is Column.Type.NonPrimitive.Array ->
         codeBlock("%T(%L)", Poet.Pgen.getArrayColumnType, elementType.getExposedColumnType())
 

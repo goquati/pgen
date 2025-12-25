@@ -1,12 +1,14 @@
 package de.quati.pgen.plugin
 
 import com.squareup.kotlinpoet.ClassName
-import de.quati.pgen.plugin.intern.dsl.PackageName
+import de.quati.pgen.plugin.intern.PackageName
 import de.quati.pgen.plugin.intern.model.config.ColumnTypeMapping
 import de.quati.pgen.plugin.intern.model.config.Config
 import de.quati.pgen.plugin.intern.model.config.Config.ConnectionType
 import de.quati.pgen.plugin.intern.model.config.EnumMapping
-import de.quati.pgen.plugin.intern.model.config.SqlObjectFilter
+import de.quati.pgen.plugin.intern.model.config.SqlObjectFilter.Multi
+import de.quati.pgen.plugin.intern.model.config.SqlObjectFilter.Objects
+import de.quati.pgen.plugin.intern.model.config.SqlObjectFilter.Schemas
 import de.quati.pgen.plugin.intern.model.config.TypeMapping
 import de.quati.pgen.plugin.intern.model.config.TypeOverwrite
 import de.quati.pgen.plugin.intern.model.sql.DbName
@@ -64,7 +66,7 @@ public open class ConfigBuilder internal constructor() {
             if (it.isBlank()) error("empty DB name")
         })
         private var connection: Config.Db.Connection? = null
-        private var tableFilter: SqlObjectFilter? = null
+        private var tableFilter: de.quati.pgen.plugin.intern.model.config.SqlObjectFilter? = null
         private var statementScripts: Set<Path>? = null
         private var typeMappings: Set<TypeMapping>? = null
         private var enumMappings: Set<EnumMapping>? = null
@@ -187,8 +189,8 @@ public open class ConfigBuilder internal constructor() {
             block: Connection.() -> Unit,
         ): Db = apply { connection = Connection().apply(block).build() }
 
-        public fun tableFilter(block: SqlObjectFilter.Builder.() -> Unit): Db = apply {
-            tableFilter = SqlObjectFilter.Builder(dbName = dbName).apply(block).build()
+        public fun tableFilter(block: SqlObjectFilter.() -> Unit): Db = apply {
+            tableFilter = SqlObjectFilter(dbName = dbName).apply(block).build()
         }
 
         public fun statements(block: StatementCollectionBuilder.() -> Unit): Db = apply {
@@ -226,6 +228,32 @@ public open class ConfigBuilder internal constructor() {
             columnTypeMappings = columnTypeMappings?.distinctBy(ColumnTypeMapping::sqlType)?.toSet() ?: emptySet(),
             flyway = flyway,
         )
+
+
+        public class SqlObjectFilter internal constructor(
+            private val dbName: DbName,
+        ) {
+            private val schemas: MutableSet<SchemaName> = mutableSetOf()
+            private val tables: MutableSet<SqlObjectName> = mutableSetOf()
+
+            public fun addSchema(name: String): SqlObjectFilter =
+                apply { schemas.add(dbName.toSchema(name)) }
+
+            public fun addSchemas(vararg names: String): SqlObjectFilter =
+                apply { schemas.addAll(names.map { dbName.toSchema(it) }) }
+
+            public fun addTable(schema: String, table: String): SqlObjectFilter =
+                apply { tables.add(SqlObjectName(dbName.toSchema(schema), table)) }
+
+            internal fun build(): de.quati.pgen.plugin.intern.model.config.SqlObjectFilter {
+                val schemaFilter = Schemas(schemas).takeIf { it.isNotEmpty() }
+                val tableFilter = Objects(tables).takeIf { it.isNotEmpty() }
+                return if (schemaFilter != null && tableFilter != null)
+                    Multi(listOf(schemaFilter, tableFilter))
+                else
+                    tableFilter ?: schemaFilter ?: error("cannot build empty sql filter")
+            }
+        }
 
         public class Flyway internal constructor() {
             private var migrationDirectory: Path? = null
@@ -332,7 +360,7 @@ public open class ConfigBuilder internal constructor() {
             localConfigContext = localConfigContext,
         )
 
-        public class Table internal constructor(public val name: SqlObjectName) {
+        public class Table internal constructor(private val name: SqlObjectName) {
             private val ignoreFields: MutableSet<String> = mutableSetOf()
             private val ignoreFieldsAtCreate: MutableSet<String> = mutableSetOf()
             private val ignoreFieldsAtUpdate: MutableSet<String> = mutableSetOf()
@@ -359,7 +387,7 @@ public open class ConfigBuilder internal constructor() {
                 ignoreFields = ignoreFields.toSet(),
                 ignoreFieldsAtCreate = ignoreFieldsAtCreate.toSet(),
                 ignoreFieldsAtUpdate = ignoreFieldsAtUpdate.toSet(),
-                ignoreMethods = ignoreMethods.map { it.intern }.toSet(),
+                ignoreMethods = ignoreMethods.toSet(),
             )
         }
 
@@ -377,7 +405,7 @@ public open class ConfigBuilder internal constructor() {
             public fun atMethods(vararg crud: CRUD): LocalConfigContext = apply { atMethods = crud.toSet() }
             internal fun build() = Config.Oas.LocalConfigContext(
                 type = type,
-                atMethods = atMethods.map { it.intern }.toSet(),
+                atMethods = atMethods.toSet(),
             )
         }
 

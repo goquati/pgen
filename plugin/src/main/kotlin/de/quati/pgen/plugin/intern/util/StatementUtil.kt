@@ -15,14 +15,14 @@ private val variablesRegex = Regex(
 private val nonNullColumnRegex = Regex("(?:AS|as)\\s*/\\*\\s*nonnull\\*/\\s*(?<name>\\w+)")
 
 @OptIn(ExperimentalPathApi::class)
-fun parseStatements(scripts: Set<Path>): List<Statement.Raw> = scripts.flatMap { p ->
+internal fun parseStatements(scripts: Set<Path>): List<Statement.Raw> = scripts.flatMap { p ->
     when (p.isDirectory()) {
         true -> p.walk().filter { it.endsWith(".sql") }.toList()
         false -> listOf(p)
     }
 }.flatMap { parseStatements(it.readText()) }
 
-fun parseStatements(sqlScript: String): List<Statement.Raw> =
+internal fun parseStatements(sqlScript: String): List<Statement.Raw> =
     sqlScript.split(statementHeaderRegex)
         .mapNotNull { statement ->
             statement.split("\n")
@@ -44,7 +44,7 @@ fun parseStatements(sqlScript: String): List<Statement.Raw> =
 
             val uniqueSortedVariables = linkedSetOf<Statement.VariableName>()
             val allVariables = mutableListOf<Statement.VariableName>()
-            var preparedPsql = sql.replace(variablesRegex) { match ->
+            val preparedPsql = sql.replace(variablesRegex) { match ->
                 val idx = match.groups["name"]!!.value
                     .let { Statement.VariableName(it) }
                     .let { varName ->

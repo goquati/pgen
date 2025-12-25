@@ -5,7 +5,7 @@ import de.quati.pgen.plugin.intern.model.sql.SqlObjectName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class TypeMapping(
+internal data class TypeMapping(
     val sqlType: SqlObjectName,
     val valueClass: KotlinValueClass,
 )

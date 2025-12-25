@@ -3,9 +3,17 @@ package de.quati.pgen.plugin.intern.service
 import com.squareup.kotlinpoet.FileSpec
 import java.io.Closeable
 import java.nio.file.Path
-import kotlin.io.path.*
+import kotlin.io.path.ExperimentalPathApi
+import kotlin.io.path.absolute
+import kotlin.io.path.createDirectories
+import kotlin.io.path.deleteExisting
+import kotlin.io.path.exists
+import kotlin.io.path.readText
+import kotlin.io.path.relativeToOrNull
+import kotlin.io.path.walk
+import kotlin.io.path.writeText
 
-class DirectorySyncService(
+internal class DirectorySyncService(
     private val directory: Path,
     private val silent: Boolean = false,
 ) : Closeable {
@@ -34,7 +42,7 @@ class DirectorySyncService(
 
     private fun checkFilePath(path: Path) {
         val inDirectory = null != path.absolute().relativeToOrNull(directory.absolute())
-        if (!inDirectory) throw Exception("path '$path' is not in output directory '$directory'")
+        if (!inDirectory) error("path '$path' is not in output directory '$directory'")
     }
 
     private fun sync(path: Path, content: String) {

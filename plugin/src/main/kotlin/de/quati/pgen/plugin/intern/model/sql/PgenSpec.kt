@@ -4,7 +4,7 @@ import kotlinx.serialization.Serializable
 
 
 @Serializable
-data class PgenSpec(
+internal data class PgenSpec(
     val tables: List<Table>,
     val enums: List<Enum>,
     val compositeTypes: List<CompositeType>,

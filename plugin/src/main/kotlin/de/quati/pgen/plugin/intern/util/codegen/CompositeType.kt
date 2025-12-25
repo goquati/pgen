@@ -4,12 +4,12 @@ import com.squareup.kotlinpoet.CodeBlock
 import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.asTypeName
-import de.quati.pgen.plugin.intern.dsl.addCode
-import de.quati.pgen.plugin.intern.dsl.addFunction
-import de.quati.pgen.plugin.intern.dsl.addProperty
-import de.quati.pgen.plugin.intern.dsl.buildDataClass
-import de.quati.pgen.plugin.intern.dsl.buildObject
-import de.quati.pgen.plugin.intern.dsl.primaryConstructor
+import de.quati.pgen.plugin.intern.addCode
+import de.quati.pgen.plugin.intern.addFunction
+import de.quati.pgen.plugin.intern.addProperty
+import de.quati.pgen.plugin.intern.buildDataClass
+import de.quati.pgen.plugin.intern.buildObject
+import de.quati.pgen.plugin.intern.primaryConstructor
 import de.quati.pgen.plugin.intern.model.config.Config
 import de.quati.pgen.plugin.intern.model.sql.Column
 import de.quati.pgen.plugin.intern.model.sql.CompositeType
@@ -57,7 +57,7 @@ internal fun CompositeType.toTypeSpecInternal() = buildDataClass(this@toTypeSpec
                     add("is String -> %T.parseFields(value)\n", Poet.Pgen.pgStructField)
                     add(
                         "else -> error(\"Unexpected value for " +
-                                "${this@toTypeSpecInternal.name.prettyName}: ${'$'}value\")\n"
+                                $$"$${this@toTypeSpecInternal.name.prettyName}: $value\")\n"
                     )
                     endControlFlow()
                     add(

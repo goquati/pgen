@@ -5,7 +5,7 @@ import org.flywaydb.core.Flyway
 import org.postgresql.ds.PGSimpleDataSource
 
 
-fun Config.Db.toFlywayOrNull(): Flyway? {
+internal fun Config.Db.toFlywayOrNull(): Flyway? {
     val connConfig = connection ?: return null
     val flywayConfig = flyway ?: return null
     val dataSource = PGSimpleDataSource().apply {

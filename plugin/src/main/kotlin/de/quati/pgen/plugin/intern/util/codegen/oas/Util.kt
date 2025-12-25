@@ -1,19 +1,19 @@
 package de.quati.pgen.plugin.intern.util.codegen.oas
 
-import de.quati.pgen.plugin.intern.model.config.Config
+import de.quati.pgen.plugin.CRUD
 
-internal const val REF = "${'$'}ref"
+internal const val REF = $$"$ref"
 internal const val INDENT = "  "
 
 internal enum class DtoType { GET, CREATE, UPDATE }
 
-internal val Config.Oas.CRUD.requiredDtos
+internal val CRUD.requiredDtos
     get() = when (this) {
-        Config.Oas.CRUD.CREATE -> setOf(DtoType.CREATE, DtoType.GET)
-        Config.Oas.CRUD.READ -> setOf(DtoType.GET)
-        Config.Oas.CRUD.UPDATE -> setOf(DtoType.UPDATE, DtoType.GET)
-        Config.Oas.CRUD.DELETE -> setOf()
-        Config.Oas.CRUD.READ_ALL -> setOf(DtoType.GET)
+        CRUD.CREATE -> setOf(DtoType.CREATE, DtoType.GET)
+        CRUD.READ -> setOf(DtoType.GET)
+        CRUD.UPDATE -> setOf(DtoType.UPDATE, DtoType.GET)
+        CRUD.DELETE -> setOf()
+        CRUD.READ_ALL -> setOf(DtoType.GET)
     }
 private fun String.indent(level: Int) = INDENT.repeat(level) + this
 private fun List<String>.indent(level: Int) = map { it.indent(level) }

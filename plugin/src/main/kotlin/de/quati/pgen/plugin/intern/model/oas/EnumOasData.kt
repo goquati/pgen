@@ -4,7 +4,7 @@ import com.squareup.kotlinpoet.ClassName
 import de.quati.pgen.plugin.intern.model.config.Config
 import de.quati.pgen.plugin.intern.model.sql.Enum
 
-data class EnumOasData(
+internal data class EnumOasData(
     val name: String,
     val items: List<String>,
     val sqlData: Enum,

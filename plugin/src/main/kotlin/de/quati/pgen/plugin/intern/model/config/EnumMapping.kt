@@ -5,7 +5,7 @@ import de.quati.pgen.plugin.intern.model.sql.SqlObjectName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class EnumMapping(
+internal data class EnumMapping(
     val sqlType: SqlObjectName,
     val enumClass: KotlinEnumClass,
 )

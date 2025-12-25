@@ -1,13 +1,13 @@
 package de.quati.pgen.plugin.intern.util.codegen.oas
 
-import de.quati.pgen.plugin.intern.model.config.Config
+import de.quati.pgen.plugin.CRUD
 import de.quati.pgen.plugin.intern.model.oas.OasGenContext
 import de.quati.pgen.plugin.intern.model.oas.TableOasData
 import org.intellij.lang.annotations.Language
 
 @Language("yaml")
 context(c: OasGenContext)
-fun TableOasData.toOpenApi() = yaml(level = 0) {
+internal fun TableOasData.toOpenApi() = yaml(level = 0) {
     "openapi: ${c.meta.oasVersion}".let(::add)
     indent("info:") {
         "title: ${c.meta.title}".let(::add)
@@ -16,19 +16,19 @@ fun TableOasData.toOpenApi() = yaml(level = 0) {
 
     if (endpoints.isNotEmpty())
         indent("paths:") {
-            if (Config.Oas.CRUD.READ_ALL in endpoints || Config.Oas.CRUD.CREATE in endpoints)
+            if (CRUD.READ_ALL in endpoints || CRUD.CREATE in endpoints)
                 indent("${c.pathPrefix}/$path:") {
-                    if (Config.Oas.CRUD.READ_ALL in endpoints) addReadAllEndpoint(this@toOpenApi)
-                    if (Config.Oas.CRUD.CREATE in endpoints) addCreateEndpoint(this@toOpenApi)
+                    if (CRUD.READ_ALL in endpoints) addReadAllEndpoint(this@toOpenApi)
+                    if (CRUD.CREATE in endpoints) addCreateEndpoint(this@toOpenApi)
                 }
 
-            if (Config.Oas.CRUD.READ in endpoints || Config.Oas.CRUD.UPDATE in endpoints ||
-                Config.Oas.CRUD.DELETE in endpoints
+            if (CRUD.READ in endpoints || CRUD.UPDATE in endpoints ||
+                CRUD.DELETE in endpoints
             )
                 indent("${c.pathPrefix}/$path/{id}:") {
-                    if (Config.Oas.CRUD.READ in endpoints) addReadEndpoint(this@toOpenApi)
-                    if (Config.Oas.CRUD.UPDATE in endpoints) addUpdateEndpoint(this@toOpenApi)
-                    if (Config.Oas.CRUD.DELETE in endpoints) addDeleteEndpoint(this@toOpenApi)
+                    if (CRUD.READ in endpoints) addReadEndpoint(this@toOpenApi)
+                    if (CRUD.UPDATE in endpoints) addUpdateEndpoint(this@toOpenApi)
+                    if (CRUD.DELETE in endpoints) addDeleteEndpoint(this@toOpenApi)
                 }
 
         }

@@ -7,7 +7,7 @@ import kotlinx.serialization.Serializable
 
 
 @Serializable
-data class Statement(
+internal data class Statement(
     val name: SqlStatementName,
     val cardinality: Cardinality,
     val variables: List<VariableName>,

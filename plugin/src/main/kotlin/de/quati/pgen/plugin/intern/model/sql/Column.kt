@@ -13,7 +13,7 @@ import kotlinx.serialization.Transient
 
 
 @Serializable
-data class Column(
+internal data class Column(
     @Transient val pos: Int = -1,
     val name: Name,
     val type: Type,

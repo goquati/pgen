@@ -1,7 +1,7 @@
 package de.quati.pgen.plugin.intern.util.codegen
 
 import com.squareup.kotlinpoet.ClassName
-import de.quati.pgen.plugin.intern.dsl.PackageName
+import de.quati.pgen.plugin.intern.PackageName
 import de.quati.pgen.plugin.intern.model.config.ColumnTypeMapping
 import de.quati.pgen.plugin.intern.model.config.Config
 import de.quati.pgen.plugin.intern.model.config.Config.Oas.LocalConfigContext
@@ -13,7 +13,7 @@ import de.quati.pgen.plugin.intern.model.sql.SqlObjectName
 import de.quati.pgen.plugin.intern.model.sql.Table
 import de.quati.pgen.plugin.intern.util.codegen.oas.DbContext
 
-class CodeGenContext(
+internal class CodeGenContext(
     rootPackageName: PackageName,
     val typeMappings: Map<SqlObjectName, KotlinValueClass>,
     val enumMappings: Map<SqlObjectName, KotlinEnumClass>,
@@ -45,7 +45,7 @@ class CodeGenContext(
         .groupBy({ it.first }, { it.second })
         .mapValues { it.value.toSet() }
         .mapValues {
-            it.value.singleOrNull() ?: throw Exception("multiple type overwrites for ${it.key}: ${it.value}")
+            it.value.singleOrNull() ?: error("multiple type overwrites for ${it.key}: ${it.value}")
         }
 
     fun Table.update(): Table {
@@ -98,7 +98,7 @@ class CodeGenContext(
             val result = mutableListOf<Set<T>>()
             var remaining = toMutableList()
             while (remaining.isNotEmpty()) {
-                var group = remaining.removeFirst()
+                val group = remaining.removeFirst().toMutableSet()
                 while (true) {
                     val (intersects, nonIntersects) = remaining.partition { it.intersect(group).isNotEmpty() }
                     if (intersects.isEmpty()) break

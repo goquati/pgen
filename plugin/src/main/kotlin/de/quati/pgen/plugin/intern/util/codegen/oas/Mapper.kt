@@ -3,9 +3,9 @@ package de.quati.pgen.plugin.intern.util.codegen.oas
 import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.LambdaTypeName
 import com.squareup.kotlinpoet.asTypeName
-import de.quati.pgen.plugin.intern.dsl.addCode
-import de.quati.pgen.plugin.intern.dsl.addFunction
-import de.quati.pgen.plugin.intern.dsl.addParameter
+import de.quati.pgen.plugin.intern.addCode
+import de.quati.pgen.plugin.intern.addFunction
+import de.quati.pgen.plugin.intern.addParameter
 import de.quati.pgen.plugin.intern.model.config.Config
 import de.quati.pgen.plugin.intern.model.oas.EnumOasData
 import de.quati.pgen.plugin.intern.model.oas.TableFieldTypeOasData
@@ -14,7 +14,7 @@ import de.quati.pgen.plugin.intern.util.codegen.CodeGenContext
 import de.quati.pgen.plugin.intern.util.codegen.Poet
 
 context(c: CodeGenContext, mapperConfig: Config.Oas.Mapper)
-fun FileSpec.Builder.addEnumMapper(data: EnumOasData) {
+internal fun FileSpec.Builder.addEnumMapper(data: EnumOasData) {
     addFunction("toDto") {
         val dstType = data.getOasType()
         val srcType = data.sqlData.name.typeName
@@ -45,7 +45,7 @@ fun FileSpec.Builder.addEnumMapper(data: EnumOasData) {
 
 
 context(c: CodeGenContext, mapperConfig: Config.Oas.Mapper)
-fun FileSpec.Builder.addTableMapper(data: TableOasData) {
+internal fun FileSpec.Builder.addTableMapper(data: TableOasData) {
     addFunction("toDto") {
         val srcType = data.sqlData.entityTypeName
         val dstType = data.getOasReadType()

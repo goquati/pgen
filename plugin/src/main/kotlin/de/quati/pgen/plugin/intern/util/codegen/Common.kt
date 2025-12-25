@@ -4,8 +4,8 @@ import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.asTypeName
-import de.quati.pgen.plugin.intern.dsl.PackageName
-import de.quati.pgen.plugin.intern.dsl.fileSpec
+import de.quati.pgen.plugin.intern.PackageName
+import de.quati.pgen.plugin.intern.fileSpec
 import de.quati.pgen.plugin.intern.model.config.Config
 import de.quati.pgen.plugin.intern.model.oas.EnumOasData
 import de.quati.pgen.plugin.intern.model.oas.TableOasData
@@ -21,7 +21,7 @@ import de.quati.pgen.plugin.intern.util.codegen.oas.addTableMapper
 import de.quati.pgen.plugin.intern.util.codegen.oas.addTableService
 import java.time.OffsetDateTime
 
-object Poet {
+internal object Poet {
     val json = ClassName("kotlinx.serialization.json", "Json")
     val jsonElement = ClassName("kotlinx.serialization.json", "JsonElement")
 
@@ -139,6 +139,7 @@ object Poet {
         val optionMap = packageName.className("map")
         val exception = packageName.className("QuatiException")
     }
+
 
     object Pgen {
         private val packageNamePgen = PackageName("de.quati.pgen")
@@ -269,13 +270,13 @@ private fun SqlObject.toTypeSpec() = when (this) {
 }
 
 context(c: CodeGenContext)
-fun FileSpec.Builder.add(obj: SqlObject) {
+internal fun FileSpec.Builder.add(obj: SqlObject) {
     val spec = obj.toTypeSpec()
     addType(spec)
 }
 
 context(c: CodeGenContext)
-fun DirectorySyncService.sync(
+internal fun DirectorySyncService.sync(
     obj: SqlObject,
     block: FileSpec.Builder.() -> Unit = {},
 ) {
@@ -294,7 +295,7 @@ fun DirectorySyncService.sync(
 }
 
 context(c: CodeGenContext)
-fun DirectorySyncService.syncQueries(allTables: Collection<Table>) {
+internal fun DirectorySyncService.syncQueries(allTables: Collection<Table>) {
     val fileName = "Queries.kt"
     allTables.groupBy { it.name.schema.dbName }.forEach { (dbName, tables) ->
         sync(
@@ -313,7 +314,7 @@ fun DirectorySyncService.syncQueries(allTables: Collection<Table>) {
 }
 
 context(c: CodeGenContext)
-fun DirectorySyncService.sync(
+internal fun DirectorySyncService.sync(
     obj: Collection<Statement>,
     block: FileSpec.Builder.() -> Unit = {},
 ) {
@@ -333,7 +334,7 @@ fun DirectorySyncService.sync(
 }
 
 context(c: CodeGenContext, mapperConfig: Config.Oas.Mapper)
-fun DirectorySyncService.sync(
+internal fun DirectorySyncService.sync(
     obj: EnumOasData,
     block: FileSpec.Builder.() -> Unit = {},
 ) {
@@ -353,7 +354,7 @@ fun DirectorySyncService.sync(
 }
 
 context(c: CodeGenContext, mapperConfig: Config.Oas.Mapper)
-fun DirectorySyncService.sync(
+internal fun DirectorySyncService.sync(
     obj: TableOasData,
     block: FileSpec.Builder.() -> Unit = {},
 ) {
@@ -390,8 +391,8 @@ fun DirectorySyncService.sync(
 }
 
 context(c: CodeGenContext)
-fun PackageName.toRelativePath() = name.removePrefix(c.poet.rootPackageName.name)
+internal fun PackageName.toRelativePath() = name.removePrefix(c.poet.rootPackageName.name)
     .trimStart('.').replace(".", "/")
 
 context(c: CodeGenContext)
-fun PackageName.toRelativePath(filename: String) = toRelativePath() + "/$filename"
+internal fun PackageName.toRelativePath(filename: String) = toRelativePath() + "/$filename"

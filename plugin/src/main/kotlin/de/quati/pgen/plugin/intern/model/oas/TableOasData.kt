@@ -1,15 +1,16 @@
 package de.quati.pgen.plugin.intern.model.oas
 
 import com.squareup.kotlinpoet.ClassName
+import de.quati.pgen.plugin.CRUD
 import de.quati.pgen.plugin.intern.model.config.Config
 import de.quati.pgen.plugin.intern.model.sql.Table
 
 private infix fun <T> Set<T>.anyIn(other: Set<T>) = this.intersect(other).isNotEmpty()
 
-data class TableOasData(
+internal data class TableOasData(
     private val name: String,
     val fields: List<TableFieldOasData>,
-    val endpoints: Set<Config.Oas.CRUD>,
+    val endpoints: Set<CRUD>,
     val sqlData: Table,
 ) {
     val idFormat = fields.singleOrNull { it.name == "id" }?.type?.let { it as? TableFieldTypeOasData.Type }
@@ -50,7 +51,7 @@ data class TableOasData(
             return TableOasData(
                 name = data.name.prettyName,
                 fields = fields,
-                endpoints = Config.Oas.CRUD.entries.filter { it !in config.ignoreMethods }.toSet(),
+                endpoints = CRUD.entries.filter { it !in config.ignoreMethods }.toSet(),
                 sqlData = data,
             )
         }

@@ -6,7 +6,7 @@ import de.quati.pgen.plugin.intern.model.sql.SqlObjectName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class ColumnTypeMapping(
+internal data class ColumnTypeMapping(
     val sqlType: SqlObjectName,
     val columnType: KotlinClassName,
     val value: KotlinClassName,

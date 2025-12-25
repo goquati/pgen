@@ -3,8 +3,8 @@ package de.quati.pgen.plugin.intern.util.codegen
 import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.LambdaTypeName
-import de.quati.pgen.plugin.intern.dsl.addParameter
-import de.quati.pgen.plugin.intern.dsl.buildFunction
+import de.quati.pgen.plugin.intern.addParameter
+import de.quati.pgen.plugin.intern.buildFunction
 import de.quati.pgen.plugin.intern.model.config.Config
 import de.quati.pgen.plugin.intern.model.sql.Table
 
@@ -44,9 +44,9 @@ internal fun Table.toDeleteByIdOrThrow(): FunSpec? {
             )
         addCode("val count = %T { op }\n", Poet.Exposed.deleteWhere())
         beginControlFlow("return when (count)")
-        addCode("0 -> throw %T.NotFound(\"no ${'$'}tableName by id '${'$'}id' found\")\n", Poet.QuatiUtil.exception)
+        addCode($$"0 -> throw %T.NotFound(\"no $tableName by id '$id' found\")\n", Poet.QuatiUtil.exception)
         addCode("1 -> Unit\n")
-        addCode("else -> error(\"multiple ${'$'}tableName by id '${'$'}id' found\")\n")
+        addCode($$"else -> error(\"multiple $tableName by id '$id' found\")\n")
         endControlFlow()
     }
 }

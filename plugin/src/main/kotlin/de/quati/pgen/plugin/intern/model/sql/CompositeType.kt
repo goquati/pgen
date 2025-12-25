@@ -3,7 +3,7 @@ package de.quati.pgen.plugin.intern.model.sql
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class CompositeType(
+internal data class CompositeType(
     override val name: SqlObjectName,
     val columns: List<Column>,
 ) : SqlObject {

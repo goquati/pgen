@@ -25,7 +25,7 @@ else if (first().isDigit())
 else
     this
 
-fun String.toCamelCase(capitalized: Boolean) = toNameParts()
+internal fun String.toCamelCase(capitalized: Boolean) = toNameParts()
     .mapIndexed { idx, s ->
         s.replaceFirstChar {
             if (idx == 0 && !capitalized)
@@ -36,19 +36,19 @@ fun String.toCamelCase(capitalized: Boolean) = toNameParts()
     }.joinToString(separator = "")
     .toValidName()
 
-fun String.toKababCase() = toNameParts()
+internal fun String.toKababCase() = toNameParts()
     .joinToString(separator = "-") { it.lowercase() }
     .toValidName()
 
-fun String.toSnakeCase(uppercase: Boolean = false) = toNameParts()
+internal fun String.toSnakeCase(uppercase: Boolean = false) = toNameParts()
     .joinToString(separator = "_") { if (uppercase) it.uppercase() else it.lowercase() }
     .toValidName()
 
-fun String.toHyphenated() = toNameParts()
+internal fun String.toHyphenated() = toNameParts()
     .joinToString(separator = "-") { it.lowercase() }
     .toValidName()
 
-fun String.makeDifferent(blackList: Iterable<String>): String {
+internal fun String.makeDifferent(blackList: Iterable<String>): String {
     val blackListSet = blackList.toSet()
     var name = this
     while (name in blackListSet) {
@@ -57,7 +57,7 @@ fun String.makeDifferent(blackList: Iterable<String>): String {
     return name
 }
 
-val kotlinKeywords = setOf(
+internal val kotlinKeywords = setOf(
     "as", "break", "class", "continue", "do", "else", "false", "for", "fun",
     "if", "in", "interface", "is", "null", "object", "package", "return",
     "super", "this", "throw", "true", "try", "typealias", "val", "var",

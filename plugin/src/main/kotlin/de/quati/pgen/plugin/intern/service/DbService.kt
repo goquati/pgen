@@ -1,21 +1,26 @@
 package de.quati.pgen.plugin.intern.service
 
-import de.quati.pgen.plugin.intern.dsl.execute
-import de.quati.pgen.plugin.intern.dsl.executeQuery
 import de.quati.pgen.plugin.intern.model.config.ColumnTypeMapping
 import de.quati.pgen.plugin.intern.model.config.Config
 import de.quati.pgen.plugin.intern.model.config.SqlObjectFilter
-import de.quati.pgen.plugin.intern.model.sql.*
+import de.quati.pgen.plugin.intern.model.sql.Column
 import de.quati.pgen.plugin.intern.model.sql.Enum
 import de.quati.pgen.plugin.intern.model.sql.Column.Type
-import de.quati.pgen.plugin.intern.model.sql.Column.Type.*
-import de.quati.pgen.plugin.intern.model.sql.Column.Type.NonPrimitive.Domain
+import de.quati.pgen.plugin.intern.model.sql.CompositeType
+import de.quati.pgen.plugin.intern.model.sql.DbName
+import de.quati.pgen.plugin.intern.model.sql.SchemaName
+import de.quati.pgen.plugin.intern.model.sql.SqlObjectName
+import de.quati.pgen.plugin.intern.model.sql.SqlStatementName
+import de.quati.pgen.plugin.intern.model.sql.Statement
+import de.quati.pgen.plugin.intern.model.sql.Table
+import org.intellij.lang.annotations.Language
 import org.postgresql.util.PGobject
 import java.io.Closeable
 import java.sql.DriverManager
 import java.sql.ResultSet
+import kotlin.use
 
-class DbService(
+internal class DbService(
     val dbName: DbName,
     columnTypeMappings: Collection<ColumnTypeMapping>,
     connectionConfig: Config.Db.Connection
@@ -27,6 +32,18 @@ class DbService(
         connectionConfig.password,
     )
 
+    private fun execute(@Language("sql") query: String) {
+        connection.createStatement().use { statement -> statement.execute(query) }
+    }
+
+    private fun <T> executeQuery(@Language("sql") query: String, mapper: (ResultSet) -> T): List<T> {
+        return connection.createStatement().use { statement ->
+            statement.executeQuery(query).use { rs ->
+                buildList { while (rs.next()) add(mapper(rs)) }
+            }
+        }
+    }
+
     fun getStatements(rawStatements: List<Statement.Raw>): List<Statement> {
         if (rawStatements.isEmpty()) return emptyList()
         fun Statement.Raw.preparedStmt() = "pgen_prepare_stmt_${name.lowercase()}"
@@ -34,8 +51,8 @@ class DbService(
 
         val statements = rawStatements.map { raw ->
             val inputTypes = runCatching {
-                connection.execute("PREPARE ${raw.preparedStmt()} AS\n${raw.preparedPsql};")
-                val result = connection.executeQuery(
+                execute("PREPARE ${raw.preparedStmt()} AS\n${raw.preparedPsql};")
+                val result = executeQuery(
                     """
                     SELECT parameter_types as types
                     FROM pg_prepared_statements
@@ -43,19 +60,19 @@ class DbService(
                     """.trimIndent()
                 ) { rs -> (rs.getArray("types").array as Array<*>).map { (it as? PGobject)?.value!! } }
                     .single().map { getPrimitiveType(it) }
-                connection.execute("DEALLOCATE ${raw.preparedStmt()};")
+                execute("DEALLOCATE ${raw.preparedStmt()};")
                 result
-            }.getOrElse { throw Exception("Failed to extract input types of statement '${raw.name}': ${it.message}") }
+            }.getOrElse { error("Failed to extract input types of statement '${raw.name}': ${it.message}") }
 
             if (inputTypes.size != raw.uniqueSortedVariables.size)
-                throw Exception("unexpected number of input columns in statement '${raw.name}'")
+                error("unexpected number of input columns in statement '${raw.name}'")
 
             val columns = runCatching {
-                connection.execute("CREATE TEMP TABLE ${raw.tempTable()} AS\n${raw.sql};")
+                execute("CREATE TEMP TABLE ${raw.tempTable()} AS\n${raw.sql};")
                 val result = getColumns(SqlObjectFilter.TempTable(setOf(raw.tempTable()))).values.single()
-                connection.execute("DROP TABLE ${raw.tempTable()};")
+                execute("DROP TABLE ${raw.tempTable()};")
                 result
-            }.getOrElse { throw Exception("Failed to extract output types of statement '${raw.name}': ${it.message}") }
+            }.getOrElse { error("Failed to extract output types of statement '${raw.name}': ${it.message}") }
 
             Statement(
                 name = SqlStatementName(dbName = dbName, name = raw.name),
@@ -118,7 +135,7 @@ class DbService(
         val columnTypeName = udtNameOverride ?: getString("column_type_name")!!
         val sqlTypeName = SqlObjectName(schema = schema, name = columnTypeName)
         val columnTypeCategory = columnTypeCategoryOverride ?: getString("column_type_category")!!
-        if (columnTypeName.startsWith("_")) return NonPrimitive.Array(
+        if (columnTypeName.startsWith("_")) return Type.NonPrimitive.Array(
             getColumnType(
                 udtNameOverride = columnTypeName.removePrefix("_"),
                 columnTypeCategoryOverride = getString("column_element_type_category")!!,
@@ -133,17 +150,17 @@ class DbService(
             fun unknownError(): Nothing =
                 error("Unknown column type '$columnTypeCategory' for column type '$schema:$columnTypeName'")
             return when (columnTypeCategory) {
-                "E" -> NonPrimitive.Enum(sqlTypeName)
-                "C" -> NonPrimitive.Composite(sqlTypeName)
+                "E" -> Type.NonPrimitive.Enum(sqlTypeName)
+                "C" -> Type.NonPrimitive.Composite(sqlTypeName)
                 "U" -> {
                     when (columnTypeName) {
-                        NonPrimitive.PgVector.VECTOR_NAME -> NonPrimitive.PgVector(schema = schema.schemaName)
+                        Type.NonPrimitive.PgVector.VECTOR_NAME -> Type.NonPrimitive.PgVector(schema = schema.schemaName)
                         else -> unknownError()
                     }
                 }
 
                 "S" -> when (columnTypeName) {
-                    "citext" -> Primitive.CITEXT
+                    "citext" -> Type.Primitive.CITEXT
                     else -> unknownError()
                 }
 
@@ -155,9 +172,9 @@ class DbService(
                 val precision = getInt("numeric_precision").takeIf { !wasNull() }
                 val scale = getInt("numeric_scale").takeIf { !wasNull() }
                 if (precision != null && scale != null)
-                    NonPrimitive.Numeric(precision = precision, scale = scale)
+                    Type.NonPrimitive.Numeric(precision = precision, scale = scale)
                 else if (precision == null && scale == null)
-                    Primitive.UNCONSTRAINED_NUMERIC
+                    Type.Primitive.UNCONSTRAINED_NUMERIC
                 else
                     error("invalid numeric type, precision: $precision, scale: $scale")
             }
@@ -168,7 +185,7 @@ class DbService(
 
     private fun getColumns(filter: SqlObjectFilter): Map<SqlObjectName, List<Column>> {
         if (filter.isEmpty()) return emptyMap()
-        return connection.executeQuery(
+        return executeQuery(
             """
             SELECT
                 c.ordinal_position as pos,
@@ -200,7 +217,7 @@ class DbService(
     }
 
     private fun getCompositeTypeFields(filter: SqlObjectFilter): Map<SqlObjectName, List<Column>> {
-        return connection.executeQuery(
+        return executeQuery(
             """
             SELECT a.attnum                                                              AS pos,
                    clsn.nspname                                                          AS table_schema,
@@ -253,7 +270,7 @@ class DbService(
         data class PrimaryKeyColumn(val keyName: String, val columnName: Column.Name, val idx: Int)
 
         if (filter.isEmpty()) return emptyMap()
-        return connection.executeQuery(
+        return executeQuery(
             """
                 SELECT 
                     tc.table_schema,
@@ -296,7 +313,7 @@ class DbService(
         )
 
         if (filter.isEmpty()) return emptyMap()
-        return connection.executeQuery(
+        return executeQuery(
             """
              SELECT 
                 tc.constraint_name as constraint_name,
@@ -347,7 +364,7 @@ class DbService(
 
     private fun getUniqueConstraints(filter: SqlObjectFilter): Map<SqlObjectName, List<String>> {
         if (filter.isEmpty()) return emptyMap()
-        return connection.executeQuery(
+        return executeQuery(
             """
              SELECT
                  tc.constraint_name as constraint_name,
@@ -371,7 +388,7 @@ class DbService(
 
     private fun getCheckConstraints(filter: SqlObjectFilter): Map<SqlObjectName, List<String>> {
         if (filter.isEmpty()) return emptyMap()
-        return connection.executeQuery(
+        return executeQuery(
             """
              SELECT
                  tc.constraint_name as constraint_name,
@@ -410,7 +427,7 @@ class DbService(
 
         val filter = SqlObjectFilter.Objects(enumNames)
         if (filter.isEmpty()) return emptyList()
-        val enums = connection.executeQuery(
+        val enums = executeQuery(
             """
                 SELECT 
                     na.nspname as enum_schema, 
@@ -445,7 +462,7 @@ class DbService(
             }
         val missingEnums = enumNames - enums.map { it.name }.toSet()
         if (missingEnums.isNotEmpty())
-            throw Exception("enums not found: $missingEnums")
+            error("enums not found: $missingEnums")
         return enums
     }
 
@@ -456,7 +473,7 @@ class DbService(
         )
         val rawType = getColumnType()
         val type = run {
-            Domain(
+            Type.NonPrimitive.Domain(
                 name = SqlObjectName(
                     schema = SchemaName(
                         dbName = dbName,
@@ -482,7 +499,7 @@ class DbService(
 
     companion object {
         private fun getPrimitiveType(name: String) =
-            Primitive.entries.firstOrNull { it.sqlType == name }
+            Type.Primitive.entries.firstOrNull { it.sqlType == name }
                 ?: error("undefined primitive type name '$name'")
     }
 }
