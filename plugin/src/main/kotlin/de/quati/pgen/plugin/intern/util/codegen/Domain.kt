@@ -15,7 +15,7 @@ internal fun Domain.toTypeSpecInternal() = buildValueClass(this@toTypeSpecIntern
     val typename = originalType.getTypeName()
     val isStringLike = typename == String::class.asTypeName()
     if (isStringLike)
-        addSuperinterface(Poet.Pgen.stringLike)
+        addSuperinterface(Poet.Pgen.Shared.stringLike)
     primaryConstructor {
         addParameter(dataFieldName, typename)
         addProperty(name = dataFieldName, type = typename) {

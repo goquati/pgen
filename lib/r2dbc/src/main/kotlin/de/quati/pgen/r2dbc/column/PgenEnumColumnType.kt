@@ -1,7 +1,6 @@
 package de.quati.pgen.r2dbc.column
 
-import de.quati.pgen.core.column.PgEnum
-import de.quati.pgen.core.column.getPgEnumByLabel
+import de.quati.pgen.shared.PgenEnum
 import org.jetbrains.exposed.v1.core.Column
 import org.jetbrains.exposed.v1.core.ColumnType
 import org.jetbrains.exposed.v1.core.CustomEnumerationColumnType
@@ -11,13 +10,13 @@ import org.jetbrains.exposed.v1.core.statements.api.RowApi
 public inline fun <reified T> Table.pgenEnumColumnType(
     name: String,
     sql: String,
-): CustomEnumerationColumnType<T> where T : PgEnum, T : Enum<T> = CustomEnumerationColumnType(
+): CustomEnumerationColumnType<T> where T : PgenEnum, T : Enum<T> = CustomEnumerationColumnType(
     name = name,
     sql = sql,
     fromDb = {
         when (it) {
             is T -> it
-            else -> getPgEnumByLabel(clazz = T::class, label = it.toString())
+            else -> PgenEnum.getByLabel(clazz = T::class, label = it.toString())
         }
     },
     toDb = { it },
@@ -26,7 +25,7 @@ public inline fun <reified T> Table.pgenEnumColumnType(
 public inline fun <reified T> Table.pgenEnum(
     name: String,
     sql: String,
-): Column<T> where T : PgEnum, T : Enum<T> {
+): Column<T> where T : PgenEnum, T : Enum<T> {
     val enumColumnType = pgenEnumColumnType<T>(name = name, sql = sql)
     return registerColumn(name = name, type = enumColumnType)
 }
@@ -34,7 +33,7 @@ public inline fun <reified T> Table.pgenEnum(
 public inline fun <reified T> Table.pgenEnumArray(
     name: String,
     sql: String,
-): Column<List<T>> where T : PgEnum, T : Enum<T> {
+): Column<List<T>> where T : PgenEnum, T : Enum<T> {
     val enumColumnType = pgenEnumColumnType<T>(name = "${name}_element", sql = sql)
     return registerColumn(name = name, type = PgenEnumArrayColumnType(enumColumnType))
 }
@@ -42,14 +41,14 @@ public inline fun <reified T> Table.pgenEnumArray(
 
 public class PgenEnumArrayColumnType<T, R : List<Any?>>(
     public val delegate: CustomEnumerationColumnType<T>,
-) : ColumnType<R>() where T : PgEnum, T : Enum<T> {
+) : ColumnType<R>() where T : PgenEnum, T : Enum<T> {
 
     override fun sqlType(): String = delegate.sqlType() + "[]"
 
     @Suppress("UNCHECKED_CAST")
     override fun notNullValueToDB(value: R): Any = (value as List<T>)
         .map { delegate.notNullValueToDB(it) }
-        .map { (it as PgEnum).pgEnumLabel }
+        .map { (it as PgenEnum).pgenEnumLabel }
         .joinToString(separator = ",", prefix = "{", postfix = "}") { it }
 
     @Suppress("UNCHECKED_CAST")

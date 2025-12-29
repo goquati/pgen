@@ -1,7 +1,7 @@
 package de.quati.pgen.r2dbc.column
 
 import de.quati.pgen.core.column.CompositeColumnType
-import de.quati.pgen.core.column.PgEnum
+import de.quati.pgen.shared.PgenEnum
 import de.quati.pgen.core.column.PgenColumnType
 import io.r2dbc.postgresql.codec.PostgresTypes
 import io.r2dbc.postgresql.codec.PostgresqlObjectId
@@ -61,10 +61,10 @@ public class PgenTypeMapper : TypeMapper {
             is Int8MultiRangeColumnType -> bind(INT8MULTIRANGE_TYPE, value)
             is PgenEnumArrayColumnType<*, *> -> bind(PostgresqlObjectId.UNSPECIFIED, value)
 
-            is CustomEnumerationColumnType -> if (value !is PgEnum)
+            is CustomEnumerationColumnType -> if (value !is PgenEnum)
                 false // only pgen enums, skip other enum types
             else
-                bind(PostgresqlObjectId.UNSPECIFIED, value.pgEnumLabel)
+                bind(PostgresqlObjectId.UNSPECIFIED, value.pgenEnumLabel)
 
             else -> false
         }

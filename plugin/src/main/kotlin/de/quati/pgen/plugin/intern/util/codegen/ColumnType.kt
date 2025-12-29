@@ -31,8 +31,8 @@ internal fun Column.Type.getTypeName(innerArrayType: Boolean = true): TypeName =
     Column.Type.Primitive.INTERVAL -> Poet.dateTimePeriod
     Column.Type.Primitive.INT4RANGE -> IntRange::class.asTypeName()
     Column.Type.Primitive.INT8RANGE -> LongRange::class.asTypeName()
-    Column.Type.Primitive.INT4MULTIRANGE -> Poet.Pgen.multiRange.parameterizedBy(Int::class.asTypeName())
-    Column.Type.Primitive.INT8MULTIRANGE -> Poet.Pgen.multiRange.parameterizedBy(Long::class.asTypeName())
+    Column.Type.Primitive.INT4MULTIRANGE -> Poet.Pgen.Shared.multiRange.parameterizedBy(Int::class.asTypeName())
+    Column.Type.Primitive.INT8MULTIRANGE -> Poet.Pgen.Shared.multiRange.parameterizedBy(Long::class.asTypeName())
     Column.Type.Primitive.INT4 -> Int::class.asTypeName()
     Column.Type.Primitive.FLOAT4 -> Float::class.asTypeName()
     Column.Type.Primitive.FLOAT8 -> Double::class.asTypeName()
@@ -46,7 +46,7 @@ internal fun Column.Type.getTypeName(innerArrayType: Boolean = true): TypeName =
     Column.Type.Primitive.TIMESTAMP_WITH_TIMEZONE -> Poet.offsetDateTime
     Column.Type.Primitive.UUID -> UUID::class.asTypeName()
     Column.Type.Primitive.UNCONSTRAINED_NUMERIC -> BigDecimal::class.asTypeName()
-    Column.Type.Primitive.REG_CLASS -> Poet.Pgen.regClass
+    Column.Type.Primitive.REG_CLASS -> Poet.Pgen.Shared.regClass
     is Column.Type.CustomPrimitive -> c.getColumnTypeMapping(this).value.poet
 }
 

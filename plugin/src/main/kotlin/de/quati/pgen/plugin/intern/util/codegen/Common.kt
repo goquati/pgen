@@ -143,11 +143,17 @@ internal object Poet {
 
     object Pgen {
         private val packageNamePgen = PackageName("de.quati.pgen")
-        private val packageNameShared = packageNamePgen.plus("shared")
         private val packageNameCore = packageNamePgen.plus("core")
         private val packageNameCoreUtil = packageNameCore.plus("util")
-        private val packageNameCoreModel = packageNameCore.plus("model")
         private val packageNameCoreColumnType = packageNameCore.plus("column")
+
+        object Shared {
+            private val packageNameShared = packageNamePgen.plus("shared")
+            val stringLike = packageNameShared.className("StringLike")
+            val regClass = packageNameShared.className("RegClass")
+            val pgenEnum = packageNameShared.className("PgenEnum")
+            val multiRange = packageNameShared.className("PgenMultiRange")
+        }
 
         context(c: CodeGenContext)
         private val packageNameDriver
@@ -162,8 +168,6 @@ internal object Poet {
         context(c: CodeGenContext)
         private val packageNameDriverUtil get() = packageNameDriver.plus("util")
 
-        val stringLike = packageNameShared.className("StringLike")
-        val regClass = packageNameShared.className("RegClass")
         val columnValueSet = packageNameCore.className("ColumnValueSet")
         val columnValue = packageNameCore.className("ColumnValue")
 
@@ -187,8 +191,6 @@ internal object Poet {
         val pgStructField = packageNameCoreColumnType.className("PgStructField")
         val pgStructFieldJoin = packageNameCoreColumnType.className("join")
 
-        val pgEnum = packageNameCoreColumnType.className("PgEnum")
-
         val fKeyConstraint = packageNameCore.className("Constraint", "ForeignKey")
         val pKeyConstraint = packageNameCore.className("Constraint", "PrimaryKey")
         val uniqueConstraint = packageNameCore.className("Constraint", "Unique")
@@ -200,8 +202,6 @@ internal object Poet {
 
         context(c: CodeGenContext)
         val pgVectorColumnType get() = packageNameDriverColumnType.className("PgVectorColumnType")
-
-        val multiRange = packageNameShared.className("PgenMultiRange")
 
         context(c: CodeGenContext)
         val int4RangeColumnType get() = packageNameDriverColumnType.className("Int4RangeColumnType")

@@ -1,5 +1,6 @@
 package de.quati.pgen.core.column
 
+import de.quati.pgen.shared.PgenEnum
 import kotlin.reflect.KClass
 import java.util.UUID
 
@@ -74,10 +75,10 @@ public interface PgStructFieldConverter<T> {
 
     public class Enum<E>(
         private val clazz: KClass<E>
-    ) : PgStructFieldConverter<E> where E : PgEnum, E : kotlin.Enum<E> {
-        override fun serialize(obj: E?): PgStructField = PgStructField(obj?.pgEnumLabel?.escapeString())
+    ) : PgStructFieldConverter<E> where E : PgenEnum, E : kotlin.Enum<E> {
+        override fun serialize(obj: E?): PgStructField = PgStructField(obj?.pgenEnumLabel?.escapeString())
         override fun deserialize(obj: PgStructField): E? = obj.data?.unescapeString()
-            ?.let { getPgEnumByLabel(clazz, it) }
+            ?.let { PgenEnum.getByLabel(clazz, it) }
     }
 
     public companion object {

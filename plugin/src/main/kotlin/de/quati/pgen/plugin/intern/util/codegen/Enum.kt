@@ -23,22 +23,22 @@ private fun KotlinEnumClass.getMappingPair(field: String): Pair<String, String> 
 
 context(c: CodeGenContext)
 internal fun Enum.toTypeSpecInternal() = buildEnum(this@toTypeSpecInternal.name.prettyName) {
-    addSuperinterface(Poet.Pgen.pgEnum)
+    addSuperinterface(Poet.Pgen.Shared.pgenEnum)
     primaryConstructor {
-        addParameter("pgEnumLabel", String::class)
-        addProperty(name = "pgEnumLabel", type = String::class.asTypeName()) {
+        addParameter("pgenEnumLabel", String::class)
+        addProperty(name = "pgenEnumLabel", type = String::class.asTypeName()) {
             addModifiers(KModifier.OVERRIDE)
-            initializer("pgEnumLabel")
+            initializer("pgenEnumLabel")
         }
     }
     this@toTypeSpecInternal.fields.forEach { field ->
         val enumName = field.toEnumName()
         addEnumConstant(enumName) {
-            addSuperclassConstructorParameter("pgEnumLabel = %S", field)
+            addSuperclassConstructorParameter("pgenEnumLabel = %S", field)
         }
     }
     val pgEnumTypeNameValue = "${this@toTypeSpecInternal.name.schema.schemaName}.${this@toTypeSpecInternal.name.name}"
-    addProperty(name = "pgEnumTypeName", type = String::class.asTypeName()) {
+    addProperty(name = "pgenEnumTypeName", type = String::class.asTypeName()) {
         initializer("%S", pgEnumTypeNameValue)
         addModifiers(KModifier.OVERRIDE)
     }
