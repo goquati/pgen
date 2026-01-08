@@ -1,4 +1,8 @@
+import buildkit.EnvFile
+import buildkit.registerStartDbTask
+
 dependencies {
+    implementation(project(":sharedTest"))
     implementation("de.quati.pgen:r2dbc:1.0.0-SNAPSHOT")
     implementation(libs.goquati.base)
     implementation(libs.ipaddress)
@@ -7,15 +11,11 @@ dependencies {
     implementation(libs.bundles.exposed.r2dbc)
 }
 
-fun Exec.runCmd(cmd: String) = if (org.gradle.internal.os.OperatingSystem.current().isWindows)
-    commandLine("cmd", "/c", cmd)
-else
-    commandLine("bash", "-lc", cmd)
+val envFile = EnvFile(rootProject)
+val dbPortBase = envFile.getDbPort("r2dbc_basic")
+val dbPortBaseVector = envFile.getDbPort("r2dbc_basic_vector")
 
-tasks.register<Exec>("startDb") {
-    outputs.upToDateWhen { false }
-    runCmd("docker compose --profile r2dbc-base up -d --force-recreate --wait")
-}
+registerStartDbTask(profile = "r2dbc-base")
 tasks.findByName("pgenFlywayMigration")!!.dependsOn("startDb")
 tasks.findByName("pgenGenerate")!!.dependsOn("pgenFlywayMigration")
 tasks.findByName("check")!!.dependsOn("pgenGenerate")
@@ -27,7 +27,7 @@ pgen {
     val outputModule = "$baseModule.generated"
     addDb("foo") {
         connection {
-            url("jdbc:postgresql://localhost:55430/postgres")
+            url("jdbc:postgresql://localhost:$dbPortBase/postgres")
             user("postgres")
             password("postgres")
         }
@@ -61,7 +61,7 @@ pgen {
     }
     addDb("bar") {
         connection {
-            url("jdbc:postgresql://localhost:55431/postgres")
+            url("jdbc:postgresql://localhost:$dbPortBaseVector/postgres")
             user("postgres")
             password("postgres")
         }

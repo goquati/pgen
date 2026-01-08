@@ -6,6 +6,6 @@ import kotlinx.coroutines.runBlocking
 import org.jetbrains.exposed.v1.core.Table
 import org.jetbrains.exposed.v1.r2dbc.deleteAll
 
-internal val db = createDb(55430)
+internal val db = createDb("r2dbc_basic")
 
 fun cleanUp(table: Table): Unit = runBlocking { db.suspendTransaction { table.deleteAll() } }

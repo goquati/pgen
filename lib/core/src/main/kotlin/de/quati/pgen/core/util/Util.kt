@@ -18,6 +18,9 @@ import org.jetbrains.exposed.v1.core.ExpressionWithColumnType
 import org.jetbrains.exposed.v1.core.QueryParameter
 import org.jetbrains.exposed.v1.core.anyFrom
 import org.jetbrains.exposed.v1.core.QueryBuilder
+import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeFormatterBuilder
+import java.time.temporal.ChronoField
 
 public object IsInsert : Expression<Boolean>() {
     override fun toQueryBuilder(queryBuilder: QueryBuilder) {
@@ -119,3 +122,14 @@ public sealed interface UpdateSingleResult {
     public class Success(public val data: ResultRow) : UpdateSingleResult
     public data object TooMany : UpdateSingleResult
 }
+
+public val pgenTimestampTzFormatter: DateTimeFormatter = DateTimeFormatterBuilder()
+    .appendPattern("yyyy-MM-dd HH:mm:ss")
+    .optionalStart().appendFraction(ChronoField.NANO_OF_SECOND, 0, 9, true).optionalEnd()
+    .appendOffset("+HH", "Z")
+    .toFormatter()!!
+
+public val pgenTimestampFormatter: DateTimeFormatter = DateTimeFormatterBuilder()
+    .appendPattern("yyyy-MM-dd HH:mm:ss")
+    .optionalStart().appendFraction(ChronoField.NANO_OF_SECOND, 0, 9, true).optionalEnd()
+    .toFormatter()!!

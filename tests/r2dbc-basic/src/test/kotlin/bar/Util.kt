@@ -16,7 +16,7 @@ import org.jetbrains.exposed.v1.r2dbc.deleteAll
 import org.jetbrains.exposed.v1.r2dbc.insert
 import java.util.UUID
 
-internal val db = createDb(55431)
+internal val db = createDb("r2dbc_basic_vector")
 
 internal suspend fun cleanUpAll(): Unit = db.suspendTransaction {
     ItemEmbeddings.deleteAll()

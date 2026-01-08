@@ -21,6 +21,11 @@ internal fun buildObject(
     block: TypeSpec.Builder.() -> Unit,
 ) = TypeSpec.objectBuilder(name).apply(block).build()
 
+internal fun FileSpec.Builder.addObject(
+    name: String,
+    block: TypeSpec.Builder.() -> Unit,
+) = addType(TypeSpec.objectBuilder(name).apply(block).build())
+
 internal fun buildEnum(
     name: String,
     block: TypeSpec.Builder.() -> Unit,
@@ -55,6 +60,10 @@ internal fun buildValueClass(
     block()
 }.build()
 
+public fun PropertySpec.Builder.initializer(
+    block: CodeBlock.Builder.() -> Unit,
+): PropertySpec.Builder = initializer(CodeBlock.builder().apply(block).build())
+
 internal fun TypeSpec.Builder.addClass(
     name: String,
     block: TypeSpec.Builder.() -> Unit,
@@ -70,6 +79,9 @@ internal fun FileSpec.Builder.addProperty(name: String, type: TypeName, block: P
 
 internal fun TypeSpec.Builder.addProperty(name: String, type: TypeName, block: PropertySpec.Builder.() -> Unit) =
     addProperty(PropertySpec.builder(name = name, type = type).apply(block).build())
+
+internal fun PropertySpec.Builder.getter(block: FunSpec.Builder.() -> Unit) =
+    getter(FunSpec.getterBuilder().apply(block).build())
 
 internal fun TypeSpec.Builder.addEnumConstant(
     name: String,

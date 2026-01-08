@@ -10,6 +10,7 @@ internal data class PgenSpec(
     val compositeTypes: List<CompositeType>,
     val statements: List<Statement>,
 ) {
+    val allObjects: List<SqlObject> get() = (tables + enums + compositeTypes + domains).distinct()
     val domains
         get() = tables
             .flatMap { it.columns.map(Column::type) }

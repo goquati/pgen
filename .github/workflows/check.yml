@@ -36,3 +36,17 @@ jobs:
         with:
           name: jdbc-basic-test-report
           path: tests/jdbc-basic/build/reports/tests/test
+
+      - name: Upload r2dbc-wal test report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: r2dbc-wal-test-report
+          path: tests/r2dbc-wal/build/reports/tests/test
+
+      - name: Upload jdbc-wal test report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jdbc-wal-test-report
+          path: tests/jdbc-wal/build/reports/tests/test

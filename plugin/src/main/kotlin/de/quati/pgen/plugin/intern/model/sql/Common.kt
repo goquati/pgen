@@ -14,7 +14,7 @@ import de.quati.pgen.plugin.intern.util.toCamelCase
 import kotlinx.serialization.Serializable
 
 @JvmInline
-internal  value class DbName(val name: String) : Comparable<DbName> {
+internal value class DbName(val name: String) : Comparable<DbName> {
     override fun compareTo(other: DbName) = name.compareTo(other.name)
     override fun toString() = name
 
@@ -33,6 +33,11 @@ internal data class SchemaName(val dbName: DbName, val schemaName: String) : Com
     override fun compareTo(other: SchemaName) =
         dbName.compareTo(other.dbName).takeIf { it != 0 }
             ?: schemaName.compareTo(other.schemaName)
+
+
+    context(c: CodeGenContext)
+    val packageName
+        get() = PackageName("${c.poet.packageDb}.$dbName.${schemaName.makeDifferent(kotlinKeywords)}")
 }
 
 internal sealed interface SqlObject : Comparable<SqlObject>, DbContext {
@@ -71,12 +76,7 @@ internal data class SqlObjectName(
     val prettyName get() = name.toCamelCase(capitalized = true)
 
     context(c: CodeGenContext)
-    val packageName
-        get() = PackageName(
-            "${c.poet.packageDb}.${schema.dbName}.${
-                schema.schemaName.makeDifferent(kotlinKeywords)
-            }"
-        )
+    val packageName get() = schema.packageName
 
     context(c: CodeGenContext)
     val typeName

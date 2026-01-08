@@ -1,0 +1,339 @@
+tables:
+- name: "base.public.citext_test_table"
+  columns:
+  - name: "key"
+    type: "text"
+  - name: "text_nullable"
+    type: "citext"
+    isNullable: true
+  - name: "text"
+    type: "citext"
+  primaryKey:
+    keyName: "citext_test_table_pkey"
+    columnNames:
+    - "key"
+- name: "base.public.date_time_test_table"
+  columns:
+  - name: "key"
+    type: "text"
+  - name: "tsz"
+    type: "timestamptz"
+  - name: "tsz_nullable"
+    type: "timestamptz"
+    isNullable: true
+  - name: "ts"
+    type: "timestamp"
+  - name: "ts_nullable"
+    type: "timestamp"
+    isNullable: true
+  - name: "date"
+    type: "date"
+  - name: "date_nullable"
+    type: "date"
+    isNullable: true
+  - name: "time"
+    type: "time"
+  - name: "time_nullable"
+    type: "time"
+    isNullable: true
+  primaryKey:
+    keyName: "date_time_test_table_pkey"
+    columnNames:
+    - "key"
+- name: "base.public.domain_test_table"
+  columns:
+  - name: "key"
+    type: "text"
+  - name: "user_id_nullable"
+    type:
+      type: "domain"
+      name: "base.public.user_id"
+      originalType: "uuid"
+    isNullable: true
+  - name: "user_id"
+    type:
+      type: "domain"
+      name: "base.public.user_id"
+      originalType: "uuid"
+  - name: "order_id_nullable"
+    type:
+      type: "domain"
+      name: "base.public.order_id"
+      originalType: "uuid"
+    isNullable: true
+  - name: "order_id"
+    type:
+      type: "domain"
+      name: "base.public.order_id"
+      originalType: "uuid"
+  primaryKey:
+    keyName: "domain_test_table_pkey"
+    columnNames:
+    - "key"
+- name: "base.public.duration_test_table"
+  columns:
+  - name: "key"
+    type: "text"
+  - name: "duration"
+    type: "interval"
+  - name: "duration_nullable"
+    type: "interval"
+    isNullable: true
+  primaryKey:
+    keyName: "duration_test_table_pkey"
+    columnNames:
+    - "key"
+- name: "base.public.enum_array_test_table"
+  columns:
+  - name: "key"
+    type: "text"
+  - name: "data"
+    type:
+      type: "array"
+      elementType:
+        type: "enum"
+        name: "base.public.order_status"
+  - name: "data_nullable"
+    type:
+      type: "array"
+      elementType:
+        type: "enum"
+        name: "base.public.order_status"
+    isNullable: true
+  primaryKey:
+    keyName: "enum_array_test_table_pkey"
+    columnNames:
+    - "key"
+- name: "base.public.enum_test_table"
+  columns:
+  - name: "key"
+    type: "text"
+  - name: "enumeration_nullable"
+    type:
+      type: "enum"
+      name: "base.public.order_status"
+    isNullable: true
+  - name: "enumeration"
+    type:
+      type: "enum"
+      name: "base.public.order_status"
+  primaryKey:
+    keyName: "enum_test_table_pkey"
+    columnNames:
+    - "key"
+- name: "base.public.flyway_schema_history"
+  columns:
+  - name: "installed_rank"
+    type: "int4"
+  - name: "version"
+    type: "varchar"
+    isNullable: true
+  - name: "description"
+    type: "varchar"
+  - name: "type"
+    type: "varchar"
+  - name: "script"
+    type: "varchar"
+  - name: "checksum"
+    type: "int4"
+    isNullable: true
+  - name: "installed_by"
+    type: "varchar"
+  - name: "installed_on"
+    type: "timestamp"
+    default: "now()"
+  - name: "execution_time"
+    type: "int4"
+  - name: "success"
+    type: "bool"
+  primaryKey:
+    keyName: "flyway_schema_history_pk"
+    columnNames:
+    - "installed_rank"
+- name: "base.public.full_test_table"
+  columns:
+  - name: "key"
+    type: "text"
+  - name: "user_id_nullable"
+    type:
+      type: "domain"
+      name: "base.public.user_id"
+      originalType: "uuid"
+    isNullable: true
+  - name: "user_id"
+    type:
+      type: "domain"
+      name: "base.public.user_id"
+      originalType: "uuid"
+  - name: "order_id_nullable"
+    type:
+      type: "domain"
+      name: "base.public.order_id"
+      originalType: "uuid"
+    isNullable: true
+  - name: "order_id"
+    type:
+      type: "domain"
+      name: "base.public.order_id"
+      originalType: "uuid"
+  - name: "address_nullable"
+    type:
+      type: "composite"
+      name: "base.public.address"
+    isNullable: true
+  - name: "address"
+    type:
+      type: "composite"
+      name: "base.public.address"
+  - name: "text_nullable"
+    type: "citext"
+    isNullable: true
+  - name: "text"
+    type: "citext"
+  - name: "table_nullable"
+    type: "regclass"
+    isNullable: true
+  - name: "table"
+    type: "regclass"
+  - name: "duration_nullable"
+    type: "interval"
+    isNullable: true
+  - name: "duration"
+    type: "interval"
+  - name: "i_range_nullable"
+    type: "int4range"
+    isNullable: true
+  - name: "i_range"
+    type: "int4range"
+  - name: "l_range_nullable"
+    type: "int8range"
+    isNullable: true
+  - name: "l_range"
+    type: "int8range"
+  - name: "i_mrange_nullable"
+    type: "int4multirange"
+    isNullable: true
+  - name: "i_mrange"
+    type: "int4multirange"
+  - name: "l_mrange_nullable"
+    type: "int8multirange"
+    isNullable: true
+  - name: "l_mrange"
+    type: "int8multirange"
+  - name: "enum_array_nullable"
+    type:
+      type: "array"
+      elementType:
+        type: "enum"
+        name: "base.public.order_status"
+    isNullable: true
+  - name: "enum_array"
+    type:
+      type: "array"
+      elementType:
+        type: "enum"
+        name: "base.public.order_status"
+  primaryKey:
+    keyName: "full_test_table_pkey"
+    columnNames:
+    - "key"
+- name: "base.public.multi_ranges_test_table"
+  columns:
+  - name: "key"
+    type: "text"
+  - name: "i_mrange_nullable"
+    type: "int4multirange"
+    isNullable: true
+  - name: "i_mrange"
+    type: "int4multirange"
+  - name: "l_mrange_nullable"
+    type: "int8multirange"
+    isNullable: true
+  - name: "l_mrange"
+    type: "int8multirange"
+  primaryKey:
+    keyName: "multi_ranges_test_table_pkey"
+    columnNames:
+    - "key"
+- name: "base.public.ranges_test_table"
+  columns:
+  - name: "key"
+    type: "text"
+  - name: "i_range_nullable"
+    type: "int4range"
+    isNullable: true
+  - name: "i_range"
+    type: "int4range"
+  - name: "l_range_nullable"
+    type: "int8range"
+    isNullable: true
+  - name: "l_range"
+    type: "int8range"
+  primaryKey:
+    keyName: "ranges_test_table_pkey"
+    columnNames:
+    - "key"
+- name: "base.public.regclass_test_table"
+  columns:
+  - name: "key"
+    type: "text"
+  - name: "table_nullable"
+    type: "regclass"
+    isNullable: true
+  - name: "table"
+    type: "regclass"
+  primaryKey:
+    keyName: "regclass_test_table_pkey"
+    columnNames:
+    - "key"
+- name: "base.public.struct_test_table"
+  columns:
+  - name: "key"
+    type: "text"
+  - name: "address_nullable"
+    type:
+      type: "composite"
+      name: "base.public.address"
+    isNullable: true
+  - name: "address"
+    type:
+      type: "composite"
+      name: "base.public.address"
+  primaryKey:
+    keyName: "struct_test_table_pkey"
+    columnNames:
+    - "key"
+- name: "base.public.sync_test_table"
+  columns:
+  - name: "group_id"
+    type: "int4"
+  - name: "name"
+    type: "text"
+  primaryKey:
+    keyName: "sync_test_table_pk"
+    columnNames:
+    - "group_id"
+    - "name"
+enums:
+- name: "base.public.order_status"
+  fields:
+  - "pending"
+  - "paid"
+  - "cancelled"
+  - "refunded"
+compositeTypes:
+- name: "base.public.address"
+  columns:
+  - name: "street"
+    type: "text"
+    isNullable: true
+  - name: "city"
+    type: "text"
+    isNullable: true
+  - name: "postal_code"
+    type: "text"
+    isNullable: true
+  - name: "country"
+    type: "text"
+    isNullable: true
+statements: []

@@ -1,9 +1,6 @@
 create extension if not exists citext;
 create schema if not exists public;
 
--- ==========================================================
--- Enum type
--- ==========================================================
 create type public.order_status as enum ('pending', 'paid', 'cancelled', 'refunded');
 create type public.product_type as enum ('a', 'b', 'c');
 
@@ -125,6 +122,49 @@ create table public.documents
     constraint documents_updated_after_created check (
         updated_at is null or updated_at >= created_at
         )
+);
+
+create table public.full_test_table
+(
+    key                 text primary key,
+    user_id_nullable    public.user_id,
+    user_id             public.user_id        not null,
+    order_id_nullable   public.order_id,
+    order_id            public.order_id       not null,
+    address_nullable    public.address,
+    address             public.address        not null,
+    text_nullable       citext,
+    text                citext                not null,
+    table_nullable      regclass,
+    "table"             regclass              not null,
+    duration_nullable   interval,
+    duration            interval              not null,
+    i_range_nullable    int4range,
+    i_range             int4range             not null,
+    l_range_nullable    int8range,
+    l_range             int8range             not null,
+    i_mrange_nullable   int4multirange,
+    i_mrange            int4multirange        not null,
+    l_mrange_nullable   int8multirange,
+    l_mrange            int8multirange        not null,
+    enum_array_nullable public.order_status[],
+    enum_array          public.order_status[] not null
+);
+
+create table public.domain_test_table
+(
+    key               text primary key,
+    user_id_nullable  public.user_id,
+    user_id           public.user_id not null,
+    order_id_nullable public.user_id,
+    order_id          public.user_id not null
+);
+
+create table public.enum_test_table
+(
+    key                  text primary key,
+    enumeration_nullable public.order_status,
+    enumeration          public.order_status not null
 );
 
 create table public.sync_test_table

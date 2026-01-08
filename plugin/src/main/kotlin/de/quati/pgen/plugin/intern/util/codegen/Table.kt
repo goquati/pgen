@@ -13,6 +13,7 @@ import de.quati.pgen.plugin.intern.addParameter
 import de.quati.pgen.plugin.intern.addProperty
 import de.quati.pgen.plugin.intern.buildDataClass
 import de.quati.pgen.plugin.intern.buildObject
+import de.quati.pgen.plugin.intern.getter
 import de.quati.pgen.plugin.intern.primaryConstructor
 import de.quati.pgen.plugin.intern.model.sql.Table
 import de.quati.pgen.plugin.intern.util.makeDifferent
@@ -24,10 +25,39 @@ internal fun Table.toTypeSpecInternal() = buildObject(this@toTypeSpecInternal.na
         .filterIsInstance<Table.ForeignKeyTyped.SingleKey>()
         .associateBy { it.reference.sourceColumn }
     superclass(Poet.Exposed.table)
+    addSuperinterface(
+        if (isEventTable)
+            Poet.Pgen.pgenWalEventTable
+        else
+            Poet.Pgen.pgenTable
+    )
     addSuperclassConstructorParameter(
         "%S",
         "${this@toTypeSpecInternal.name.schema.schemaName}.${this@toTypeSpecInternal.name.name}"
     )
+    addFunction(
+        name = "getTableNameWithSchema",
+    ) {
+        returns(Poet.Pgen.Shared.tableNameWithSchema)
+        addModifiers(KModifier.OVERRIDE)
+        addCode(
+            "return %T(schema = %S, table = %S)",
+            Poet.Pgen.Shared.tableNameWithSchema,
+            this@toTypeSpecInternal.name.schema.schemaName,
+            this@toTypeSpecInternal.name.name,
+        )
+    }
+    if (isEventTable)
+        addFunction(name = "walEventMapper") {
+            addModifiers(KModifier.OVERRIDE)
+            addParameter(
+                name = "event",
+                type = Poet.Pgen.Shared.walEventChange.parameterizedBy(Poet.jsonObject)
+            )
+            returns(this@toTypeSpecInternal.eventTypeName)
+            addCode("return Event(metaData = event.metaData, payload = event.payload.map(EventEntity::parse))")
+        }
+
     this@toTypeSpecInternal.columns.forEach { column ->
         addProperty(
             name = column.prettyName,
@@ -80,6 +110,10 @@ internal fun Table.toTypeSpecInternal() = buildObject(this@toTypeSpecInternal.na
     addType(toTypeSpecEntity())
     addType(toTypeSpecUpdateEntity())
     addType(toTypeSpecCreateEntity())
+    if (isEventTable) {
+        addType(toTypeSpecEventEntity())
+        addType(toTypeSpecEvent())
+    }
 }
 
 context(c: CodeGenContext)
@@ -136,9 +170,13 @@ private fun Table.toConstraintsObject() = buildObject(this@toConstraintsObject.c
 
 context(c: CodeGenContext)
 private fun Table.toTypeSpecEntity() = buildDataClass(this@toTypeSpecEntity.entityTypeName.simpleName) {
+    val columns = this@toTypeSpecEntity.columns
+    val tableTypeName = this@toTypeSpecEntity.name.typeName
+    val entityTypeName = this@toTypeSpecEntity.entityTypeName
+
     addSuperinterface(Poet.Pgen.columnValueSet)
     primaryConstructor {
-        this@toTypeSpecEntity.columns.forEach { column ->
+        columns.forEach { column ->
             val type = column.getColumnTypeName()
             addParameter(column.prettyName, type)
             addProperty(name = column.prettyName, type = type) {
@@ -152,11 +190,11 @@ private fun Table.toTypeSpecEntity() = buildDataClass(this@toTypeSpecEntity.enti
         returns(List::class.asTypeName().parameterizedBy(Poet.Pgen.columnValue.parameterizedBy(STAR)))
         addCode {
             add("return listOfNotNull(\n")
-            this@toTypeSpecEntity.columns.forEach { column ->
+            columns.forEach { column ->
                 add(
                     "  %T(column = %T.%L, value = %L),\n",
                     Poet.Pgen.columnValue,
-                    this@toTypeSpecEntity.name.typeName,
+                    tableTypeName,
                     column.prettyName,
                     column.prettyName,
                 )
@@ -171,15 +209,130 @@ private fun Table.toTypeSpecEntity() = buildDataClass(this@toTypeSpecEntity.enti
             addParameter(name = "alias", type = Poet.Exposed.alias.parameterizedBy(STAR).copy(nullable = true)) {
                 this.defaultValue("null")
             }
-            returns(this@toTypeSpecEntity.entityTypeName)
+            returns(entityTypeName)
             addCode {
-                add("return %T(\n", this@toTypeSpecEntity.entityTypeName)
-                this@toTypeSpecEntity.columns.forEach { column ->
+                add("return %T(\n", entityTypeName)
+                columns.forEach { column ->
                     add(
                         "  %L = row.%T(%T.%L, alias),\n",
                         column.prettyName,
                         Poet.Pgen.getColumnWithAlias,
-                        this@toTypeSpecEntity.name.typeName,
+                        tableTypeName,
+                        column.prettyName,
+                    )
+                }
+                add(")")
+            }
+        }
+    }
+}
+
+context(c: CodeGenContext)
+private fun Table.toTypeSpecEvent() = buildDataClass(this@toTypeSpecEvent.eventTypeName.simpleName) {
+    addSuperinterface(
+        Poet.schemaUtilObjectEvent(this@toTypeSpecEvent.name.schema)
+            .parameterizedBy(this@toTypeSpecEvent.eventEntityTypeName)
+    )
+    primaryConstructor {
+        run {
+            val name = "metaData"
+            val type = Poet.Pgen.Shared.walEventMetaData
+            addParameter(name, type)
+            addProperty(name = name, type = type) {
+                initializer(name)
+                addModifiers(KModifier.OVERRIDE)
+            }
+        }
+        run {
+            val name = "payload"
+            val type = Poet.Pgen.Shared.walEventChangePayload.parameterizedBy(this@toTypeSpecEvent.eventEntityTypeName)
+            addParameter(name, type)
+            addProperty(name = name, type = type) {
+                initializer(name)
+                addModifiers(KModifier.OVERRIDE)
+            }
+        }
+    }
+    run {
+        val name = "table"
+        val type = Poet.Pgen.Shared.tableNameWithSchema
+        addProperty(name = name, type = type) {
+            getter {
+                addCode("return %T.getTableNameWithSchema()", this@toTypeSpecEvent.name.typeName)
+            }
+            addModifiers(KModifier.OVERRIDE)
+        }
+    }
+}
+
+context(c: CodeGenContext)
+private fun Table.toTypeSpecEventEntity() = buildDataClass(this@toTypeSpecEventEntity.eventEntityTypeName.simpleName) {
+    val columns = this@toTypeSpecEventEntity.eventColumns
+    val tableTypeName = this@toTypeSpecEventEntity.name.typeName
+    val entityTypeName = this@toTypeSpecEventEntity.eventEntityTypeName
+
+    addSuperinterface(Poet.Pgen.columnValueSet)
+    primaryConstructor {
+        columns.forEach { column ->
+            val type = column.getColumnTypeName()
+            addParameter(column.prettyName, type)
+            addProperty(name = column.prettyName, type = type) {
+                initializer(column.prettyName)
+            }
+        }
+    }
+
+    addFunction("toList") {
+        addModifiers(KModifier.OVERRIDE)
+        returns(List::class.asTypeName().parameterizedBy(Poet.Pgen.columnValue.parameterizedBy(STAR)))
+        addCode {
+            add("return listOfNotNull(\n")
+            columns.forEach { column ->
+                add(
+                    "  %T(column = %T.%L, value = %L),\n",
+                    Poet.Pgen.columnValue,
+                    tableTypeName,
+                    column.prettyName,
+                    column.prettyName,
+                )
+            }
+            add(")")
+        }
+    }
+
+    addCompanionObject {
+        addFunction("create") {
+            addParameter(name = "row", type = Poet.Exposed.resultRow)
+            addParameter(name = "alias", type = Poet.Exposed.alias.parameterizedBy(STAR).copy(nullable = true)) {
+                this.defaultValue("null")
+            }
+            returns(entityTypeName)
+            addCode {
+                add("return %T(\n", entityTypeName)
+                columns.forEach { column ->
+                    add(
+                        "  %L = row.%T(%T.%L, alias),\n",
+                        column.prettyName,
+                        Poet.Pgen.getColumnWithAlias,
+                        tableTypeName,
+                        column.prettyName,
+                    )
+                }
+                add(")")
+            }
+        }
+
+        addFunction("parse") {
+            addParameter(name = "data", type = Poet.jsonObject)
+            returns(entityTypeName)
+            addCode {
+                add("return %T(\n", entityTypeName)
+                columns.forEach { column ->
+                    add(
+                        "  %L = %T(data, %T.%L),\n",
+                        column.prettyName,
+                        if (column.isNullable) Poet.Pgen.parseColumnNullable else Poet.Pgen.parseColumn,
+                        tableTypeName,
                         column.prettyName,
                     )
                 }

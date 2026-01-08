@@ -4,6 +4,7 @@ import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.asTypeName
 import com.squareup.kotlinpoet.buildCodeBlock
+import de.quati.pgen.plugin.intern.initializer
 import de.quati.pgen.plugin.intern.model.sql.Column
 import de.quati.pgen.plugin.intern.util.codegen.oas.DbContext
 
@@ -80,21 +81,18 @@ internal fun PropertySpec.Builder.initializer(column: Column, postfix: String, p
             columnName, type.getColumnTypeTypeName(), *postArgs,
         )
 
-        is Column.Type.NonPrimitive.DomainType -> @Suppress("SpreadOperator") initializer(
-            """
-            %T<%T>(
-                name = %S,
-                sqlType = %S,
-                builder = { %T${type.parserFunction}(it as %T) },
-            )$postfix""".trimIndent(),
-            Poet.Pgen.domainType,
-            type.getDomainTypename(),
-            columnName,
-            type.sqlType,
-            type.getDomainTypename(),
-            type.originalType.getTypeName(),
-            *postArgs
-        )
+        is Column.Type.NonPrimitive.DomainType -> @Suppress("SpreadOperator") initializer {
+            add("%T<%T, %T>(\n", Poet.Pgen.domainType, type.getDomainTypename(), type.originalType.getTypeName())
+            add("    name = %S,\n", columnName)
+            add("    sqlType = %S,\n", type.sqlType)
+            add("    originType = "); add(type.originalType.getExposedColumnType()); add(",\n")
+            add(
+                "    builder = { %T${type.parserFunction}(it as %T) }\n",
+                type.getDomainTypename(),
+                type.originalType.getTypeName(),
+            )
+            add(")$postfix", *postArgs)
+        }
 
         is Column.Type.NonPrimitive.PgVector -> @Suppress("SpreadOperator") initializer(
             """

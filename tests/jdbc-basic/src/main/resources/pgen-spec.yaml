@@ -123,6 +123,36 @@ tables:
   - "documents_owner_title_unique"
   checkConstraints:
   - "documents_updated_after_created"
+- name: "foo.public.domain_test_table"
+  columns:
+  - name: "key"
+    type: "text"
+  - name: "user_id_nullable"
+    type:
+      type: "domain"
+      name: "foo.public.user_id"
+      originalType: "uuid"
+    isNullable: true
+  - name: "user_id"
+    type:
+      type: "domain"
+      name: "foo.public.user_id"
+      originalType: "uuid"
+  - name: "order_id_nullable"
+    type:
+      type: "domain"
+      name: "foo.public.user_id"
+      originalType: "uuid"
+    isNullable: true
+  - name: "order_id"
+    type:
+      type: "domain"
+      name: "foo.public.user_id"
+      originalType: "uuid"
+  primaryKey:
+    keyName: "domain_test_table_pkey"
+    columnNames:
+    - "key"
 - name: "foo.public.duration_test_table"
   columns:
   - name: "key"
@@ -157,6 +187,23 @@ tables:
     keyName: "enum_array_test_table_pkey"
     columnNames:
     - "key"
+- name: "foo.public.enum_test_table"
+  columns:
+  - name: "key"
+    type: "text"
+  - name: "enumeration_nullable"
+    type:
+      type: "enum"
+      name: "foo.public.order_status"
+    isNullable: true
+  - name: "enumeration"
+    type:
+      type: "enum"
+      name: "foo.public.order_status"
+  primaryKey:
+    keyName: "enum_test_table_pkey"
+    columnNames:
+    - "key"
 - name: "foo.public.flyway_schema_history"
   columns:
   - name: "installed_rank"
@@ -186,6 +233,93 @@ tables:
     keyName: "flyway_schema_history_pk"
     columnNames:
     - "installed_rank"
+- name: "foo.public.full_test_table"
+  columns:
+  - name: "key"
+    type: "text"
+  - name: "user_id_nullable"
+    type:
+      type: "domain"
+      name: "foo.public.user_id"
+      originalType: "uuid"
+    isNullable: true
+  - name: "user_id"
+    type:
+      type: "domain"
+      name: "foo.public.user_id"
+      originalType: "uuid"
+  - name: "order_id_nullable"
+    type:
+      type: "domain"
+      name: "foo.public.order_id"
+      originalType: "uuid"
+    isNullable: true
+  - name: "order_id"
+    type:
+      type: "domain"
+      name: "foo.public.order_id"
+      originalType: "uuid"
+  - name: "address_nullable"
+    type:
+      type: "composite"
+      name: "foo.public.address"
+    isNullable: true
+  - name: "address"
+    type:
+      type: "composite"
+      name: "foo.public.address"
+  - name: "text_nullable"
+    type: "citext"
+    isNullable: true
+  - name: "text"
+    type: "citext"
+  - name: "table_nullable"
+    type: "regclass"
+    isNullable: true
+  - name: "table"
+    type: "regclass"
+  - name: "duration_nullable"
+    type: "interval"
+    isNullable: true
+  - name: "duration"
+    type: "interval"
+  - name: "i_range_nullable"
+    type: "int4range"
+    isNullable: true
+  - name: "i_range"
+    type: "int4range"
+  - name: "l_range_nullable"
+    type: "int8range"
+    isNullable: true
+  - name: "l_range"
+    type: "int8range"
+  - name: "i_mrange_nullable"
+    type: "int4multirange"
+    isNullable: true
+  - name: "i_mrange"
+    type: "int4multirange"
+  - name: "l_mrange_nullable"
+    type: "int8multirange"
+    isNullable: true
+  - name: "l_mrange"
+    type: "int8multirange"
+  - name: "enum_array_nullable"
+    type:
+      type: "array"
+      elementType:
+        type: "enum"
+        name: "foo.public.order_status"
+    isNullable: true
+  - name: "enum_array"
+    type:
+      type: "array"
+      elementType:
+        type: "enum"
+        name: "foo.public.order_status"
+  primaryKey:
+    keyName: "full_test_table_pkey"
+    columnNames:
+    - "key"
 - name: "foo.public.ips_test_table"
   columns:
   - name: "key"

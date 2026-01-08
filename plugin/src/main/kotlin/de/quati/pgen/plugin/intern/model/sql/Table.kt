@@ -13,6 +13,9 @@ internal data class Table(
     val uniqueConstraints: List<String> = emptyList(),
     val checkConstraints: List<String> = emptyList(),
 ) : SqlObject {
+    val eventColumns = columns.filter { it.type.isSupportedForWalEvents() }
+    val isEventTable = eventColumns.isNotEmpty()
+
     context(c: CodeGenContext)
     val constraintsTypeName
         get() = ClassName("${name.packageName.name}.${name.prettyName}", "Constraints")
@@ -20,6 +23,14 @@ internal data class Table(
     context(c: CodeGenContext)
     val entityTypeName
         get() = ClassName("${name.packageName.name}.${name.prettyName}", "Entity")
+
+    context(c: CodeGenContext)
+    val eventTypeName
+        get() = ClassName("${name.packageName.name}.${name.prettyName}", "Event")
+
+    context(c: CodeGenContext)
+    val eventEntityTypeName
+        get() = ClassName("${name.packageName.name}.${name.prettyName}", "EventEntity")
 
     context(c: CodeGenContext)
     val updateEntityTypeName

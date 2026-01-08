@@ -15,23 +15,49 @@ services:
     image: postgres:17.2
     <<: *postgres-common
     ports:
-      - "55432:5432"
+      - "55030:5432"
     profiles: [ jdbc-base ]
   jdbc-base-vector:
     image: pgvector/pgvector:0.8.0-pg17
     <<: *postgres-common
     ports:
-      - "55433:5432"
+      - "55031:5432"
     profiles: [ jdbc-base ]
+  jdbc-wal:
+    <<: *postgres-common
+    ports:
+      - "55032:5432"
+    profiles: [ jdbc-wal ]
+    command: ["postgres", "-c", "wal_level=logical"]
+    build:
+      dockerfile_inline: |
+        FROM postgres:17.2
+        RUN apt-get update \
+          && apt-get install -y postgresql-17-wal2json \
+          && apt-get clean \
+          && rm -rf /var/lib/apt/lists/*
   r2dbc-base:
     image: postgres:17.2
     <<: *postgres-common
     ports:
-      - "55430:5432"
+      - "55130:5432"
     profiles: [ r2dbc-base ]
   r2dbc-base-vector:
     image: pgvector/pgvector:0.8.0-pg17
     <<: *postgres-common
     ports:
-      - "55431:5432"
+      - "55131:5432"
     profiles: [ r2dbc-base ]
+  r2dbc-wal:
+    <<: *postgres-common
+    ports:
+      - "55132:5432"
+    profiles: [ r2dbc-wal ]
+    command: ["postgres", "-c", "wal_level=logical"]
+    build:
+      dockerfile_inline: |
+        FROM postgres:17.2
+        RUN apt-get update \
+          && apt-get install -y postgresql-17-wal2json \
+          && apt-get clean \
+          && rm -rf /var/lib/apt/lists/*

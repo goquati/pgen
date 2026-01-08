@@ -1,0 +1,63 @@
+package de.quati.pgen.plugin.intern.util.codegen
+
+import com.squareup.kotlinpoet.ANY
+import com.squareup.kotlinpoet.FileSpec
+import com.squareup.kotlinpoet.KModifier
+import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
+import com.squareup.kotlinpoet.TypeVariableName
+import com.squareup.kotlinpoet.asTypeName
+import com.squareup.kotlinpoet.buildCodeBlock
+import de.quati.pgen.plugin.intern.addObject
+import de.quati.pgen.plugin.intern.addProperty
+import de.quati.pgen.plugin.intern.buildInterface
+import de.quati.pgen.plugin.intern.getter
+import de.quati.pgen.plugin.intern.model.sql.SchemaName
+import de.quati.pgen.plugin.intern.model.sql.SqlObject
+import de.quati.pgen.plugin.intern.model.sql.Table
+
+
+context(c: CodeGenContext)
+internal fun FileSpec.Builder.addSchemaUtils(
+    schema: SchemaName,
+    allObjects: Collection<SqlObject>,
+) {
+    addObject(name = Poet.schemaUtilObject(schema).simpleName) {
+        addType(
+            buildInterface(
+                name = "Event"
+            ) {
+                val tType = TypeVariableName("T", ANY)
+                addModifiers(KModifier.SEALED)
+                addTypeVariable(tType)
+                addSuperinterface(
+                    Poet.Pgen.Shared.walEventChange.parameterizedBy(tType)
+                )
+            }
+        )
+
+        addProperty(
+            name = "tables",
+            type = List::class.asTypeName().parameterizedBy(Poet.Pgen.pgenTable),
+        ) {
+            initializer(buildCodeBlock {
+                add("listOf(\n")
+                allObjects.filterIsInstance<Table>().forEach { table ->
+                    add("    %T,\n", table.name.typeName)
+                }
+                add(")")
+            })
+        }
+
+        addProperty(
+            name = "eventTables",
+            type = List::class.asTypeName().parameterizedBy(Poet.Pgen.pgenWalEventTable),
+        ) {
+            getter {
+                addStatement(
+                    "return tables.filterIsInstance<%T>()",
+                    Poet.Pgen.pgenWalEventTable,
+                )
+            }
+        }
+    }
+}

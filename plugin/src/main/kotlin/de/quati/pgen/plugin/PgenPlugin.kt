@@ -20,6 +20,7 @@ import de.quati.pgen.plugin.intern.util.codegen.CodeGenContext.Companion.getColu
 import de.quati.pgen.plugin.intern.util.codegen.sync
 import de.quati.pgen.plugin.intern.util.codegen.oas.toOpenApi
 import de.quati.pgen.plugin.intern.util.codegen.syncQueries
+import de.quati.pgen.plugin.intern.util.codegen.syncSchemaUtils
 import de.quati.pgen.plugin.intern.util.parseStatements
 import de.quati.pgen.plugin.intern.util.toFlywayOrNull
 import kotlinx.serialization.decodeFromString
@@ -154,6 +155,7 @@ private fun generateCode(config: Config) {
                 .also { syncQueries(it) }
                 .forEach { sync(it) }
             spec.statements.groupBy { it.name.dbName }.values.forEach { sync(it) }
+            syncSchemaUtils(spec.allObjects)
             syncOasMappers(config, spec)
             cleanup()
         }

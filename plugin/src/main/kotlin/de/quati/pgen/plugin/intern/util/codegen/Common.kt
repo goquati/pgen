@@ -15,15 +15,18 @@ import de.quati.pgen.plugin.intern.model.sql.Statement
 import de.quati.pgen.plugin.intern.model.sql.Table
 import de.quati.pgen.plugin.intern.model.sql.Column.Type.NonPrimitive.Domain
 import de.quati.pgen.plugin.intern.model.sql.CompositeType
+import de.quati.pgen.plugin.intern.model.sql.SchemaName
 import de.quati.pgen.plugin.intern.service.DirectorySyncService
 import de.quati.pgen.plugin.intern.util.codegen.oas.addEnumMapper
 import de.quati.pgen.plugin.intern.util.codegen.oas.addTableMapper
 import de.quati.pgen.plugin.intern.util.codegen.oas.addTableService
+import de.quati.pgen.plugin.intern.util.toCamelCase
 import java.time.OffsetDateTime
 
 internal object Poet {
     val json = ClassName("kotlinx.serialization.json", "Json")
     val jsonElement = ClassName("kotlinx.serialization.json", "JsonElement")
+    val jsonObject = ClassName("kotlinx.serialization.json", "JsonObject")
 
     val dateTimePeriod = ClassName("kotlinx.datetime", "DateTimePeriod")
     val instant = ClassName("kotlin.time", "Instant")
@@ -48,6 +51,17 @@ internal object Poet {
     val flowSingleOrNull = ClassName("kotlinx.coroutines.flow", "singleOrNull")
     val channelFlow = ClassName("kotlinx.coroutines.flow", "channelFlow")
     val flowMap = ClassName("kotlinx.coroutines.flow", "map")
+
+    private val SchemaName.utilObjectName
+        get() = dbName.name.toCamelCase(capitalized = true) + "Schema" + schemaName.toCamelCase(capitalized = true)
+
+    context(c: CodeGenContext)
+    fun schemaUtilObject(schema: SchemaName) =
+        schema.packageName.className(schema.utilObjectName)
+
+    context(c: CodeGenContext)
+    fun schemaUtilObjectEvent(schema: SchemaName) =
+        schema.packageName.className(schema.utilObjectName, "Event")
 
     object Exposed {
 
@@ -153,6 +167,12 @@ internal object Poet {
             val regClass = packageNameShared.className("RegClass")
             val pgenEnum = packageNameShared.className("PgenEnum")
             val multiRange = packageNameShared.className("PgenMultiRange")
+            val tableNameWithSchema = packageNameShared.className("TableNameWithSchema")
+            val walEvent = packageNameShared.className("WalEvent")
+            val walEventChange = packageNameShared.className("WalEvent", "Change")
+            val walEventChangePayload = packageNameShared.className("WalEvent", "Change", "Payload")
+            val walEventMetaData = packageNameShared.className("WalEvent", "MetaData")
+            val walEventMessage = packageNameShared.className("WalEvent", "Message")
         }
 
         context(c: CodeGenContext)
@@ -168,8 +188,13 @@ internal object Poet {
         context(c: CodeGenContext)
         private val packageNameDriverUtil get() = packageNameDriver.plus("util")
 
+        val pgenTable = packageNameCore.className("PgenTable")
+        val pgenWalEventTable = packageNameCore.className("PgenWalEventTable")
         val columnValueSet = packageNameCore.className("ColumnValueSet")
         val columnValue = packageNameCore.className("ColumnValue")
+
+        val parseColumn = packageNameCoreUtil.className("parseColumn")
+        val parseColumnNullable = packageNameCoreUtil.className("parseColumnNullable")
 
         val compositeColumnType = packageNameCoreColumnType.className("CompositeColumnType")
 
@@ -292,6 +317,26 @@ internal fun DirectorySyncService.sync(
             }
         )
     )
+}
+
+context(c: CodeGenContext)
+internal fun DirectorySyncService.syncSchemaUtils(
+    allObjects: Collection<SqlObject>,
+) {
+    allObjects.groupBy { it.name.schema }.forEach { (schema, objects) ->
+        val fileName = "_PgenSchemaUtils.kt"
+        sync(
+            relativePath = schema.packageName.toRelativePath(fileName),
+            content = fileSpec(
+                packageName = schema.packageName,
+                name = fileName,
+                block = {
+                    addSchemaUtils(schema = schema, allObjects = objects)
+                }
+            )
+        )
+    }
+
 }
 
 context(c: CodeGenContext)

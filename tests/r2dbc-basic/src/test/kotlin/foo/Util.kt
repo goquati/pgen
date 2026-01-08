@@ -25,7 +25,7 @@ import org.jetbrains.exposed.v1.r2dbc.deleteAll
 import org.jetbrains.exposed.v1.r2dbc.insert
 import java.util.UUID
 
-internal val db = createDb(55430)
+internal val db = createDb("r2dbc_basic")
 
 internal suspend fun cleanUpAll(): Unit = db.suspendTransaction {
     Documents.deleteAll()

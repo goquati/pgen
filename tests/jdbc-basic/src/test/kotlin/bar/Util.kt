@@ -16,7 +16,7 @@ import org.jetbrains.exposed.v1.jdbc.deleteAll
 import org.jetbrains.exposed.v1.jdbc.insert
 import java.util.UUID
 
-internal val db = createDb(55433)
+internal val db = createDb("jdbc_basic_vector")
 
 internal fun cleanUpAll(): Unit = db.transaction {
     ItemEmbeddings.deleteAll()

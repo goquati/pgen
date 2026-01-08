@@ -19,7 +19,7 @@ enum class SubProjects(val projectName: String) {
     JDBC("jdbc"),
     R2DBC("r2dbc"),
     SHARED("shared"),
-    INTERN("intern"),
+    WAL("wal"),
 }
 
 tasks.matching { it.name.startsWith("publish") }.configureEach {
@@ -53,7 +53,6 @@ subprojects {
 
     val artifactId = project.name
 
-    if (projectType in setOf(SubProjects.INTERN)) return@subprojects
     mavenPublishing {
         val descriptionStr = when (projectType) {
             SubProjects.CORE -> "Core utilities used by all generated code: column/value helpers, constraint " +
@@ -67,7 +66,9 @@ subprojects {
             SubProjects.R2DBC ->
                 "R2DBC-specific helpers and extensions for non-blocking database access with Exposed R2DBC."
 
-            SubProjects.INTERN -> error("should not be published")
+            SubProjects.WAL -> "PostgreSQL logical WAL listener based on wal2json. Manages replication slots and " +
+                    "replica identity per table, streams change events via the JDBC replication API, and publishes " +
+                    "them as a Kotlin Flow for reactive processing in generated code."
         }
         coordinates(
             groupId = project.group as String,
