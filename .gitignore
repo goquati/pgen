@@ -8,6 +8,7 @@ build/
 .env
 test_migration
 test-queries.sql
+generated
 
 ### IntelliJ IDEA ###
 .idea/modules.xml

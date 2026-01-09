@@ -5,6 +5,7 @@ import de.quati.pgen.tests.r2dbc.wal.generated.db.base._public.DateTimeTestTable
 import de.quati.pgen.tests.r2dbc.wal.generated.db.base._public.DomainTestTable
 import de.quati.pgen.tests.r2dbc.wal.generated.db.base._public.EnumArrayTestTable
 import de.quati.pgen.tests.r2dbc.wal.generated.db.base._public.EnumTestTable
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
@@ -16,6 +17,18 @@ internal fun <T> blockingWithTimeout(
     block: suspend CoroutineScope.() -> T
 ): T = runBlocking {
     withTimeout(timeout, block)
+}
+
+internal class ReadyFlag {
+    private val ready = CompletableDeferred<Unit>()
+
+    fun markReady() {
+        ready.complete(Unit)
+    }
+
+    suspend fun awaitReady() {
+        ready.await()
+    }
 }
 
 private val dummyMetaData = WalEvent.MetaData(timestamp = OffsetDateTime.MIN)

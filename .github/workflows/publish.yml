@@ -61,6 +61,11 @@ jobs:
           sed -i 's/id("de\.quati\.pgen") version "[^"]*"/id("de.quati.pgen") version "'"$VERSION"'"/' example/r2dbc/build.gradle.kts
           sed -i 's/implementation("de\.quati\.pgen:r2dbc:[^"]*")/implementation("de.quati.pgen:r2dbc:'"$VERSION"'")/' example/r2dbc/build.gradle.kts
 
+          sed -i 's/id("de\.quati\.pgen") version "[^"]*"/id("de.quati.pgen") version "'"$VERSION"'"/' example/realtime/README.md
+          sed -i 's/id("de\.quati\.pgen") version "[^"]*"/id("de.quati.pgen") version "'"$VERSION"'"/' example/realtime/build.gradle.kts
+          sed -i 's/implementation("de\.quati\.pgen:r2dbc:[^"]*")/implementation("de.quati.pgen:r2dbc:'"$VERSION"'")/' example/realtime/build.gradle.kts
+          sed -i 's/implementation("de\.quati\.pgen:wal:[^"]*")/implementation("de.quati.pgen:wal:'"$VERSION"'")/' example/realtime/build.gradle.kts
+
       - name: Commit changes
         shell: bash
         run: |

@@ -18,6 +18,7 @@ import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onSubscription
 import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.flow.toList
 import kotlinx.datetime.LocalDate
@@ -146,8 +147,10 @@ class WalTest {
         action: suspend () -> Unit,
     ): List<WalEvent.Change<*>> {
         this@testCollect.start(recreateSlot = recreateSlot)
+        val readyFlag = ReadyFlag()
         val job = scope.async {
             this@testCollect.flow
+                .onSubscription { readyFlag.markReady() }
                 .takeWhile { (it as? WalEvent.Message)?.content != stopMsg }
                 .map {
                     (it as? WalEvent.Change<*>)
@@ -155,6 +158,7 @@ class WalTest {
                 }
                 .toList()
         }
+        readyFlag.awaitReady()
         action()
         val result = job.await()
         this@testCollect.stop()

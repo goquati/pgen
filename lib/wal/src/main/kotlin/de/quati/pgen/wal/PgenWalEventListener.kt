@@ -206,6 +206,7 @@ public class PgenWalEventListener private constructor(
             minDelay = 500.milliseconds,
             maxDelay = 8.seconds,
         )
+        var reconnectionCount = 0
         while (isActive) {
             try {
                 val conn = streamConnectionMutex.withLock {
@@ -217,7 +218,8 @@ public class PgenWalEventListener private constructor(
                             PGProperty.REPLICATION to "database",
                         )
                     )
-                    log.info("created new stream connection")
+                    if (reconnectionCount++ > 0)
+                        log.info("created new replication connection (reconnection #${reconnectionCount - 1})")
                     streamConnection = newConn
                     newConn
                 } ?: break // is null/break if the job is inactive/canceled
@@ -251,6 +253,10 @@ public class PgenWalEventListener private constructor(
                     }
                 }
             } catch (@Suppress("TooGenericExceptionCaught") e: Exception) {
+                if (e is PSQLException &&
+                    e.sqlState == SQL_STATE_QUERY_CANCELED &&
+                    "due to user request" in (e.message ?: "")
+                ) continue
                 log.error("error during WAL-Event streaming: ${e.message}")
                 backoff.incrementAndWait()
             }
@@ -404,6 +410,7 @@ public class PgenWalEventListener private constructor(
         private val log = LoggerFactory.getLogger(PgenWalEventListener::class.java)!!
         private const val SQL_STATE_DUPLICATE_OBJECT = "42710"
         private const val SQL_STATE_UNDEFINED_OBJECT = "42704"
+        private const val SQL_STATE_QUERY_CANCELED = "57014"
 
         private fun Connection.deleteSlot(name: String) =
             prepareStatement("select pg_drop_replication_slot(?)").use { stmt ->

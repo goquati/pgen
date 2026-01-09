@@ -16,6 +16,7 @@ repositories {
 dependencies {
     val exposedVersion = "1.0.0-rc-4"
     implementation("de.quati.pgen:r2dbc:0.41.0")
+    implementation("de.quati.pgen:wal:0.41.0")
     implementation("org.jetbrains.exposed:exposed-core:${exposedVersion}")
     implementation("org.jetbrains.exposed:exposed-crypt:${exposedVersion}")
     implementation("org.jetbrains.exposed:exposed-dao:${exposedVersion}")
@@ -24,6 +25,7 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed-r2dbc:${exposedVersion}")
     implementation("org.postgresql:r2dbc-postgresql:1.0.7.RELEASE")
     implementation("io.r2dbc:r2dbc-pool:1.0.2.RELEASE")
+    implementation("org.postgresql:postgresql:42.7.7")
 
     implementation("de.quati:kotlin-util:2.0.0")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
@@ -53,7 +55,7 @@ tasks.compileKotlin {
 pgen {
     addDb("base") {
         connection {
-            url("jdbc:postgresql://localhost:55420/postgres")
+            url("jdbc:postgresql://localhost:55422/postgres")
             user("postgres")
             password("postgres")
         }
@@ -62,9 +64,6 @@ pgen {
         }
         tableFilter {
             addSchemas("public")
-        }
-        typeMappings {
-            add("public.user_id", clazz = "$group.r2dbc.UserId")
         }
     }
 

@@ -18,7 +18,10 @@ val dbPortBaseVector = envFile.getDbPort("jdbc_basic_vector")
 registerStartDbTask(profile = "jdbc-base")
 tasks.findByName("pgenFlywayMigration")!!.dependsOn("startDb")
 tasks.findByName("pgenGenerate")!!.dependsOn("pgenFlywayMigration")
-tasks.findByName("check")!!.dependsOn("pgenGenerate")
+tasks.findByName("check")!!.apply {
+    dependsOn("pgenGenerate")
+    finalizedBy("stopDb")
+}
 tasks.compileKotlin { dependsOn("pgenGenerateCode") }
 
 pgen {

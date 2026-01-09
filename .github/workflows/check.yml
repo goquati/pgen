@@ -2,8 +2,7 @@ name: Check
 
 on:
   push:
-    branches:
-      - 'main'
+    branches: ['main']
   pull_request:
   workflow_call:
 
@@ -15,37 +14,56 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
           java-version: '21'
           distribution: 'temurin'
-      - name: check
-        run: cd ./tests && ./gradlew check
+
+      # ---- r2dbc-basic ----
+      - name: Check r2dbc-basic
+        id: check_r2dbc_basic
+        run: cd ./tests && ./gradlew :r2dbc-basic:check
 
       - name: Upload r2dbc-basic test report
-        if: failure()
+        if: ${{ always() && steps.check_r2dbc_basic.outcome == 'failure' }}
         uses: actions/upload-artifact@v4
         with:
           name: r2dbc-basic-test-report
           path: tests/r2dbc-basic/build/reports/tests/test
 
+      # ---- jdbc-basic ----
+      - name: Check jdbc-basic
+        id: check_jdbc_basic
+        run: cd ./tests && ./gradlew :jdbc-basic:check
+
       - name: Upload jdbc-basic test report
-        if: failure()
+        if: ${{ always() && steps.check_jdbc_basic.outcome == 'failure' }}
         uses: actions/upload-artifact@v4
         with:
           name: jdbc-basic-test-report
           path: tests/jdbc-basic/build/reports/tests/test
 
+      # ---- r2dbc-wal ----
+      - name: Check r2dbc-wal
+        id: check_r2dbc_wal
+        run: cd ./tests && ./gradlew :r2dbc-wal:check
+
       - name: Upload r2dbc-wal test report
-        if: failure()
+        if: ${{ always() && steps.check_r2dbc_wal.outcome == 'failure' }}
         uses: actions/upload-artifact@v4
         with:
           name: r2dbc-wal-test-report
           path: tests/r2dbc-wal/build/reports/tests/test
 
+      # ---- jdbc-wal ----
+      - name: Check jdbc-wal
+        id: check_jdbc_wal
+        run: cd ./tests && ./gradlew :jdbc-wal:check
+
       - name: Upload jdbc-wal test report
-        if: failure()
+        if: ${{ always() && steps.check_jdbc_wal.outcome == 'failure' }}
         uses: actions/upload-artifact@v4
         with:
           name: jdbc-wal-test-report

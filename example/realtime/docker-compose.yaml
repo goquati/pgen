@@ -1,0 +1,16 @@
+services:
+  postgres:
+    build:
+      dockerfile_inline: |
+        FROM postgres:17.2
+        RUN apt-get update \
+          && apt-get install -y postgresql-17-wal2json \
+          && apt-get clean \
+          && rm -rf /var/lib/apt/lists/*
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "55422:5432"
+    command: ["postgres", "-c", "wal_level=logical"]

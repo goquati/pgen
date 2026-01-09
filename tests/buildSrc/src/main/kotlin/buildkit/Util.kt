@@ -6,12 +6,15 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.kotlin.dsl.register
 
 fun Project.registerStartDbTask(
-    name: String = "startDb",
     profile: String,
 ) {
-    tasks.register<Exec>(name) {
+    tasks.register<Exec>("startDb") {
         outputs.upToDateWhen { false }
         runCmd("docker compose --profile $profile up -d --force-recreate --wait")
+    }
+    tasks.register<Exec>("stopDb") {
+        outputs.upToDateWhen { false }
+        runCmd("docker compose --profile $profile down")
     }
 }
 
