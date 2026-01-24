@@ -12,16 +12,14 @@ import org.jetbrains.exposed.v1.core.Column
 import org.jetbrains.exposed.v1.core.CustomEnumerationColumnType
 import org.jetbrains.exposed.v1.core.IColumnType
 import org.jetbrains.exposed.v1.core.StringColumnType
-import org.jetbrains.exposed.v1.core.UUIDColumnType
+import org.jetbrains.exposed.v1.core.java.UUIDColumnType
 import org.jetbrains.exposed.v1.datetime.KotlinInstantColumnType
 import org.jetbrains.exposed.v1.datetime.KotlinLocalDateColumnType
 import org.jetbrains.exposed.v1.datetime.KotlinLocalTimeColumnType
 import org.jetbrains.exposed.v1.datetime.KotlinOffsetDateTimeColumnType
-import java.time.Instant
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.time.ZoneId
-import java.time.ZoneOffset
 import kotlin.time.ExperimentalTime
 import kotlin.time.toKotlinInstant
 

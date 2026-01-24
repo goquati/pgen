@@ -1,6 +1,7 @@
 package de.quati.pgen.plugin.intern.util.codegen
 
 import com.squareup.kotlinpoet.ClassName
+import com.squareup.kotlinpoet.CodeBlock
 import de.quati.pgen.plugin.intern.PackageName
 import de.quati.pgen.plugin.intern.model.config.ColumnTypeMapping
 import de.quati.pgen.plugin.intern.model.config.Config
@@ -65,12 +66,34 @@ internal class CodeGenContext(
         return copy(columns = newColumns)
     }
 
-    val poet = Poet(rootPackageName = rootPackageName)
+    val poet = Poet(
+        rootPackageName = rootPackageName,
+        kotlinUuidType = false, // TODO
+    )
 
-    data class Poet(val rootPackageName: PackageName) {
+    data class Poet(
+        val rootPackageName: PackageName,
+        private val kotlinUuidType: Boolean,
+    ) {
         val packageDb = PackageName("$rootPackageName.db")
         val packageMapper = PackageName("$rootPackageName.mapper")
         val packageService = PackageName("$rootPackageName.service")
+
+        val uuidColumnType = when (kotlinUuidType) {
+            true -> ClassName("org.jetbrains.exposed.v1.core", "UuidColumnType")
+            false -> ClassName("org.jetbrains.exposed.v1.core.java", "UUIDColumnType")
+        }
+
+        val uuid = when (kotlinUuidType) {
+            true -> ClassName("kotlin.uuid", "Uuid")
+            false -> ClassName("java.util", "UUID")
+        }
+
+        val uuidColumn = when (kotlinUuidType) {
+            true -> CodeBlock.of("uuid")
+            false -> CodeBlock.of("%T", ClassName("org.jetbrains.exposed.v1.core.java", "javaUUID"))
+        }
+
     }
 
     companion object {

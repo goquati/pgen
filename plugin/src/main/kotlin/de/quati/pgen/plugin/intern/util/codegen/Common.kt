@@ -95,7 +95,6 @@ internal object Poet {
         val column = packageNameCore.className("Column")
         val alias = packageNameCore.className("Alias")
         val resultRow = packageNameCore.className("ResultRow")
-        val uuidColumnType = packageNameCore.className("UUIDColumnType")
         val decimalColumnType = packageNameCore.className("DecimalColumnType")
         val longColumnType = packageNameCore.className("LongColumnType")
         val booleanColumnType = packageNameCore.className("BooleanColumnType")

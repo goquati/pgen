@@ -14,7 +14,7 @@ repositories {
 }
 
 dependencies {
-    val exposedVersion = "1.0.0-rc-4"
+    val exposedVersion = "1.0.0"
     implementation("de.quati.pgen:r2dbc:0.41.0")
     implementation("de.quati.pgen:wal:0.41.0")
     implementation("org.jetbrains.exposed:exposed-core:${exposedVersion}")

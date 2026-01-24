@@ -7,7 +7,6 @@ import com.squareup.kotlinpoet.asTypeName
 import de.quati.pgen.plugin.intern.model.sql.Column
 import de.quati.pgen.plugin.intern.util.codegen.oas.DbContext
 import java.math.BigDecimal
-import java.util.UUID
 
 
 context(c: CodeGenContext, _: DbContext)
@@ -44,7 +43,7 @@ internal fun Column.Type.getTypeName(innerArrayType: Boolean = true): TypeName =
     Column.Type.Primitive.TIME -> Poet.localTime
     Column.Type.Primitive.TIMESTAMP -> Poet.instant
     Column.Type.Primitive.TIMESTAMP_WITH_TIMEZONE -> Poet.offsetDateTime
-    Column.Type.Primitive.UUID -> UUID::class.asTypeName()
+    Column.Type.Primitive.UUID -> c.poet.uuid
     Column.Type.Primitive.UNCONSTRAINED_NUMERIC -> BigDecimal::class.asTypeName()
     Column.Type.Primitive.REG_CLASS -> Poet.Pgen.Shared.regClass
     is Column.Type.CustomPrimitive -> c.getColumnTypeMapping(this).value.poet
@@ -104,7 +103,7 @@ internal fun Column.Type.getExposedColumnType(): CodeBlock = when (this) {
     Column.Type.Primitive.TIME -> codeBlock("%T()", Poet.Exposed.kotlinLocalTimeColumnType)
     Column.Type.Primitive.TIMESTAMP -> codeBlock("%T()", Poet.Exposed.kotlinInstantColumnType)
     Column.Type.Primitive.TIMESTAMP_WITH_TIMEZONE -> codeBlock("%T()", Poet.Exposed.kotlinOffsetDateTimeColumnType)
-    Column.Type.Primitive.UUID -> codeBlock("%T()", Poet.Exposed.uuidColumnType)
+    Column.Type.Primitive.UUID -> codeBlock("%T()", c.poet.uuidColumnType)
     Column.Type.Primitive.JSON -> codeBlock("%T()", Poet.Pgen.defaultJsonColumnType)
     Column.Type.Primitive.JSONB -> codeBlock("%T()", Poet.Pgen.defaultJsonColumnType)
     Column.Type.Primitive.UNCONSTRAINED_NUMERIC -> codeBlock("%T()", Poet.Pgen.unconstrainedNumericColumnType)

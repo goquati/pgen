@@ -1,6 +1,6 @@
 [versions]
 kotlin = "2.2.0"
-exposed = "1.0.0-rc-4"
+exposed = "1.0.0"
 quati-util = "2.0.0"
 kotlinx-coroutine = "1.10.2"
 kotlinx-serialization = "1.9.0"

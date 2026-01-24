@@ -9,7 +9,7 @@ import de.quati.pgen.plugin.intern.model.sql.Column
 import de.quati.pgen.plugin.intern.util.codegen.oas.DbContext
 
 
-context(_: CodeGenContext)
+context(c: CodeGenContext)
 private fun Column.getDefaultExpression(): Pair<String, List<Any>>? = when (type) {
     Column.Type.Primitive.TIMESTAMP -> when (default) {
         "now()" -> ".defaultExpression(%T)" to listOf(Poet.Exposed.defaultExpTimestamp)
@@ -23,7 +23,7 @@ private fun Column.getDefaultExpression(): Pair<String, List<Any>>? = when (type
 
     Column.Type.Primitive.UUID -> when (default) {
         "gen_random_uuid()" -> ".defaultExpression(%T(%S, %T()))" to
-                listOf(Poet.Exposed.customFunction, "gen_random_uuid", Poet.Exposed.uuidColumnType)
+                listOf(Poet.Exposed.customFunction, "gen_random_uuid", c.poet.uuidColumnType)
 
         else -> null
     }
@@ -217,8 +217,8 @@ internal fun PropertySpec.Builder.initializer(column: Column, postfix: String, p
         )
 
         Column.Type.Primitive.UUID -> @Suppress("SpreadOperator") initializer(
-            "uuid(name = %S)$postfix",
-            columnName, *postArgs
+            "%L(name = %S)$postfix",
+            c.poet.uuidColumn, columnName, *postArgs
         )
 
         Column.Type.Primitive.UNCONSTRAINED_NUMERIC -> @Suppress("SpreadOperator") initializer(
