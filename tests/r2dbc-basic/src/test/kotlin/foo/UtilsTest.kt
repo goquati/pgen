@@ -21,8 +21,8 @@ import de.quati.pgen.r2dbc.util.suspendTransactionWithContext
 import de.quati.pgen.r2dbc.util.transactionReadOnlyFlow
 import de.quati.pgen.r2dbc.util.updateSingle
 import de.quati.pgen.shared.LocalConfigContext
-import de.quati.pgen.tests.r2dbc.basic.generated.db.foo._public.NonEmptyTextDomain
-import de.quati.pgen.tests.r2dbc.basic.generated.db.foo._public.Users
+import de.quati.pgen.tests.r2dbc.basic.generated.db.foo.public1.NonEmptyTextDomain
+import de.quati.pgen.tests.r2dbc.basic.generated.db.foo.public1.Users
 import de.quati.pgen.tests.r2dbc.basic.shared.UserId
 import io.kotest.assertions.throwables.shouldThrowAny
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder

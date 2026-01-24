@@ -3,7 +3,7 @@ package foo.testtables
 import de.quati.pgen.jdbc.util.batchUpdate
 import de.quati.pgen.jdbc.util.transaction
 import de.quati.pgen.jdbc.util.sync
-import de.quati.pgen.tests.jdbc.basic.generated.db.foo._public.SyncTestTable
+import de.quati.pgen.tests.jdbc.basic.generated.db.foo.public1.SyncTestTable
 import io.kotest.matchers.shouldBe
 import org.jetbrains.exposed.v1.jdbc.batchInsert
 import org.jetbrains.exposed.v1.jdbc.selectAll

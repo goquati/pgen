@@ -5,19 +5,19 @@ import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.STAR
 import com.squareup.kotlinpoet.asTypeName
-import de.quati.pgen.plugin.intern.addCode
-import de.quati.pgen.plugin.intern.addCompanionObject
-import de.quati.pgen.plugin.intern.addFunction
-import de.quati.pgen.plugin.intern.addInitializerBlock
-import de.quati.pgen.plugin.intern.addParameter
-import de.quati.pgen.plugin.intern.addProperty
-import de.quati.pgen.plugin.intern.buildDataClass
-import de.quati.pgen.plugin.intern.buildObject
-import de.quati.pgen.plugin.intern.getter
-import de.quati.pgen.plugin.intern.primaryConstructor
+import de.quati.kotlin.util.poet.dsl.addCode
+import de.quati.kotlin.util.poet.dsl.addCompanionObject
+import de.quati.kotlin.util.poet.dsl.addFunction
+import de.quati.kotlin.util.poet.dsl.addInitializerBlock
+import de.quati.kotlin.util.poet.dsl.addParameter
+import de.quati.kotlin.util.poet.dsl.addProperty
+import de.quati.kotlin.util.poet.dsl.buildDataClass
+import de.quati.kotlin.util.poet.dsl.buildObject
+import de.quati.kotlin.util.poet.dsl.getter
+import de.quati.kotlin.util.poet.dsl.primaryConstructor
 import de.quati.pgen.plugin.intern.model.sql.Table
-import de.quati.pgen.plugin.intern.util.makeDifferent
-import de.quati.pgen.plugin.intern.util.toCamelCase
+import de.quati.kotlin.util.poet.makeDifferent
+import de.quati.kotlin.util.poet.toCamelCase
 
 context(c: CodeGenContext)
 internal fun Table.toTypeSpecInternal() = buildObject(this@toTypeSpecInternal.name.prettyName) {
@@ -78,7 +78,7 @@ internal fun Table.toTypeSpecInternal() = buildObject(this@toTypeSpecInternal.na
     }
     if (this@toTypeSpecInternal.primaryKey != null) {
         val columnNames = this@toTypeSpecInternal.columns.map { it.prettyName }
-        addProperty(name = "primaryKey".makeDifferent(columnNames), type = Poet.Exposed.primaryKey) {
+        addProperty(name = "primaryKey".makeDifferent(columnNames, ""), type = Poet.Exposed.primaryKey) {
             addModifiers(KModifier.OVERRIDE)
             initializer(
                 "PrimaryKey(%L, name = %S)",

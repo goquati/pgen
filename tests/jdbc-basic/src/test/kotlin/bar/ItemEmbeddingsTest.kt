@@ -7,7 +7,7 @@ import de.quati.pgen.core.util.onCheckViolation
 import de.quati.pgen.jdbc.util.deleteSingle
 import de.quati.pgen.jdbc.util.transaction
 import de.quati.pgen.shared.PgenException
-import de.quati.pgen.tests.jdbc.basic.generated.db.bar._public.ItemEmbeddings
+import de.quati.pgen.tests.jdbc.basic.generated.db.bar.public1.ItemEmbeddings
 import io.kotest.matchers.longs.shouldBeGreaterThan
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe

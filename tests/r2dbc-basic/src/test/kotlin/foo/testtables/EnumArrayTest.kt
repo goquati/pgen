@@ -1,8 +1,8 @@
 package foo.testtables
 
 import de.quati.pgen.r2dbc.util.suspendTransaction
-import de.quati.pgen.tests.r2dbc.basic.generated.db.foo._public.EnumArrayTestTable
-import de.quati.pgen.tests.r2dbc.basic.generated.db.foo._public.OrderStatus
+import de.quati.pgen.tests.r2dbc.basic.generated.db.foo.public1.EnumArrayTestTable
+import de.quati.pgen.tests.r2dbc.basic.generated.db.foo.public1.OrderStatus
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.runBlocking

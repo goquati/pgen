@@ -8,8 +8,8 @@ import de.quati.pgen.core.util.onForeignKeyViolation
 import de.quati.pgen.r2dbc.util.deleteSingle
 import de.quati.pgen.r2dbc.util.suspendTransaction
 import de.quati.pgen.shared.PgenException
-import de.quati.pgen.tests.r2dbc.basic.generated.db.foo._public.Documents
-import de.quati.pgen.tests.r2dbc.basic.generated.db.foo._public.NonEmptyTextDomain
+import de.quati.pgen.tests.r2dbc.basic.generated.db.foo.public1.Documents
+import de.quati.pgen.tests.r2dbc.basic.generated.db.foo.public1.NonEmptyTextDomain
 import de.quati.pgen.tests.r2dbc.basic.shared.UserId
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.nulls.shouldBeNull

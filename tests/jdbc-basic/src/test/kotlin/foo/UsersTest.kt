@@ -7,8 +7,8 @@ import de.quati.pgen.core.util.onCheckViolation
 import de.quati.pgen.jdbc.util.deleteSingle
 import de.quati.pgen.jdbc.util.transaction
 import de.quati.pgen.shared.PgenException
-import de.quati.pgen.tests.jdbc.basic.generated.db.foo._public.NonEmptyTextDomain
-import de.quati.pgen.tests.jdbc.basic.generated.db.foo._public.Users
+import de.quati.pgen.tests.jdbc.basic.generated.db.foo.public1.NonEmptyTextDomain
+import de.quati.pgen.tests.jdbc.basic.generated.db.foo.public1.Users
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe

@@ -3,9 +3,9 @@ package de.quati.pgen.plugin.intern.util.codegen.oas
 import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.LambdaTypeName
 import com.squareup.kotlinpoet.asTypeName
-import de.quati.pgen.plugin.intern.addCode
-import de.quati.pgen.plugin.intern.addFunction
-import de.quati.pgen.plugin.intern.addParameter
+import de.quati.kotlin.util.poet.dsl.addCode
+import de.quati.kotlin.util.poet.dsl.addFunction
+import de.quati.kotlin.util.poet.dsl.addParameter
 import de.quati.pgen.plugin.intern.model.config.Config
 import de.quati.pgen.plugin.intern.model.oas.EnumOasData
 import de.quati.pgen.plugin.intern.model.oas.TableFieldTypeOasData

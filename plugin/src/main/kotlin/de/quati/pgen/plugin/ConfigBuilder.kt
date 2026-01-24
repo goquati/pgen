@@ -1,7 +1,7 @@
 package de.quati.pgen.plugin
 
 import com.squareup.kotlinpoet.ClassName
-import de.quati.pgen.plugin.intern.PackageName
+import de.quati.kotlin.util.poet.PackageName
 import de.quati.pgen.plugin.intern.model.config.ColumnTypeMapping
 import de.quati.pgen.plugin.intern.model.config.Config
 import de.quati.pgen.plugin.intern.model.config.Config.ConnectionType
@@ -27,7 +27,6 @@ import kotlin.io.path.Path
 public open class ConfigBuilder internal constructor() {
     private val dbConfigs: MutableList<Config.Db> = mutableListOf()
     private var packageName: String? = null
-    private var outputPath: Path? = null
     private var specFilePath: Path? = null
     private var connectionType: ConnectionType = ConnectionType.JDBC
     private var oas: Config.Oas? = null
@@ -35,8 +34,6 @@ public open class ConfigBuilder internal constructor() {
     public fun setConnectionTypeJdbc(): ConfigBuilder = apply { connectionType = ConnectionType.JDBC }
     public fun setConnectionTypeR2dbc(): ConfigBuilder = apply { connectionType = ConnectionType.R2DBC }
     public fun packageName(name: String): ConfigBuilder = apply { packageName = name }
-    public fun outputPath(path: String): ConfigBuilder = apply { outputPath = Path(path) }
-    public fun outputPath(path: Path): ConfigBuilder = apply { outputPath = path }
     public fun specFilePath(path: String): ConfigBuilder = apply { specFilePath = Path(path) }
     public fun specFilePath(path: Path): ConfigBuilder = apply { specFilePath = path }
     public fun oas(block: Oas.() -> Unit): ConfigBuilder = apply { oas = Oas().apply(block).build() }
@@ -54,7 +51,6 @@ public open class ConfigBuilder internal constructor() {
             }
             .takeIf { it.isNotEmpty() } ?: error("no DB config defined"),
         packageName = packageName?.let { PackageName(it) } ?: error("no output package defined"),
-        outputPath = outputPath ?: error("no output path defined"),
         specFilePath = specFilePath ?: error("no path pgen spec file defined"),
         connectionType = connectionType,
         oas = oas,

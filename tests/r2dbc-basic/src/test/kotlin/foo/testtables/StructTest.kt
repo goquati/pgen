@@ -1,8 +1,8 @@
 package foo.testtables
 
 import de.quati.pgen.r2dbc.util.suspendTransaction
-import de.quati.pgen.tests.r2dbc.basic.generated.db.foo._public.Address
-import de.quati.pgen.tests.r2dbc.basic.generated.db.foo._public.StructTestTable
+import de.quati.pgen.tests.r2dbc.basic.generated.db.foo.public1.Address
+import de.quati.pgen.tests.r2dbc.basic.generated.db.foo.public1.StructTestTable
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.runBlocking

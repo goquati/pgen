@@ -2,15 +2,15 @@ package de.quati.pgen.plugin.intern.model.sql
 
 import com.squareup.kotlinpoet.ClassName
 import de.quati.pgen.plugin.intern.util.codegen.CodeGenContext
-import de.quati.pgen.plugin.intern.PackageName
+import de.quati.kotlin.util.poet.PackageName
+import de.quati.kotlin.util.poet.kotlinKeywords
+import de.quati.kotlin.util.poet.makeDifferent
+import de.quati.kotlin.util.poet.toCamelCase
 import de.quati.pgen.plugin.intern.util.KotlinClassNameSerializer
 import de.quati.pgen.plugin.intern.util.SqlColumnNameSerializer
 import de.quati.pgen.plugin.intern.util.SqlObjectNameSerializer
 import de.quati.pgen.plugin.intern.util.SqlStatementNameSerializer
 import de.quati.pgen.plugin.intern.util.codegen.oas.DbContext
-import de.quati.pgen.plugin.intern.util.kotlinKeywords
-import de.quati.pgen.plugin.intern.util.makeDifferent
-import de.quati.pgen.plugin.intern.util.toCamelCase
 import kotlinx.serialization.Serializable
 
 @JvmInline
@@ -37,7 +37,7 @@ internal data class SchemaName(val dbName: DbName, val schemaName: String) : Com
 
     context(c: CodeGenContext)
     val packageName
-        get() = PackageName("${c.poet.packageDb}.$dbName.${schemaName.makeDifferent(kotlinKeywords)}")
+        get() = PackageName("${c.poet.packageDb}.$dbName.${schemaName.makeDifferent(kotlinKeywords, "")}")
 }
 
 internal sealed interface SqlObject : Comparable<SqlObject>, DbContext {

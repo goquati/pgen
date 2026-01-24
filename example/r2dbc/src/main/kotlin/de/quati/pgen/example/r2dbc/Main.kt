@@ -1,8 +1,8 @@
 package de.quati.pgen.example.r2dbc
 
 import de.quati.kotlin.util.Option
-import de.quati.pgen.example.r2dbc.generated.db.base._public.NonEmptyText
-import de.quati.pgen.example.r2dbc.generated.db.base._public.Users
+import de.quati.pgen.example.r2dbc.generated.db.base.public1.NonEmptyText
+import de.quati.pgen.example.r2dbc.generated.db.base.public1.Users
 import de.quati.pgen.r2dbc.util.r2dbcDatabasePooled
 import de.quati.pgen.r2dbc.util.suspendTransaction
 import de.quati.pgen.r2dbc.util.transactionFlow

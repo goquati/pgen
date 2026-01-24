@@ -2,11 +2,11 @@ package de.quati.pgen.plugin.intern.model.sql
 
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.TypeName
+import de.quati.kotlin.util.poet.makeDifferent
+import de.quati.kotlin.util.poet.toCamelCase
 import de.quati.pgen.plugin.intern.util.ColumnTypeSerializer
 import de.quati.pgen.plugin.intern.util.codegen.CodeGenContext
 import de.quati.pgen.plugin.intern.util.codegen.oas.DbContext
-import de.quati.pgen.plugin.intern.util.makeDifferent
-import de.quati.pgen.plugin.intern.util.toCamelCase
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
@@ -27,7 +27,7 @@ internal data class Column(
     @Serializable
     value class Name(val value: String) {
         override fun toString() = value
-        val pretty get() = value.toCamelCase(capitalized = false).makeDifferent(reservedColumnNames)
+        val pretty get() = value.toCamelCase(capitalized = false).makeDifferent(reservedColumnNames, "")
 
         companion object {
             private val reservedColumnNames = setOf(

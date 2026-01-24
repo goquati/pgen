@@ -1,7 +1,7 @@
 package de.quati.pgen.plugin.intern.service
 
 import com.squareup.kotlinpoet.FileSpec
-import java.io.Closeable
+import org.gradle.internal.logging.text.StyledTextOutput
 import java.nio.file.Path
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.absolute
@@ -13,17 +13,19 @@ import kotlin.io.path.relativeToOrNull
 import kotlin.io.path.walk
 import kotlin.io.path.writeText
 
-internal class DirectorySyncService(
-    private val directory: Path,
-    private val silent: Boolean = false,
-) : Closeable {
+
+internal open class DirectorySyncService(
+    private val outDir: Path,
+    private val name: String,
+    private val out: StyledTextOutput,
+) {
     private var filesCreated = mutableSetOf<Path>()
     private var filesUpdated = mutableSetOf<Path>()
     private var filesUnchanged = mutableSetOf<Path>()
     private var filesDeleted = mutableSetOf<Path>()
 
     fun sync(relativePath: String, content: String) = sync(
-        path = directory.resolve(relativePath).absolute(),
+        path = outDir.resolve(relativePath).absolute(),
         content = content,
     )
 
@@ -32,17 +34,26 @@ internal class DirectorySyncService(
         content: FileSpec,
     ) = sync(relativePath = relativePath, content = content.toString())
 
-    fun cleanup() {
+    private fun cleanup() {
         @OptIn(ExperimentalPathApi::class)
-        val actualFiles = directory.walk().map { it.absolute() }.toSet()
+        val actualFiles = outDir.walk().map { it.absolute() }.toSet()
         val filesToDelete = actualFiles - (filesCreated + filesUpdated + filesUnchanged)
         filesToDelete.forEach { it.deleteExisting() }
         filesDeleted += filesToDelete
+
+        fun Set<*>.printSize() = size.toString().padStart(3)
+        out.withStyle(StyledTextOutput.Style.Info)
+        out.println("package '$name' synced:")
+        out.println("   #files unchanged = ${filesUnchanged.printSize()}")
+        out.println("   #files created   = ${filesCreated.printSize()}")
+        out.println("   #files updated   = ${filesUpdated.printSize()}")
+        out.println("   #files deleted   = ${filesDeleted.printSize()}")
+        out.println()
     }
 
     private fun checkFilePath(path: Path) {
-        val inDirectory = null != path.absolute().relativeToOrNull(directory.absolute())
-        if (!inDirectory) error("path '$path' is not in output directory '$directory'")
+        val inDirectory = null != path.absolute().relativeToOrNull(outDir.absolute())
+        if (!inDirectory) error("path '$path' is not in output directory '$outDir'")
     }
 
     private fun sync(path: Path, content: String) {
@@ -59,24 +70,22 @@ internal class DirectorySyncService(
         UNCHANGED, UPDATED, CREATED
     }
 
-    override fun close() {
-        if (!silent) {
-            fun Set<*>.printSize() = size.toString().padStart(3)
-            println("#files unchanged = ${filesUnchanged.printSize()}")
-            println("#files created   = ${filesCreated.printSize()}")
-            println("#files updated   = ${filesUpdated.printSize()}")
-            println("#files deleted   = ${filesDeleted.printSize()}")
-        }
+    fun <T> useWith(block: DirectorySyncService.() -> T): T = try {
+        val result = block(this)
+        cleanup()
+        result
+    } finally {
+    }
+
+    fun <T> use(block: (DirectorySyncService) -> T): T = try {
+        val result = block(this)
+        cleanup()
+        result
+    } finally {
     }
 
     companion object {
-        fun directorySync(
-            directory: Path,
-            silent: Boolean = false,
-            block: DirectorySyncService.() -> Unit,
-        ) = DirectorySyncService(directory, silent = silent).use(block)
-
-        fun sync(
+        private fun sync(
             path: Path,
             content: String,
         ): FileSyncType {

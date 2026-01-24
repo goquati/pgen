@@ -1,7 +1,7 @@
 package foo.testtables
 
 import de.quati.pgen.r2dbc.util.suspendTransaction
-import de.quati.pgen.tests.r2dbc.basic.generated.db.foo._public.RangesTestTable
+import de.quati.pgen.tests.r2dbc.basic.generated.db.foo.public1.RangesTestTable
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.runBlocking

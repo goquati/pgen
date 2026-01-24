@@ -1,7 +1,7 @@
 package foo.testtables
 
 import de.quati.pgen.r2dbc.util.suspendTransaction
-import de.quati.pgen.tests.r2dbc.basic.generated.db.foo._public.IpsTestTable
+import de.quati.pgen.tests.r2dbc.basic.generated.db.foo.public1.IpsTestTable
 import inet.ipaddr.IPAddressString
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.flow.single

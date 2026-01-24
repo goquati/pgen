@@ -68,7 +68,6 @@ pgen {
     }
 
     packageName("$group.jdbc.generated")
-    outputPath("$projectDir/src/main/kotlin/de/quati/pgen/example/jdbc/generated")
     specFilePath("$projectDir/src/main/resources/pgen-spec.yaml")
     setConnectionTypeJdbc()
 }

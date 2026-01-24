@@ -4,8 +4,9 @@ import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.asTypeName
-import de.quati.pgen.plugin.intern.PackageName
-import de.quati.pgen.plugin.intern.fileSpec
+import de.quati.kotlin.util.poet.PackageName
+import de.quati.kotlin.util.poet.dsl.buildFileSpec
+import de.quati.kotlin.util.poet.toCamelCase
 import de.quati.pgen.plugin.intern.model.config.Config
 import de.quati.pgen.plugin.intern.model.oas.EnumOasData
 import de.quati.pgen.plugin.intern.model.oas.TableOasData
@@ -20,7 +21,6 @@ import de.quati.pgen.plugin.intern.service.DirectorySyncService
 import de.quati.pgen.plugin.intern.util.codegen.oas.addEnumMapper
 import de.quati.pgen.plugin.intern.util.codegen.oas.addTableMapper
 import de.quati.pgen.plugin.intern.util.codegen.oas.addTableService
-import de.quati.pgen.plugin.intern.util.toCamelCase
 import java.time.OffsetDateTime
 
 internal object Poet {
@@ -307,7 +307,7 @@ internal fun DirectorySyncService.sync(
     val fileName = "${obj.name.prettyName}.kt"
     sync(
         relativePath = obj.name.packageName.toRelativePath(fileName),
-        content = fileSpec(
+        content = buildFileSpec(
             packageName = obj.name.packageName,
             name = fileName,
             block = {
@@ -326,7 +326,7 @@ internal fun DirectorySyncService.syncSchemaUtils(
         val fileName = "_PgenSchemaUtils.kt"
         sync(
             relativePath = schema.packageName.toRelativePath(fileName),
-            content = fileSpec(
+            content = buildFileSpec(
                 packageName = schema.packageName,
                 name = fileName,
                 block = {
@@ -344,7 +344,7 @@ internal fun DirectorySyncService.syncQueries(allTables: Collection<Table>) {
     allTables.groupBy { it.name.schema.dbName }.forEach { (dbName, tables) ->
         sync(
             relativePath = dbName.packageName.toRelativePath(fileName),
-            content = fileSpec(
+            content = buildFileSpec(
                 packageName = dbName.packageName,
                 name = fileName,
                 block = {
@@ -366,7 +366,7 @@ internal fun DirectorySyncService.sync(
     val packageName = obj.packageName
     sync(
         relativePath = packageName.toRelativePath(fileName),
-        content = fileSpec(
+        content = buildFileSpec(
             packageName = packageName,
             name = fileName,
             block = {
@@ -386,7 +386,7 @@ internal fun DirectorySyncService.sync(
     val packageName = c.poet.packageMapper
     sync(
         relativePath = packageName.toRelativePath(fileName),
-        content = fileSpec(
+        content = buildFileSpec(
             packageName = packageName,
             name = fileName,
             block = {
@@ -407,7 +407,7 @@ internal fun DirectorySyncService.sync(
         val packageName = c.poet.packageMapper
         sync(
             relativePath = packageName.toRelativePath(fileName),
-            content = fileSpec(
+            content = buildFileSpec(
                 packageName = packageName,
                 name = fileName,
                 block = {
@@ -422,7 +422,7 @@ internal fun DirectorySyncService.sync(
         val packageName = c.poet.packageService
         sync(
             relativePath = packageName.toRelativePath(fileName),
-            content = fileSpec(
+            content = buildFileSpec(
                 packageName = packageName,
                 name = fileName,
                 block = {

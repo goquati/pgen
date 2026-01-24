@@ -2,16 +2,16 @@ package de.quati.pgen.plugin.intern.util.codegen
 
 import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.asTypeName
-import de.quati.pgen.plugin.intern.addCode
-import de.quati.pgen.plugin.intern.addCompanionObject
-import de.quati.pgen.plugin.intern.addEnumConstant
-import de.quati.pgen.plugin.intern.addFunction
-import de.quati.pgen.plugin.intern.addProperty
-import de.quati.pgen.plugin.intern.buildEnum
-import de.quati.pgen.plugin.intern.primaryConstructor
+import de.quati.kotlin.util.poet.dsl.addCode
+import de.quati.kotlin.util.poet.dsl.addCompanionObject
+import de.quati.kotlin.util.poet.dsl.addEnumConstant
+import de.quati.kotlin.util.poet.dsl.addFunction
+import de.quati.kotlin.util.poet.dsl.addProperty
+import de.quati.kotlin.util.poet.dsl.buildEnum
+import de.quati.kotlin.util.poet.dsl.primaryConstructor
+import de.quati.kotlin.util.poet.toSnakeCase
 import de.quati.pgen.plugin.intern.model.sql.Enum
 import de.quati.pgen.plugin.intern.model.sql.KotlinEnumClass
-import de.quati.pgen.plugin.intern.util.toSnakeCase
 
 private fun String.toEnumName() = this.toSnakeCase(uppercase = true)
 

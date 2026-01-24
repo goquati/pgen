@@ -3,8 +3,8 @@ package de.quati.pgen.plugin.intern.util.codegen
 import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.LambdaTypeName
-import de.quati.pgen.plugin.intern.addParameter
-import de.quati.pgen.plugin.intern.buildFunction
+import de.quati.kotlin.util.poet.dsl.addParameter
+import de.quati.kotlin.util.poet.dsl.buildFunction
 import de.quati.pgen.plugin.intern.model.config.Config
 import de.quati.pgen.plugin.intern.model.sql.Table
 

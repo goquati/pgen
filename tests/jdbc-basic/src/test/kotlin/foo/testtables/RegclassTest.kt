@@ -2,7 +2,7 @@ package foo.testtables
 
 import de.quati.pgen.jdbc.util.transaction
 import de.quati.pgen.shared.RegClass
-import de.quati.pgen.tests.jdbc.basic.generated.db.foo._public.RegclassTestTable
+import de.quati.pgen.tests.jdbc.basic.generated.db.foo.public1.RegclassTestTable
 import io.kotest.matchers.shouldBe
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.insert

@@ -7,10 +7,10 @@ import de.quati.pgen.core.util.onCheckViolation
 import de.quati.pgen.r2dbc.util.deleteSingle
 import de.quati.pgen.r2dbc.util.suspendTransaction
 import de.quati.pgen.shared.PgenException
-import de.quati.pgen.tests.r2dbc.basic.generated.db.foo._public.NonEmptyTextDomain
-import de.quati.pgen.tests.r2dbc.basic.generated.db.foo._public.OrderStatus
-import de.quati.pgen.tests.r2dbc.basic.generated.db.foo._public.ProductType
-import de.quati.pgen.tests.r2dbc.basic.generated.db.foo._public.Products
+import de.quati.pgen.tests.r2dbc.basic.generated.db.foo.public1.NonEmptyTextDomain
+import de.quati.pgen.tests.r2dbc.basic.generated.db.foo.public1.OrderStatus
+import de.quati.pgen.tests.r2dbc.basic.generated.db.foo.public1.ProductType
+import de.quati.pgen.tests.r2dbc.basic.generated.db.foo.public1.Products
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe

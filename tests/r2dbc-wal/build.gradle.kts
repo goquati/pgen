@@ -1,6 +1,10 @@
 import buildkit.EnvFile
 import buildkit.registerStartDbTask
 
+plugins {
+    id("de.quati.pgen") version "1.0.0-SNAPSHOT"
+}
+
 dependencies {
     implementation(project(":sharedTest"))
     implementation("de.quati.pgen:r2dbc:1.0.0-SNAPSHOT")
@@ -51,7 +55,6 @@ pgen {
     }
 
     packageName(outputModule)
-    outputPath("$projectDir/src/main/kotlin/${outputModule.replace('.', '/')}")
     specFilePath("$projectDir/src/main/resources/pgen-spec.yaml")
     setConnectionTypeR2dbc()
 }

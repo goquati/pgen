@@ -7,7 +7,7 @@ import de.quati.pgen.jdbc.util.transaction
 import de.quati.pgen.jdbc.util.transactionCatching
 import de.quati.pgen.shared.PgenException
 import de.quati.pgen.tests.jdbc.basic.createDb
-import de.quati.pgen.tests.jdbc.basic.generated.db.bar._public.ItemEmbeddings
+import de.quati.pgen.tests.jdbc.basic.generated.db.bar.public1.ItemEmbeddings
 import io.kotest.matchers.shouldNotBe
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive

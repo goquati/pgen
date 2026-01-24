@@ -7,10 +7,10 @@ import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.TypeVariableName
 import com.squareup.kotlinpoet.asTypeName
 import com.squareup.kotlinpoet.buildCodeBlock
-import de.quati.pgen.plugin.intern.addObject
-import de.quati.pgen.plugin.intern.addProperty
-import de.quati.pgen.plugin.intern.buildInterface
-import de.quati.pgen.plugin.intern.getter
+import de.quati.kotlin.util.poet.dsl.addObject
+import de.quati.kotlin.util.poet.dsl.addProperty
+import de.quati.kotlin.util.poet.dsl.buildInterface
+import de.quati.kotlin.util.poet.dsl.getter
 import de.quati.pgen.plugin.intern.model.sql.SchemaName
 import de.quati.pgen.plugin.intern.model.sql.SqlObject
 import de.quati.pgen.plugin.intern.model.sql.Table

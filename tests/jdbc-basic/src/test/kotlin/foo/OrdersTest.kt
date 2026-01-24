@@ -6,10 +6,10 @@ import de.quati.kotlin.util.getOrThrow
 import de.quati.pgen.core.util.onCheckViolation
 import de.quati.pgen.core.util.onForeignKeyViolation
 import de.quati.pgen.jdbc.util.deleteSingle
-import de.quati.pgen.tests.jdbc.basic.generated.db.foo._public.Orders
+import de.quati.pgen.tests.jdbc.basic.generated.db.foo.public1.Orders
 import de.quati.pgen.jdbc.util.transaction
 import de.quati.pgen.shared.PgenException
-import de.quati.pgen.tests.jdbc.basic.generated.db.foo._public.OrderStatus
+import de.quati.pgen.tests.jdbc.basic.generated.db.foo.public1.OrderStatus
 import de.quati.pgen.tests.jdbc.basic.generated.db.foo.deleteByIdOrThrow
 import de.quati.pgen.tests.jdbc.basic.shared.UserId
 import io.kotest.matchers.comparables.shouldBeLessThan

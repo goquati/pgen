@@ -5,15 +5,15 @@ import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.buildCodeBlock
-import de.quati.pgen.plugin.intern.addClass
-import de.quati.pgen.plugin.intern.addCode
-import de.quati.pgen.plugin.intern.addControlFlow
-import de.quati.pgen.plugin.intern.addFunction
-import de.quati.pgen.plugin.intern.addProperty
-import de.quati.pgen.plugin.intern.indent
+import de.quati.kotlin.util.poet.dsl.addClass
+import de.quati.kotlin.util.poet.dsl.addCode
+import de.quati.kotlin.util.poet.dsl.addControlFlow
+import de.quati.kotlin.util.poet.dsl.addFunction
+import de.quati.kotlin.util.poet.dsl.addProperty
+import de.quati.kotlin.util.poet.dsl.indent
+import de.quati.kotlin.util.poet.dsl.primaryConstructor
 import de.quati.pgen.plugin.intern.model.sql.Statement
-import de.quati.pgen.plugin.intern.primaryConstructor
-import de.quati.pgen.plugin.intern.util.makeDifferent
+import de.quati.kotlin.util.poet.makeDifferent
 
 context(c: CodeGenContext)
 internal val Collection<Statement>.packageName
@@ -58,7 +58,7 @@ internal fun FileSpec.Builder.addStatements(statements: Collection<Statement>) {
                 }
 
                 addCode {
-                    val rowSetName = "rowSet".makeDifferent(statementNames)
+                    val rowSetName = "rowSet".makeDifferent(statementNames, "")
 
                     val inputsPairs = buildCodeBlock {
                         statement.variables.forEach { name ->

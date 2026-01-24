@@ -1,8 +1,8 @@
 package de.quati.pgen.plugin.intern.model.oas
 
+import de.quati.kotlin.util.poet.toKebabCase
 import de.quati.pgen.plugin.intern.model.sql.Column
 import de.quati.pgen.plugin.intern.model.sql.SqlObjectName
-import de.quati.pgen.plugin.intern.util.toKababCase
 
 internal sealed interface TableFieldTypeOasData {
     data class Type(
@@ -33,9 +33,9 @@ internal sealed interface TableFieldTypeOasData {
     companion object {
         fun fromData(type: Column.Type): TableFieldTypeOasData = when (type) {
             is Column.Type.NonPrimitive.Array -> Array(items = fromData(type.elementType))
-            is Column.Type.NonPrimitive.Domain -> Type(type = "string", format = type.name.name.toKababCase())
+            is Column.Type.NonPrimitive.Domain -> Type(type = "string", format = type.name.name.toKebabCase())
             is Column.Type.NonPrimitive.Reference ->
-                Type(type = "string", format = type.valueClassName.className.toKababCase())
+                Type(type = "string", format = type.valueClassName.className.toKebabCase())
 
             is Column.Type.NonPrimitive.Enum -> Enum(name = type.name)
             is Column.Type.NonPrimitive.Numeric -> Type(type = "number")

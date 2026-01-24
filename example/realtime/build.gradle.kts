@@ -68,7 +68,6 @@ pgen {
     }
 
     packageName("$group.r2dbc.generated")
-    outputPath("$projectDir/src/main/kotlin/de/quati/pgen/example/r2dbc/generated")
     specFilePath("$projectDir/src/main/resources/pgen-spec.yaml")
     setConnectionTypeR2dbc()
 }

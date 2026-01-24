@@ -7,7 +7,7 @@ import de.quati.pgen.core.util.onCheckViolation
 import de.quati.pgen.r2dbc.util.deleteSingle
 import de.quati.pgen.r2dbc.util.suspendTransaction
 import de.quati.pgen.shared.PgenException
-import de.quati.pgen.tests.r2dbc.basic.generated.db.bar._public.ItemEmbeddings
+import de.quati.pgen.tests.r2dbc.basic.generated.db.bar.public1.ItemEmbeddings
 import io.kotest.matchers.longs.shouldBeGreaterThan
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe

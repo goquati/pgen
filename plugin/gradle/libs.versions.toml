@@ -2,12 +2,16 @@
 kotlin = "2.2.0"
 kotlinx-serialization = "1.9.0"
 flyway = "11.6.0"
+goquati = "2.1.0"
 
 [libraries]
 
 jdbc-postgresql = { module = "org.postgresql:postgresql", version = "42.7.7" }
 flyway-core = { module = "org.flywaydb:flyway-core", version.ref = "flyway" }
 flyway-postgresql = { module = "org.flywaydb:flyway-database-postgresql", version.ref = "flyway" }
+
+goquati-base = { module = "de.quati:kotlin-util", version.ref = "goquati" }
+goquati-poet = { module = "de.quati:kotlin-util-poet", version.ref = "goquati" }
 
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json-jvm", version.ref = "kotlinx-serialization" }
 

@@ -7,7 +7,7 @@ import de.quati.pgen.r2dbc.util.suspendTransaction
 import de.quati.pgen.r2dbc.util.suspendTransactionCatching
 import de.quati.pgen.shared.PgenException
 import de.quati.pgen.tests.r2dbc.basic.createDb
-import de.quati.pgen.tests.r2dbc.basic.generated.db.bar._public.ItemEmbeddings
+import de.quati.pgen.tests.r2dbc.basic.generated.db.bar.public1.ItemEmbeddings
 import io.kotest.matchers.shouldNotBe
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive

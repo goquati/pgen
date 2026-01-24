@@ -1,8 +1,8 @@
 package de.quati.pgen.plugin.intern.model.sql
 
-import de.quati.pgen.plugin.intern.util.kotlinKeywords
-import de.quati.pgen.plugin.intern.util.makeDifferent
-import de.quati.pgen.plugin.intern.util.toCamelCase
+import de.quati.kotlin.util.poet.kotlinKeywords
+import de.quati.kotlin.util.poet.makeDifferent
+import de.quati.kotlin.util.poet.toCamelCase
 import kotlinx.serialization.Serializable
 
 
@@ -19,7 +19,7 @@ internal data class Statement(
     @Serializable
     value class VariableName(val name: String) : Comparable<VariableName> {
         val pretty get() = name.toCamelCase(capitalized = false)
-            .makeDifferent(kotlinKeywords  + setOf("coroutineContext", "db"))
+            .makeDifferent(kotlinKeywords  + setOf("coroutineContext", "db"), "")
         override fun compareTo(other: VariableName): Int = name.compareTo(other.name)
     }
 

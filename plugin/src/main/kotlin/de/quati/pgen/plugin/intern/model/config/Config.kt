@@ -1,8 +1,8 @@
 package de.quati.pgen.plugin.intern.model.config
 
 import com.squareup.kotlinpoet.ClassName
+import de.quati.kotlin.util.poet.PackageName
 import de.quati.pgen.plugin.CRUD
-import de.quati.pgen.plugin.intern.PackageName
 import de.quati.pgen.plugin.intern.model.sql.DbName
 import de.quati.pgen.plugin.intern.model.sql.SqlObjectName
 import java.nio.file.Path
@@ -10,7 +10,6 @@ import java.nio.file.Path
 internal data class Config(
     val dbConfigs: List<Db>,
     val packageName: PackageName,
-    val outputPath: Path,
     val specFilePath: Path,
     val connectionType: ConnectionType,
     val oas: Oas?,

@@ -1,8 +1,8 @@
 package de.quati.pgen.example.jdbc
 
 import de.quati.kotlin.util.Option
-import de.quati.pgen.example.jdbc.generated.db.base._public.NonEmptyText
-import de.quati.pgen.example.jdbc.generated.db.base._public.Users
+import de.quati.pgen.example.jdbc.generated.db.base.public1.NonEmptyText
+import de.quati.pgen.example.jdbc.generated.db.base.public1.Users
 import de.quati.pgen.jdbc.util.transaction
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.insert

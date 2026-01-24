@@ -3,7 +3,6 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 
 plugins {
     alias(libs.plugins.kotlinJvm)
-    id("de.quati.pgen") version "1.0.0-SNAPSHOT"
 }
 
 repositories {
@@ -21,7 +20,6 @@ tasks.test {
 
 subprojects {
     apply(plugin = "org.jetbrains.kotlin.jvm")
-    apply(plugin = "de.quati.pgen")
 
     repositories {
         mavenCentral()

@@ -20,8 +20,11 @@ repositories {
 dependencies {
     implementation(libs.poet)
     implementation(libs.kaml)
+    implementation(libs.goquati.base)
+    implementation(libs.goquati.poet)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.bundles.flyway)
+    compileOnly(kotlin("gradle-plugin"))
 }
 
 kotlin {
@@ -40,7 +43,7 @@ gradlePlugin {
     website = gitRepo
     vcsUrl = "$gitRepo.git"
 
-    val generateFrappeDsl by plugins.creating {
+    val pgen by plugins.creating {
         id = groupStr
         implementationClass = "$groupStr.plugin.PgenPlugin"
         displayName = "Generate Kotlin Exposed tables from a PostgreSQL database schema"

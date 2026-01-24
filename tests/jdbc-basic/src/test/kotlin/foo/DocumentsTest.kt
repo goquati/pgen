@@ -8,8 +8,8 @@ import de.quati.pgen.core.util.onForeignKeyViolation
 import de.quati.pgen.jdbc.util.deleteSingle
 import de.quati.pgen.jdbc.util.transaction
 import de.quati.pgen.shared.PgenException
-import de.quati.pgen.tests.jdbc.basic.generated.db.foo._public.Documents
-import de.quati.pgen.tests.jdbc.basic.generated.db.foo._public.NonEmptyTextDomain
+import de.quati.pgen.tests.jdbc.basic.generated.db.foo.public1.Documents
+import de.quati.pgen.tests.jdbc.basic.generated.db.foo.public1.NonEmptyTextDomain
 import de.quati.pgen.tests.jdbc.basic.shared.UserId
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.nulls.shouldBeNull

@@ -4,7 +4,7 @@ import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.asTypeName
 import com.squareup.kotlinpoet.buildCodeBlock
-import de.quati.pgen.plugin.intern.initializer
+import de.quati.kotlin.util.poet.dsl.initializer
 import de.quati.pgen.plugin.intern.model.sql.Column
 import de.quati.pgen.plugin.intern.util.codegen.oas.DbContext
 

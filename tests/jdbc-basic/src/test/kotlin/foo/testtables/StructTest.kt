@@ -1,8 +1,8 @@
 package foo.testtables
 
 import de.quati.pgen.jdbc.util.transaction
-import de.quati.pgen.tests.jdbc.basic.generated.db.foo._public.Address
-import de.quati.pgen.tests.jdbc.basic.generated.db.foo._public.StructTestTable
+import de.quati.pgen.tests.jdbc.basic.generated.db.foo.public1.Address
+import de.quati.pgen.tests.jdbc.basic.generated.db.foo.public1.StructTestTable
 import io.kotest.matchers.shouldBe
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.insert

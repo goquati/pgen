@@ -2,7 +2,7 @@ package de.quati.pgen.plugin.intern.util.codegen
 
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.CodeBlock
-import de.quati.pgen.plugin.intern.PackageName
+import de.quati.kotlin.util.poet.PackageName
 import de.quati.pgen.plugin.intern.model.config.ColumnTypeMapping
 import de.quati.pgen.plugin.intern.model.config.Config
 import de.quati.pgen.plugin.intern.model.config.Config.Oas.LocalConfigContext
