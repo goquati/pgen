@@ -22,7 +22,7 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed-json:${exposedVersion}")
     implementation("org.jetbrains.exposed:exposed-kotlin-datetime:${exposedVersion}")
     implementation("org.jetbrains.exposed:exposed-jdbc:${exposedVersion}")
-    implementation("org.postgresql:postgresql:42.7.4")
+    implementation("org.postgresql:postgresql:42.7.7")
 
     implementation("de.quati:kotlin-util:2.0.0")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
@@ -37,6 +37,7 @@ kotlin {
         languageVersion.set(KotlinVersion.KOTLIN_2_2)
         freeCompilerArgs.add("-Xcontext-parameters")
         optIn.add("kotlin.time.ExperimentalTime")
+        optIn.add("kotlin.uuid.ExperimentalUuidApi")
     }
 }
 

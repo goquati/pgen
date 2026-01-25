@@ -38,6 +38,7 @@ kotlin {
         languageVersion.set(KotlinVersion.KOTLIN_2_2)
         freeCompilerArgs.add("-Xcontext-parameters")
         optIn.add("kotlin.time.ExperimentalTime")
+        optIn.add("kotlin.uuid.ExperimentalUuidApi")
     }
 }
 
