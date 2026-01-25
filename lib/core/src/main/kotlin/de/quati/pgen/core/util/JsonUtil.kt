@@ -13,6 +13,7 @@ import org.jetbrains.exposed.v1.core.CustomEnumerationColumnType
 import org.jetbrains.exposed.v1.core.IColumnType
 import org.jetbrains.exposed.v1.core.StringColumnType
 import org.jetbrains.exposed.v1.core.java.UUIDColumnType
+import org.jetbrains.exposed.v1.core.UuidColumnType
 import org.jetbrains.exposed.v1.datetime.KotlinInstantColumnType
 import org.jetbrains.exposed.v1.datetime.KotlinLocalDateColumnType
 import org.jetbrains.exposed.v1.datetime.KotlinLocalTimeColumnType
@@ -50,6 +51,7 @@ private fun <T : Any> parse(value: JsonElement, type: IColumnType<T>): T? = when
 
 private fun <T : Any> parseString(value: String, type: IColumnType<T>): T = when (type) {
     is StringColumnType -> type.valueFromDB(value)
+    is UuidColumnType -> type.valueFromDB(value)
     is UUIDColumnType -> type.valueFromDB(value)
     is CustomEnumerationColumnType<*> -> type.valueFromDB(value)
     is DomainColumnType<T, *> -> {

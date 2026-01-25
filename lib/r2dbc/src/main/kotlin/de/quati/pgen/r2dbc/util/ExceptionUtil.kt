@@ -29,11 +29,9 @@ public fun ErrorDetails.toPgenErrorDetails(): PgenErrorDetails = PgenErrorDetail
 )
 
 internal fun Throwable.toPgenError(): PgenException = when (this) {
+    is PgenException -> this
     is ExposedR2dbcException -> when (val e = cause) {
-        is PostgresqlException -> PgenException.of(
-            details = e.errorDetails.toPgenErrorDetails(),
-        )
-
+        is PostgresqlException -> PgenException.of(details = e.errorDetails.toPgenErrorDetails())
         else -> PgenException.Other(msg = message)
     }
 

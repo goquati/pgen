@@ -21,17 +21,8 @@ internal fun generateCode(
     generateOas(config, spec, out)
 
     CodeGenContext(
-        rootPackageName = config.packageName,
-        typeMappings = config.dbConfigs.flatMap(Config.Db::typeMappings)
-            .associate { it.sqlType to it.valueClass },
-        enumMappings = config.dbConfigs.flatMap(Config.Db::enumMappings)
-            .associate { it.sqlType to it.enumClass },
-        typeOverwrites = config.dbConfigs.flatMap(Config.Db::typeOverwrites)
-            .associate { it.sqlColumn to it.valueClass },
-        columnTypeMappings = config.dbConfigs.flatMap(Config.Db::columnTypeMappings),
+        config = config,
         typeGroups = spec.tables.getColumnTypeGroups(),
-        connectionType = config.connectionType,
-        localConfigContext = config.oas?.localConfigContext
     ).run {
         DirectorySyncService(
             outDir = outputPath.dir(config.packageName.parts.joinToString("/")).asFile.toPath(),

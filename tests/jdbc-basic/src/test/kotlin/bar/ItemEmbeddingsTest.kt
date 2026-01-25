@@ -20,7 +20,7 @@ import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.update
 import java.time.OffsetDateTime
 import java.time.temporal.ChronoUnit
-import java.util.UUID
+import kotlin.uuid.Uuid
 import kotlin.math.absoluteValue
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -36,7 +36,7 @@ class ItemEmbeddingsTest {
     @Test
     fun `create item embedding and read it back using Entity`() {
         val expectedEmbedding = embeddingVector()
-        val title = "Test title ${UUID.randomUUID()}"
+        val title = "Test title ${Uuid.random()}"
         val id = createItemEmbeddingFixture(
             title = title,
             embedding = expectedEmbedding,
@@ -65,7 +65,7 @@ class ItemEmbeddingsTest {
                 ItemEmbeddings.CreateEntity(
                     id = Option.Undefined,
                     itemUuid = Option.Undefined, // DB default gen_random_uuid()
-                    title = "Defaulted ${UUID.randomUUID()}",
+                    title = "Defaulted ${Uuid.random()}",
                     description = null,
                     embedding = embeddingVector(),
                     metadata = Option.Undefined, // DB default '{}'::jsonb

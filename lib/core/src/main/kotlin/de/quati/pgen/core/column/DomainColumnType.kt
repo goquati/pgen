@@ -34,7 +34,12 @@ public class DomainColumnType<T : Any, R>(
     }
 
     override fun sqlType(): String = sqlType
-    override fun notNullValueToDB(value: T): Any = getter.get(value)
+    override fun notNullValueToDB(value: T): Any {
+        val innerValue = getter.get(value)
+        @Suppress("UNCHECKED_CAST")
+        return (originType as IColumnType<Any>).notNullValueToDB(innerValue)
+    }
+
     override fun nonNullValueToString(value: T): String = "'$value'"
     override fun valueFromDB(value: Any): T {
         val innerValue = originType.valueFromDB(value)

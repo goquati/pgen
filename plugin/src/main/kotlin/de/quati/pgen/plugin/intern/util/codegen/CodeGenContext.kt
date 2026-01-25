@@ -3,34 +3,33 @@ package de.quati.pgen.plugin.intern.util.codegen
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.CodeBlock
 import de.quati.kotlin.util.poet.PackageName
-import de.quati.pgen.plugin.intern.model.config.ColumnTypeMapping
 import de.quati.pgen.plugin.intern.model.config.Config
-import de.quati.pgen.plugin.intern.model.config.Config.Oas.LocalConfigContext
 import de.quati.pgen.plugin.intern.model.sql.Column
-import de.quati.pgen.plugin.intern.model.sql.KotlinEnumClass
 import de.quati.pgen.plugin.intern.model.sql.KotlinValueClass
 import de.quati.pgen.plugin.intern.model.sql.SqlColumnName
-import de.quati.pgen.plugin.intern.model.sql.SqlObjectName
 import de.quati.pgen.plugin.intern.model.sql.Table
 import de.quati.pgen.plugin.intern.util.codegen.oas.DbContext
 
 internal class CodeGenContext(
-    rootPackageName: PackageName,
-    val typeMappings: Map<SqlObjectName, KotlinValueClass>,
-    val enumMappings: Map<SqlObjectName, KotlinEnumClass>,
-    columnTypeMappings: Collection<ColumnTypeMapping>,
-    typeOverwrites: Map<SqlColumnName, KotlinValueClass>,
+    config: Config,
     typeGroups: List<Set<SqlColumnName>>,
-    val connectionType: Config.ConnectionType,
-    localConfigContext: LocalConfigContext?,
 ) {
-    val columnTypeMappings = columnTypeMappings.associateBy { it.sqlType }
+    val rootPackageName = config.packageName
+    val connectionType = config.connectionType
+    val typeMappings = config.dbConfigs.flatMap(Config.Db::typeMappings)
+        .associate { it.sqlType to it.valueClass }
+    val enumMappings = config.dbConfigs.flatMap(Config.Db::enumMappings)
+        .associate { it.sqlType to it.enumClass }
+    val typeOverwrites = config.dbConfigs.flatMap(Config.Db::typeOverwrites)
+        .associate { it.sqlColumn to it.valueClass }
+
+    val columnTypeMappings = config.dbConfigs.flatMap(Config.Db::columnTypeMappings).associateBy { it.sqlType }
 
     context(d: DbContext)
     fun getColumnTypeMapping(type: Column.Type.CustomPrimitive) =
         columnTypeMappings[type.sqlObjectName] ?: error("no column type mapping for ${type.sqlObjectName}")
 
-    val localConfigContext = localConfigContext?.let { c ->
+    val localConfigContext = config.oas?.localConfigContext?.let { c ->
         c.copy(
             type = ClassName(
                 c.type.packageName.takeIf { it != "default" } ?: "$rootPackageName.shared",
@@ -68,32 +67,31 @@ internal class CodeGenContext(
 
     val poet = Poet(
         rootPackageName = rootPackageName,
-        kotlinUuidType = false, // TODO
+        uuidType = config.uuidType,
     )
 
     data class Poet(
         val rootPackageName: PackageName,
-        private val kotlinUuidType: Boolean,
+        private val uuidType: Config.UuidType,
     ) {
         val packageDb = PackageName("$rootPackageName.db")
         val packageMapper = PackageName("$rootPackageName.mapper")
         val packageService = PackageName("$rootPackageName.service")
 
-        val uuidColumnType = when (kotlinUuidType) {
-            true -> ClassName("org.jetbrains.exposed.v1.core", "UuidColumnType")
-            false -> ClassName("org.jetbrains.exposed.v1.core.java", "UUIDColumnType")
+        val uuidColumnType = when (uuidType) {
+            Config.UuidType.KOTLIN -> ClassName("org.jetbrains.exposed.v1.core", "UuidColumnType")
+            Config.UuidType.JAVA -> ClassName("org.jetbrains.exposed.v1.core.java", "UUIDColumnType")
         }
 
-        val uuid = when (kotlinUuidType) {
-            true -> ClassName("kotlin.uuid", "Uuid")
-            false -> ClassName("java.util", "UUID")
+        val uuid = when (uuidType) {
+            Config.UuidType.KOTLIN -> ClassName("kotlin.uuid", "Uuid")
+            Config.UuidType.JAVA -> ClassName("java.util", "UUID")
         }
 
-        val uuidColumn = when (kotlinUuidType) {
-            true -> CodeBlock.of("uuid")
-            false -> CodeBlock.of("%T", ClassName("org.jetbrains.exposed.v1.core.java", "javaUUID"))
+        val uuidColumn = when (uuidType) {
+            Config.UuidType.KOTLIN -> CodeBlock.of("uuid")
+            Config.UuidType.JAVA -> CodeBlock.of("%T", ClassName("org.jetbrains.exposed.v1.core.java", "javaUUID"))
         }
-
     }
 
     companion object {

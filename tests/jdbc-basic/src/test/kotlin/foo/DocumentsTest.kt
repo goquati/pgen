@@ -23,7 +23,7 @@ import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.update
 import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
-import java.util.UUID
+import kotlin.uuid.Uuid
 import kotlin.math.absoluteValue
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -132,7 +132,7 @@ class DocumentsTest {
         }
 
         createDocumentFixture(
-            ownerId = UserId(UUID.randomUUID())
+            ownerId = UserId(Uuid.random())
         ).getFailedConstraint() shouldBe Documents.Constraints.documentsOwnerIdFkey
 
         val ownerId = createUserFixture().getOrThrow()

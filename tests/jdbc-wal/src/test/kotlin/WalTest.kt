@@ -31,7 +31,7 @@ import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.update
 import org.postgresql.PGProperty
 import java.time.ZoneId
-import java.util.UUID
+import kotlin.uuid.Uuid
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
@@ -42,13 +42,13 @@ class WalTest {
     private val d1 = DomainTestTable.Entity(
         key = "d1",
         userIdNullable = null,
-        userId = UserId(UUID.randomUUID()),
+        userId = UserId(Uuid.random()),
         orderIdNullable = null,
-        orderId = OrderId(UUID.randomUUID()),
+        orderId = OrderId(Uuid.random()),
     )
     private val d2 = d1.copy(
-        userIdNullable = UserId(UUID.randomUUID()),
-        orderIdNullable = OrderId(UUID.randomUUID()),
+        userIdNullable = UserId(Uuid.random()),
+        orderIdNullable = OrderId(Uuid.random()),
     )
     private val e1 = EnumTestTable.Entity(
         key = "e1",

@@ -14,7 +14,7 @@ import kotlinx.serialization.json.JsonPrimitive
 import org.jetbrains.exposed.v1.core.statements.InsertStatement
 import org.jetbrains.exposed.v1.r2dbc.deleteAll
 import org.jetbrains.exposed.v1.r2dbc.insert
-import java.util.UUID
+import kotlin.uuid.Uuid
 
 internal val db = createDb("r2dbc_basic_vector")
 
@@ -26,7 +26,7 @@ internal fun embeddingVector(dim: Int = 64): FloatArray =
     FloatArray(dim) { i -> i.toFloat() }
 
 internal suspend fun createItemEmbeddingFixture(
-    title: String = "Title ${UUID.randomUUID()}",
+    title: String = "Title ${Uuid.random()}",
     description: String? = "A test embedding",
     embedding: FloatArray = embeddingVector(),
     body: ItemEmbeddings.(InsertStatement<Number>) -> Unit = {},

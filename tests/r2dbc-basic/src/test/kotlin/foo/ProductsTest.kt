@@ -23,7 +23,7 @@ import org.jetbrains.exposed.v1.r2dbc.deleteWhere
 import org.jetbrains.exposed.v1.r2dbc.insert
 import org.jetbrains.exposed.v1.r2dbc.selectAll
 import org.jetbrains.exposed.v1.r2dbc.update
-import java.util.UUID
+import kotlin.uuid.Uuid
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 
@@ -37,7 +37,7 @@ class ProductsTest {
 
     @Test
     fun `create product and read it back using Entity`(): Unit = runBlocking {
-        val sku = "SKU-${UUID.randomUUID()}"
+        val sku = "SKU-${Uuid.random()}"
         val productId = createProductFixture(sku).getOrThrow()
 
         val entity = db.suspendTransaction(readOnly = true) {
@@ -60,7 +60,7 @@ class ProductsTest {
 
     @Test
     fun `create product with default status and createdAt`(): Unit = runBlocking {
-        val sku = "SKU-${UUID.randomUUID()}"
+        val sku = "SKU-${Uuid.random()}"
         val productId = db.suspendTransaction {
             Products.insert { builder ->
                 Products.CreateEntity(
@@ -90,7 +90,7 @@ class ProductsTest {
 
     @Test
     fun `update product using UpdateEntity updates only specified columns`(): Unit = runBlocking {
-        val sku = "SKU-${UUID.randomUUID()}"
+        val sku = "SKU-${Uuid.random()}"
         val productId = createProductFixture(sku).getOrThrow()
 
         db.suspendTransaction {
@@ -128,8 +128,8 @@ class ProductsTest {
 
     @Test
     fun `delete product removes row`(): Unit = runBlocking {
-        val id1 = createProductFixture("SKU1-${UUID.randomUUID()}").getOrThrow()
-        val id2 = createProductFixture("SKU2-${UUID.randomUUID()}").getOrThrow()
+        val id1 = createProductFixture("SKU1-${Uuid.random()}").getOrThrow()
+        val id2 = createProductFixture("SKU2-${Uuid.random()}").getOrThrow()
 
         count() shouldBe 2
 

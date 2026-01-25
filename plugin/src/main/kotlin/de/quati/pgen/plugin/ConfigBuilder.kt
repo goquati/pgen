@@ -30,6 +30,7 @@ public open class ConfigBuilder internal constructor() {
     private var specFilePath: Path? = null
     private var connectionType: ConnectionType = ConnectionType.JDBC
     private var oas: Config.Oas? = null
+    private var uuidType: Config.UuidType = Config.UuidType.KOTLIN
 
     public fun setConnectionTypeJdbc(): ConfigBuilder = apply { connectionType = ConnectionType.JDBC }
     public fun setConnectionTypeR2dbc(): ConfigBuilder = apply { connectionType = ConnectionType.R2DBC }
@@ -37,6 +38,8 @@ public open class ConfigBuilder internal constructor() {
     public fun specFilePath(path: String): ConfigBuilder = apply { specFilePath = Path(path) }
     public fun specFilePath(path: Path): ConfigBuilder = apply { specFilePath = path }
     public fun oas(block: Oas.() -> Unit): ConfigBuilder = apply { oas = Oas().apply(block).build() }
+    public fun useKotlinUuidType(): ConfigBuilder = apply { uuidType = Config.UuidType.KOTLIN }
+    public fun useJavaUuidType(): ConfigBuilder = apply { uuidType = Config.UuidType.JAVA }
     public fun addDb(name: String, block: Db.() -> Unit): ConfigBuilder = apply {
         val db = Db(name = name).apply(block).build()
         dbConfigs.add(db)
@@ -54,6 +57,7 @@ public open class ConfigBuilder internal constructor() {
         specFilePath = specFilePath ?: error("no path pgen spec file defined"),
         connectionType = connectionType,
         oas = oas,
+        uuidType = uuidType,
     )
 
 

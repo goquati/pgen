@@ -11,12 +11,13 @@ import kotlinx.coroutines.flow.map
 import org.jetbrains.exposed.v1.r2dbc.R2dbcDatabase
 import org.jetbrains.exposed.v1.r2dbc.insert
 import org.jetbrains.exposed.v1.r2dbc.selectAll
-import java.util.UUID
+import kotlin.uuid.Uuid
 import kotlin.time.Clock
 
 // A tiny domain wrapper type to show how value classes work nicely with generated code
+@OptIn(kotlin.uuid.ExperimentalUuidApi::class)
 @JvmInline
-value class UserId(val value: UUID)
+value class UserId(val value: Uuid)
 
 suspend fun main() {
     // Create a pooled R2DBC database handle (you can also use R2dbcDatabase.connect(...)).

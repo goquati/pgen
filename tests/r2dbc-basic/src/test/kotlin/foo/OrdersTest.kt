@@ -20,7 +20,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import org.jetbrains.exposed.v1.core.eq
-import java.util.UUID
+import kotlin.uuid.Uuid
 import org.jetbrains.exposed.v1.r2dbc.deleteWhere
 import org.jetbrains.exposed.v1.r2dbc.selectAll
 import org.jetbrains.exposed.v1.r2dbc.update
@@ -129,7 +129,7 @@ class OrdersTest {
 
         createOrderFixture(userId, -47)
             .getFailedConstraint() shouldBe Orders.Constraints.ordersProductFk
-        createOrderFixture(UserId(UUID.randomUUID()), productId)
+        createOrderFixture(UserId(Uuid.random()), productId)
             .getFailedConstraint() shouldBe Orders.Constraints.ordersUserFk
         createOrderFixture(userId, productId) { it[Orders.totalCents] = -1 }
             .getFailedConstraint() shouldBe Orders.Constraints.ordersTotalPositive

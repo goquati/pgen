@@ -13,9 +13,13 @@ internal data class Config(
     val specFilePath: Path,
     val connectionType: ConnectionType,
     val oas: Oas?,
+    val uuidType: UuidType,
 ) {
     enum class ConnectionType {
         JDBC, R2DBC
+    }
+    enum class UuidType {
+        JAVA, KOTLIN
     }
 
     data class Oas(

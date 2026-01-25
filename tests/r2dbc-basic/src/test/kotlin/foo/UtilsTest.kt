@@ -41,7 +41,7 @@ import org.jetbrains.exposed.v1.r2dbc.R2dbcTransaction
 import org.jetbrains.exposed.v1.r2dbc.select
 import org.jetbrains.exposed.v1.r2dbc.selectAll
 import org.jetbrains.exposed.v1.r2dbc.upsertReturning
-import java.util.UUID
+import kotlin.uuid.Uuid
 import kotlin.collections.associate
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -52,8 +52,8 @@ class UtilsTest {
 
     @Test
     fun `test like for StringLike and iLike`(): Unit = runBlocking {
-        val usernameAdmin = "admin-${UUID.randomUUID()}"
-        val usernameUser = "user-${UUID.randomUUID()}"
+        val usernameAdmin = "admin-${Uuid.random()}"
+        val usernameUser = "user-${Uuid.random()}"
         val adminId = createUserFixture(usernameAdmin) { it[Users.displayName] = "foobar" }.getOrThrow()
         val userId = createUserFixture(usernameUser) { it[Users.displayName] = "hello" }.getOrThrow()
 
@@ -120,7 +120,7 @@ class UtilsTest {
                 returning = listOf(IsInsert, IsUpdate)
             ) {
                 upsertData.copy(
-                    id = Option.Some(UserId(UUID.randomUUID())),
+                    id = Option.Some(UserId(Uuid.random())),
                     username = NonEmptyTextDomain("new-admin"),
                     email = "new.admin@example.com",
                 ) applyTo it

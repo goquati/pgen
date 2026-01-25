@@ -2,7 +2,7 @@ package de.quati.pgen.core.column
 
 import de.quati.pgen.shared.PgenEnum
 import kotlin.reflect.KClass
-import java.util.UUID
+import kotlin.uuid.ExperimentalUuidApi
 
 @JvmInline
 public value class PgStructField(public val data: String?) {
@@ -63,9 +63,10 @@ public interface PgStructFieldConverter<T> {
             obj.data?.unescapeString()?.removePrefix("\\x")?.hexToByteArray()
     }
 
-    public object Uuid : PgStructFieldConverter<UUID> {
-        override fun serialize(obj: UUID?): PgStructField = PgStructField(obj?.toString()?.escapeString())
-        override fun deserialize(obj: PgStructField): UUID? = obj.data?.let { UUID.fromString(it) }
+    @OptIn(ExperimentalUuidApi::class)
+    public object Uuid : PgStructFieldConverter<kotlin.uuid.Uuid> {
+        override fun serialize(obj: kotlin.uuid.Uuid?): PgStructField = PgStructField(obj?.toString()?.escapeString())
+        override fun deserialize(obj: PgStructField): kotlin.uuid.Uuid? = obj.data?.let { kotlin.uuid.Uuid.parse(it) }
     }
 
     public object BigDecimal : PgStructFieldConverter<java.math.BigDecimal> {

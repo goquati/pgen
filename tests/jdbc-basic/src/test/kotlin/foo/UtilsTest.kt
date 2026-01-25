@@ -34,9 +34,9 @@ import org.jetbrains.exposed.v1.jdbc.JdbcTransaction
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.upsertReturning
-import java.util.UUID
 import kotlin.test.BeforeTest
 import kotlin.test.Test
+import kotlin.uuid.Uuid
 
 class UtilsTest {
     @BeforeTest
@@ -46,8 +46,8 @@ class UtilsTest {
 
     @Test
     fun `test like for StringLike and iLike`() {
-        val usernameAdmin = "admin-${UUID.randomUUID()}"
-        val usernameUser = "user-${UUID.randomUUID()}"
+        val usernameAdmin = "admin-${Uuid.random()}"
+        val usernameUser = "user-${Uuid.random()}"
         val adminId = createUserFixture(usernameAdmin) { it[Users.displayName] = "foobar" }.getOrThrow()
         val userId = createUserFixture(usernameUser) { it[Users.displayName] = "hello" }.getOrThrow()
 
@@ -114,7 +114,7 @@ class UtilsTest {
                 returning = listOf(IsInsert, IsUpdate)
             ) {
                 upsertData.copy(
-                    id = Option.Some(UserId(UUID.randomUUID())),
+                    id = Option.Some(UserId(Uuid.random())),
                     username = NonEmptyTextDomain("new-admin"),
                     email = "new.admin@example.com",
                 ) applyTo it

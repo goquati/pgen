@@ -7,12 +7,13 @@ import de.quati.pgen.jdbc.util.transaction
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.selectAll
-import java.util.UUID
+import kotlin.uuid.Uuid
 import kotlin.time.Clock
 
 // A tiny domain wrapper type to show how value classes work nicely with generated code
+@OptIn(kotlin.uuid.ExperimentalUuidApi::class)
 @JvmInline
-value class UserId(val value: UUID)
+value class UserId(val value: Uuid)
 
 fun main() {
     // Create a Database.

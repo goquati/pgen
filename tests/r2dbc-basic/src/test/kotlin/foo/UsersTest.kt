@@ -24,7 +24,7 @@ import org.jetbrains.exposed.v1.r2dbc.selectAll
 import org.jetbrains.exposed.v1.r2dbc.update
 import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
-import java.util.UUID
+import kotlin.uuid.Uuid
 import kotlin.math.absoluteValue
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -41,7 +41,7 @@ class UsersTest {
 
     @Test
     fun `create user and read it back using Entity`(): Unit = runBlocking {
-        val username = "admin-${UUID.randomUUID()}"
+        val username = "admin-${Uuid.random()}"
         val userId = createUserFixture(username).getOrThrow()
 
         val entity = db.suspendTransaction(readOnly = true) {
@@ -63,7 +63,7 @@ class UsersTest {
 
     @Test
     fun `create user with default roles and preferences`(): Unit = runBlocking {
-        val username = "default-${UUID.randomUUID()}"
+        val username = "default-${Uuid.random()}"
         val userId = db.suspendTransaction {
             Users.insert { builder ->
                 Users.CreateEntity(
@@ -92,7 +92,7 @@ class UsersTest {
 
     @Test
     fun `update user using UpdateEntity updates only specified columns`(): Unit = runBlocking {
-        val username = "update-${UUID.randomUUID()}"
+        val username = "update-${Uuid.random()}"
         val userId = createUserFixture(username).getOrThrow()
         val now = Clock.System.now().toJavaInstant().atOffset(ZoneOffset.UTC)
 
@@ -129,8 +129,8 @@ class UsersTest {
 
     @Test
     fun `delete user removes row`(): Unit = runBlocking {
-        val username1 = "delete1-${UUID.randomUUID()}"
-        val username2 = "delete2-${UUID.randomUUID()}"
+        val username1 = "delete1-${Uuid.random()}"
+        val username2 = "delete2-${Uuid.random()}"
 
         val id1 = createUserFixture(username1).getOrThrow()
         val id2 = createUserFixture(username2).getOrThrow()

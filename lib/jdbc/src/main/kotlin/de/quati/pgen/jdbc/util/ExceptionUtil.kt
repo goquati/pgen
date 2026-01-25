@@ -30,13 +30,14 @@ public fun ServerErrorMessage.toPgenErrorDetails(): PgenErrorDetails? {
 }
 
 internal fun Throwable.toPgenError(): PgenException = when (this) {
+    is PgenException -> this
     is ExposedSQLException -> when (val e = cause) {
         is PSQLException -> e.serverErrorMessage?.toPgenErrorDetails()?.let {
             PgenException.of(it)
-        } ?: PgenException.Other(msg = message ?: "")
+        } ?: PgenException.Other(msg = e.message ?: message ?: "")
 
         else -> PgenException.Other(msg = message ?: "")
     }
 
-    else -> PgenException.Other(msg = message ?: "")
-}.apply { addSuppressed(this@toPgenError) }
+    else -> PgenException.Other(msg = message ?: this::class.simpleName ?: "Unknown error")
+}.apply { if (this !== this@toPgenError) addSuppressed(this@toPgenError) }

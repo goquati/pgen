@@ -1,6 +1,7 @@
 package de.quati.pgen.tests.jdbc.wal.shared
 
-import java.util.UUID
+import kotlin.uuid.Uuid
 
+@OptIn(kotlin.uuid.ExperimentalUuidApi::class)
 @JvmInline
-value class UserId(val value: UUID)
+value class UserId(val value: Uuid)

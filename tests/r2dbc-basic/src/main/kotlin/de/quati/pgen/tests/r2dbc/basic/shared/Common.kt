@@ -1,6 +1,7 @@
 package de.quati.pgen.tests.r2dbc.basic.shared
 
-import java.util.UUID
+import kotlin.uuid.Uuid
 
+@OptIn(kotlin.uuid.ExperimentalUuidApi::class)
 @JvmInline
-value class UserId(val value: UUID)
+value class UserId(val value: Uuid)

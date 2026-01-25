@@ -23,7 +23,7 @@ import kotlinx.serialization.json.JsonPrimitive
 import org.jetbrains.exposed.v1.core.statements.InsertStatement
 import org.jetbrains.exposed.v1.r2dbc.deleteAll
 import org.jetbrains.exposed.v1.r2dbc.insert
-import java.util.UUID
+import kotlin.uuid.Uuid
 
 internal val db = createDb("r2dbc_basic")
 
@@ -35,7 +35,7 @@ internal suspend fun cleanUpAll(): Unit = db.suspendTransaction {
 }
 
 internal suspend fun createUserFixture(
-    username: String = "user-${UUID.randomUUID()}",
+    username: String = "user-${Uuid.random()}",
     body: Users.(InsertStatement<Number>) -> Unit = {},
 ): Result<UserId, PgenException> {
     val userIdResult = db.suspendTransactionCatching {
@@ -58,7 +58,7 @@ internal suspend fun createUserFixture(
 }
 
 internal suspend fun createProductFixture(
-    sku: String = "SKU-${UUID.randomUUID()}",
+    sku: String = "SKU-${Uuid.random()}",
     body: Products.(InsertStatement<Number>) -> Unit = {},
 ): Result<Int, PgenException> {
     val productIdResult = db.suspendTransactionCatching {
@@ -86,7 +86,7 @@ internal suspend fun createOrderFixture(
     productId: Int,
     body: Orders.(InsertStatement<Number>) -> Unit = {},
 ): Result<OrderId, PgenException> {
-    val orderId = OrderId(UUID.randomUUID())
+    val orderId = OrderId(Uuid.random())
     val createdOrderId = db.suspendTransactionCatching {
         Orders.insert { builder ->
             Orders.CreateEntity(
@@ -115,7 +115,7 @@ internal suspend fun createDocumentFixture(
     ownerId: UserId,
     title: NonEmptyTextDomain? = NonEmptyTextDomain("Test Document"),
     body: Documents.(InsertStatement<Number>) -> Unit = {},
-): Result<UUID, PgenException> {
+): Result<Uuid, PgenException> {
     val result = db.suspendTransactionCatching {
         Documents.insert { builder ->
             Documents.CreateEntity(

@@ -18,7 +18,6 @@ import io.kotest.matchers.shouldNotBe
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import org.jetbrains.exposed.v1.core.eq
-import java.util.UUID
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.update
@@ -26,6 +25,7 @@ import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds
+import kotlin.uuid.Uuid
 
 class OrdersTest {
     @BeforeTest
@@ -129,7 +129,7 @@ class OrdersTest {
 
         createOrderFixture(userId, -47)
             .getFailedConstraint() shouldBe Orders.Constraints.ordersProductFk
-        createOrderFixture(UserId(UUID.randomUUID()), productId)
+        createOrderFixture(UserId(Uuid.random()), productId)
             .getFailedConstraint() shouldBe Orders.Constraints.ordersUserFk
         createOrderFixture(userId, productId) { it[Orders.totalCents] = -1 }
             .getFailedConstraint() shouldBe Orders.Constraints.ordersTotalPositive
