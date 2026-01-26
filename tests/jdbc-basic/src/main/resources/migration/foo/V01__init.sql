@@ -234,3 +234,34 @@ create table public.enum_array_test_table
     data          public.order_status[] not null,
     data_nullable public.order_status[]
 );
+
+-- test for name conflicts:
+create table public.event_entity
+(
+    id   uuid not null constraint event_entity_id_pk primary key,
+    name text not null
+);
+
+create table public.event
+(
+    id   uuid not null primary key,
+    name text not null
+);
+
+create table public.constraints
+(
+    id   uuid not null primary key,
+    name text not null
+);
+
+create table public.create_entity
+(
+    id   uuid not null primary key,
+    name text not null
+);
+
+create table public.update_entity
+(
+    id   uuid not null primary key,
+    name text not null
+);

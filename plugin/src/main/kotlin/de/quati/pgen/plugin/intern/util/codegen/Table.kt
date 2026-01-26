@@ -118,6 +118,8 @@ internal fun Table.toTypeSpecInternal() = buildObject(this@toTypeSpecInternal.na
 
 context(c: CodeGenContext)
 private fun Table.toConstraintsObject() = buildObject(this@toConstraintsObject.constraintsTypeName.simpleName) {
+    val typeNameTable = this@toConstraintsObject.name.typeName
+
     fun addConstraint(
         name: String,
         clazz: ClassName,
@@ -129,9 +131,9 @@ private fun Table.toConstraintsObject() = buildObject(this@toConstraintsObject.c
     ) {
         @Suppress("SpreadOperator")
         initializer(
-            "%T(table = %L, name = %S$additionalFormat)",
+            "%T(table = %T, name = %S$additionalFormat)",
             clazz,
-            this@toConstraintsObject.name.prettyName,
+            typeNameTable,
             name,
             *additionalArgs,
         )
@@ -158,9 +160,9 @@ private fun Table.toConstraintsObject() = buildObject(this@toConstraintsObject.c
         ) {
             @Suppress("SpreadOperator")
             initializer(
-                "%T(column = %L.%L, name = %S)",
+                "%T(column = %T.%L, name = %S)",
                 clazz,
-                this@toConstraintsObject.name.prettyName,
+                typeNameTable,
                 column.prettyName,
                 name,
             )

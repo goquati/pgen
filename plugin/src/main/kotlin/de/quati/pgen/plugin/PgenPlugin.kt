@@ -26,6 +26,7 @@ public class PgenPlugin : Plugin<Project> {
 
         val pgenGenerateSpec = project.tasks.register("pgenGenerateSpec") { task ->
             task.group = TASK_GROUP
+            task.outputs.upToDateWhen { false }
             task.doLast {
                 val config = configBuilder.build()
                 generateSpec(config = config)
@@ -36,6 +37,7 @@ public class PgenPlugin : Plugin<Project> {
             task.mustRunAfter(pgenGenerateSpec)
             task.group = TASK_GROUP
             task.outputs.dir(genDir)
+            task.outputs.upToDateWhen { false }
             task.doLast {
                 val out = project.serviceOf<StyledTextOutputFactory>().create("pgen")!!
                 val config = configBuilder.build()
@@ -54,6 +56,7 @@ public class PgenPlugin : Plugin<Project> {
 
         project.tasks.register("pgenGenerate") { task ->
             task.group = TASK_GROUP
+            task.outputs.upToDateWhen { false }
             task.dependsOn(pgenGenerateSpec, pgenGenerateCode)
         }
 

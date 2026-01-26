@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Resolved naming conflicts in generated table constraints by using fully qualified type names.
+- Fixed JDBC and R2DBC example projects.
+- Improved Gradle plugin reliability by ensuring code generation tasks always execute when requested.
+
+## [0.42.0] - 2026-01-26
+
 ### Added
 - WAL example demonstrating Write-Ahead Log functionality.
 

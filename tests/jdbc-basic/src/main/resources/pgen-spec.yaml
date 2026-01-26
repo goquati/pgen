@@ -73,6 +73,26 @@ tables:
     keyName: "citext_test_table_pkey"
     columnNames:
     - "key"
+- name: "foo.public.constraints"
+  columns:
+  - name: "id"
+    type: "uuid"
+  - name: "name"
+    type: "text"
+  primaryKey:
+    keyName: "constraints_pkey"
+    columnNames:
+    - "id"
+- name: "foo.public.create_entity"
+  columns:
+  - name: "id"
+    type: "uuid"
+  - name: "name"
+    type: "text"
+  primaryKey:
+    keyName: "create_entity_pkey"
+    columnNames:
+    - "id"
 - name: "foo.public.documents"
   columns:
   - name: "id"
@@ -204,6 +224,26 @@ tables:
     keyName: "enum_test_table_pkey"
     columnNames:
     - "key"
+- name: "foo.public.event"
+  columns:
+  - name: "id"
+    type: "uuid"
+  - name: "name"
+    type: "text"
+  primaryKey:
+    keyName: "event_pkey"
+    columnNames:
+    - "id"
+- name: "foo.public.event_entity"
+  columns:
+  - name: "id"
+    type: "uuid"
+  - name: "name"
+    type: "text"
+  primaryKey:
+    keyName: "event_entity_id_pk"
+    columnNames:
+    - "id"
 - name: "foo.public.flyway_schema_history"
   columns:
   - name: "installed_rank"
@@ -517,6 +557,16 @@ tables:
     columnNames:
     - "group_id"
     - "name"
+- name: "foo.public.update_entity"
+  columns:
+  - name: "id"
+    type: "uuid"
+  - name: "name"
+    type: "text"
+  primaryKey:
+    keyName: "update_entity_pkey"
+    columnNames:
+    - "id"
 - name: "foo.public.users"
   columns:
   - name: "id"
