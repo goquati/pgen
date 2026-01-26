@@ -8,6 +8,7 @@ import de.quati.pgen.wal.ReplicaIdentity.Companion.toSql
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -16,6 +17,7 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonObject
 import org.postgresql.PGConnection
 import org.postgresql.PGProperty
@@ -153,13 +155,19 @@ public class PgenWalEventListener private constructor(
             val currentJob = job ?: return@withLock
             currentJob.cancel()
             streamConnectionMutex.withLock {
-                streamConnection?.unwrap(PGConnection::class.java)?.cancelQuery()
+                runCatching {
+                    streamConnection?.unwrap(PGConnection::class.java)?.cancelQuery()
+                }
             }
-            currentJob.join()
-            job = null
-            streamConnectionMutex.withLock {
-                streamConnection?.close()
-                streamConnection = null
+            withContext(NonCancellable) {
+                currentJob.join()
+                job = null
+                streamConnectionMutex.withLock {
+                    runCatching {
+                        streamConnection?.close()
+                    }
+                    streamConnection = null
+                }
             }
         }
     }

@@ -147,22 +147,24 @@ class WalTest {
         action: suspend () -> Unit,
     ): List<WalEvent.Change<*>> {
         this@testCollect.start(recreateSlot = recreateSlot)
-        val readyFlag = ReadyFlag()
-        val job = scope.async {
-            this@testCollect.flow
-                .onSubscription { readyFlag.markReady() }
-                .takeWhile { (it as? WalEvent.Message)?.content != stopMsg }
-                .map {
-                    (it as? WalEvent.Change<*>)
-                        ?: error("Expected WalEvent.Change, got $it")
-                }
-                .toList()
+        try {
+            val readyFlag = ReadyFlag()
+            val job = scope.async {
+                this@testCollect.flow
+                    .onSubscription { readyFlag.markReady() }
+                    .takeWhile { (it as? WalEvent.Message)?.content != stopMsg }
+                    .map {
+                        (it as? WalEvent.Change<*>)
+                            ?: error("Expected WalEvent.Change, got $it")
+                    }
+                    .toList()
+            }
+            readyFlag.awaitReady()
+            action()
+            return job.await()
+        } finally {
+            this@testCollect.stop()
         }
-        readyFlag.awaitReady()
-        action()
-        val result = job.await()
-        this@testCollect.stop()
-        return result
     }
 
     @Test
