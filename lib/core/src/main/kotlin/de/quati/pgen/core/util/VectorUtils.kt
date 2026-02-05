@@ -28,8 +28,10 @@ private class CosineSimilarityOp<T : FloatArray?, S : FloatArray?>(
     }
 }
 
-public infix fun <T : FloatArray?> ExpressionWithColumnType<T>.cosineDistance(other: T): Expression<Double> =
-    CosineDistanceOp(this, QueryParameter(other, columnType))
+public infix fun <T : FloatArray?> ExpressionWithColumnType<T>.cosineDistance(
+    other: T,
+): ExpressionWithColumnType<Double> = CosineDistanceOp(this, QueryParameter(other, columnType))
 
-public infix fun <T : FloatArray?> ExpressionWithColumnType<T>.cosineSimilarity(other: T): Expression<Double> =
-    CosineSimilarityOp(this, QueryParameter(other, columnType))
+public infix fun <T : FloatArray?> ExpressionWithColumnType<T>.cosineSimilarity(
+    other: T,
+): ExpressionWithColumnType<Double> = CosineSimilarityOp(this, QueryParameter(other, columnType))
