@@ -3,31 +3,40 @@ package bar
 import de.quati.kotlin.util.Option
 import de.quati.kotlin.util.Result
 import de.quati.kotlin.util.getOrThrow
+import de.quati.pgen.core.util.cosineDistance
+import de.quati.pgen.core.util.cosineSimilarity
 import de.quati.pgen.core.util.onCheckViolation
 import de.quati.pgen.jdbc.util.deleteSingle
 import de.quati.pgen.jdbc.util.transaction
 import de.quati.pgen.shared.PgenException
 import de.quati.pgen.tests.jdbc.basic.generated.db.bar.public1.ItemEmbeddings
+import io.kotest.matchers.doubles.shouldBeExactly
+import io.kotest.matchers.doubles.shouldBeLessThan
 import io.kotest.matchers.longs.shouldBeGreaterThan
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.insert
+import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.update
 import java.time.OffsetDateTime
 import java.time.temporal.ChronoUnit
 import kotlin.uuid.Uuid
 import kotlin.math.absoluteValue
+import kotlin.math.sqrt
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 
 class ItemEmbeddingsTest {
     @BeforeTest
-    fun cleanUp() { cleanUpAll() }
+    fun cleanUp() {
+        cleanUpAll()
+    }
 
     private fun count() = db.transaction(readOnly = true) {
         ItemEmbeddings.selectAll().count()
@@ -164,4 +173,52 @@ class ItemEmbeddingsTest {
 
         count() shouldBe 0
     }
+
+    @Test
+    fun `test cosine distance and similarity`() {
+        val i1Vec = FloatArray(64) { 1f }
+        val i2Vec = FloatArray(64) { if (it % 2 == 0) 0f else 1f }
+        val i3Vec = FloatArray(64) { if (it % 2 == 0) 1f else 0f }
+        createItemEmbeddingFixture(title = "i1", embedding = i1Vec)
+        createItemEmbeddingFixture(title = "i2", embedding = i2Vec)
+        createItemEmbeddingFixture(title = "i3", embedding = i3Vec)
+
+        val result = db.transaction {
+            val similarityOp = ItemEmbeddings.embedding cosineSimilarity i2Vec
+            val distanceOp = ItemEmbeddings.embedding cosineDistance i2Vec
+            ItemEmbeddings.select(
+                ItemEmbeddings.title, similarityOp, distanceOp
+            ).orderBy(similarityOp, order = SortOrder.DESC)
+                .map {
+                    CosineResult(
+                        title = it[ItemEmbeddings.title],
+                        similarity = it[similarityOp],
+                        distance = it[distanceOp],
+                    )
+                }
+        }
+
+        result.size shouldBe 3
+        result[0].also {
+            it.title shouldBe "i2"
+            it.similarity shouldBeExactly 1.0
+            it.distance shouldBeExactly 0.0
+        }
+        result[1].also {
+            it.title shouldBe "i1"
+            (it.similarity - (1.0 / sqrt(2.0))).absoluteValue shouldBeLessThan 1e-10
+            (1 - it.distance - (1.0 / sqrt(2.0))).absoluteValue shouldBeLessThan 1e-10
+        }
+        result[2].also {
+            it.title shouldBe "i3"
+            it.similarity shouldBeExactly 0.0
+            it.distance shouldBeExactly 1.0
+        }
+    }
+
+    private data class CosineResult(
+        val title: String,
+        val similarity: Double,
+        val distance: Double,
+    )
 }
