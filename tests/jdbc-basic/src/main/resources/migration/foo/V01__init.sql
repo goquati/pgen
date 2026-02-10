@@ -238,7 +238,8 @@ create table public.enum_array_test_table
 -- test for name conflicts:
 create table public.event_entity
 (
-    id   uuid not null constraint event_entity_id_pk primary key,
+    id   uuid not null
+        constraint event_entity_id_pk primary key,
     name text not null
 );
 
@@ -264,4 +265,11 @@ create table public.update_entity
 (
     id   uuid not null primary key,
     name text not null
+);
+
+create table public.auto_increment_test_table
+(
+    key     text primary key,
+    id_int  serial    not null,
+    id_long bigserial not null
 );

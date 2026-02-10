@@ -265,3 +265,10 @@ create table public.update_entity
     id   uuid not null primary key,
     name text not null
 );
+
+create table public.auto_increment_test_table
+(
+    key     text primary key,
+    id_int  serial    not null,
+    id_long bigserial not null
+);

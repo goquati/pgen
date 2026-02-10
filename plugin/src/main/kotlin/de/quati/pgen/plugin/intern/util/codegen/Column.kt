@@ -34,6 +34,17 @@ private fun Column.getDefaultExpression(): Pair<String, List<Any>>? = when (type
         else -> null
     }
 
+    Column.Type.Primitive.INT4, Column.Type.Primitive.INT8 -> {
+        val prefix = "nextval('"
+        val suffix = "'::regclass)"
+        default
+            ?.takeIf { it.startsWith(prefix) && it.endsWith(suffix) }
+            ?.removePrefix(prefix)?.removeSuffix(suffix)
+            ?.let { seqName ->
+                ".autoIncrement(%S)" to listOf(seqName)
+            }
+    }
+
     else -> null
 }
 

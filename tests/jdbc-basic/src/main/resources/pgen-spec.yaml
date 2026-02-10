@@ -60,6 +60,20 @@ tables:
   - "item_embeddings_item_uuid_unique"
   checkConstraints:
   - "item_embeddings_title_not_empty"
+- name: "foo.public.auto_increment_test_table"
+  columns:
+  - name: "key"
+    type: "text"
+  - name: "id_int"
+    type: "int4"
+    default: "nextval('auto_increment_test_table_id_int_seq'::regclass)"
+  - name: "id_long"
+    type: "int8"
+    default: "nextval('auto_increment_test_table_id_long_seq'::regclass)"
+  primaryKey:
+    keyName: "auto_increment_test_table_pkey"
+    columnNames:
+    - "key"
 - name: "foo.public.citext_test_table"
   columns:
   - name: "key"
