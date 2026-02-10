@@ -3,7 +3,7 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 
 plugins {
     kotlin("jvm") version "2.2.0"
-    id("de.quati.pgen") version "0.45.0"
+    id("de.quati.pgen") version "0.46.0"
 }
 
 group = "de.quati.pgen.example"
@@ -15,8 +15,8 @@ repositories {
 
 dependencies {
     val exposedVersion = "1.0.0"
-    implementation("de.quati.pgen:r2dbc:0.45.0")
-    implementation("de.quati.pgen:wal:0.45.0")
+    implementation("de.quati.pgen:r2dbc:0.46.0")
+    implementation("de.quati.pgen:wal:0.46.0")
     implementation("org.jetbrains.exposed:exposed-core:${exposedVersion}")
     implementation("org.jetbrains.exposed:exposed-crypt:${exposedVersion}")
     implementation("org.jetbrains.exposed:exposed-dao:${exposedVersion}")
