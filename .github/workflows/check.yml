@@ -3,7 +3,15 @@ name: Check
 on:
   push:
     branches: ['main']
+    paths-ignore:
+      - 'example/**'
+      - 'CHANGELOG.md'
+      - 'README.md'
   pull_request:
+    paths-ignore:
+      - 'example/**'
+      - 'CHANGELOG.md'
+      - 'README.md'
   workflow_call:
 
 jobs:
