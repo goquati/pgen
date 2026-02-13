@@ -60,6 +60,7 @@ public class PgenTypeMapper : TypeMapper {
             is Int4MultiRangeColumnType -> bind(INT4MULTIRANGE_TYPE, value)
             is Int8MultiRangeColumnType -> bind(INT8MULTIRANGE_TYPE, value)
             is PgenEnumArrayColumnType<*, *> -> bind(PostgresqlObjectId.UNSPECIFIED, value)
+            is PgenUuidArrayColumnType -> bind(PostgresqlObjectId.UNSPECIFIED, value)
 
             is CustomEnumerationColumnType -> if (value !is PgenEnum)
                 false // only pgen enums, skip other enum types
@@ -76,12 +77,12 @@ public class PgenTypeMapper : TypeMapper {
         else
             PostgresTypes.PostgresType(oid, unsignedOid, typarray, unsignedTyparrayval, name, category)
 
-        private fun createType(oid: Int, typarray: Int, name: String, category: String): PostgresTypes.PostgresType =
-            PostgresTypes.PostgresType(oid, oid.toLong(), typarray, typarray.toLong(), name, category)
+        private fun createType(oid: Int, typArray: Int, name: String): PostgresTypes.PostgresType =
+            PostgresTypes.PostgresType(oid, oid.toLong(), typArray, typArray.toLong(), name, "R")
 
-        private val INT4RANGE_TYPE = createType(3904, typarray = 3905, name = "int4range", category = "R")
-        private val INT8RANGE_TYPE = createType(3926, typarray = 3927, name = "int8range", category = "R")
-        private val INT4MULTIRANGE_TYPE = createType(4451, typarray = 6150, name = "int4multirange", category = "R")
-        private val INT8MULTIRANGE_TYPE = createType(4536, typarray = 6157, name = "int8multirange", category = "R")
+        private val INT4RANGE_TYPE = createType(3904, typArray = 3905, name = "int4range")
+        private val INT8RANGE_TYPE = createType(3926, typArray = 3927, name = "int8range")
+        private val INT4MULTIRANGE_TYPE = createType(4451, typArray = 6150, name = "int4multirange")
+        private val INT8MULTIRANGE_TYPE = createType(4536, typArray = 6157, name = "int8multirange")
     }
 }

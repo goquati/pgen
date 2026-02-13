@@ -235,6 +235,13 @@ create table public.enum_array_test_table
     data_nullable public.order_status[]
 );
 
+create table public.uuid_array_test_table
+(
+    key           text primary key,
+    data          uuid[] not null,
+    data_nullable uuid[]
+);
+
 -- test for name conflicts:
 create table public.event_entity
 (

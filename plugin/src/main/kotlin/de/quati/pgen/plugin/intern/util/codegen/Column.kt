@@ -5,6 +5,7 @@ import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.asTypeName
 import com.squareup.kotlinpoet.buildCodeBlock
 import de.quati.kotlin.util.poet.dsl.initializer
+import de.quati.pgen.plugin.intern.model.config.Config
 import de.quati.pgen.plugin.intern.model.sql.Column
 import de.quati.pgen.plugin.intern.util.codegen.oas.DbContext
 
@@ -60,6 +61,11 @@ internal fun PropertySpec.Builder.initializer(column: Column, postfix: String, p
 
     when (val type = column.type) {
         is Column.Type.NonPrimitive.Array -> {
+            fun default() = @Suppress("SpreadOperator") initializer(
+                "array<%T>(name = %S)$postfix",
+                type.getTypeName(), columnName, *postArgs
+            )
+
             when (val elementType = type.elementType) {
                 is Column.Type.NonPrimitive.Enum -> initializer(buildCodeBlock {
                     add("%T<%T>(\n", Poet.Pgen.pgenEnumArray, type.getTypeName())
@@ -68,15 +74,21 @@ internal fun PropertySpec.Builder.initializer(column: Column, postfix: String, p
                     @Suppress("SpreadOperator") add(")$postfix", *postArgs)
                 })
 
+                Column.Type.Primitive.UUID -> when (c.connectionType) {
+                    Config.ConnectionType.JDBC -> default()
+                    Config.ConnectionType.R2DBC -> initializer(buildCodeBlock {
+                        add("%T(\n", Poet.Pgen.pgenUuidArray)
+                        add("    name = %S,\n", columnName)
+                        @Suppress("SpreadOperator") add(")$postfix", *postArgs)
+                    })
+                }
+
                 is Column.Type.NonPrimitive.Composite -> @Suppress("SpreadOperator") initializer(
                     "array<%T>(name = %S, columnType = %T)$postfix",
                     type.getTypeName(), columnName, elementType.getColumnTypeTypeName(), *postArgs
                 )
 
-                else -> @Suppress("SpreadOperator") initializer(
-                    "array<%T>(name = %S)$postfix",
-                    type.getTypeName(), columnName, *postArgs
-                )
+                else -> default()
             }
         }
 

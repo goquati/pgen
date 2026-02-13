@@ -623,6 +623,23 @@ tables:
   - "users_username_unique"
   checkConstraints:
   - "users_roles_not_empty"
+- name: "foo.public.uuid_array_test_table"
+  columns:
+  - name: "key"
+    type: "text"
+  - name: "data"
+    type:
+      type: "array"
+      elementType: "uuid"
+  - name: "data_nullable"
+    type:
+      type: "array"
+      elementType: "uuid"
+    isNullable: true
+  primaryKey:
+    keyName: "uuid_array_test_table_pkey"
+    columnNames:
+    - "key"
 enums:
 - name: "foo.public.order_status"
   fields:

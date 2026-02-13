@@ -270,6 +270,12 @@ internal object Poet {
         val pgenEnumArray get() = packageNameDriverColumnType.className("pgenEnumArray")
 
         context(c: CodeGenContext)
+        val pgenUuidArray get() = when (c.connectionType) {
+            Config.ConnectionType.JDBC -> throw NotImplementedError("pgenUuidArray")
+            Config.ConnectionType.R2DBC -> packageNameDriverColumnType.className("pgenUuidArray")
+        }
+
+        context(c: CodeGenContext)
         val pgenEnumColumnType get() = packageNameDriverColumnType.className("pgenEnumColumnType")
 
         val getColumnWithAlias = packageNameCoreUtil.className("get")
