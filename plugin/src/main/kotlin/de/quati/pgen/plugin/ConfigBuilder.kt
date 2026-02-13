@@ -2,7 +2,6 @@ package de.quati.pgen.plugin
 
 import com.squareup.kotlinpoet.ClassName
 import de.quati.kotlin.util.poet.PackageName
-import de.quati.pgen.plugin.intern.model.config.ColumnTypeMapping
 import de.quati.pgen.plugin.intern.model.config.Config
 import de.quati.pgen.plugin.intern.model.config.Config.ConnectionType
 import de.quati.pgen.plugin.intern.model.config.EnumMapping
@@ -11,6 +10,7 @@ import de.quati.pgen.plugin.intern.model.config.SqlObjectFilter.Objects
 import de.quati.pgen.plugin.intern.model.config.SqlObjectFilter.Schemas
 import de.quati.pgen.plugin.intern.model.config.TypeMapping
 import de.quati.pgen.plugin.intern.model.config.TypeOverwrite
+import de.quati.pgen.plugin.intern.model.sql.Column
 import de.quati.pgen.plugin.intern.model.sql.DbName
 import de.quati.pgen.plugin.intern.model.sql.KotlinClassName
 import de.quati.pgen.plugin.intern.model.sql.KotlinEnumClass
@@ -71,7 +71,7 @@ public open class ConfigBuilder internal constructor() {
         private var typeMappings: Set<TypeMapping>? = null
         private var enumMappings: Set<EnumMapping>? = null
         private var typeOverwrites: Set<TypeOverwrite>? = null
-        private var columnTypeMappings: Set<ColumnTypeMapping>? = null
+        private var columnTypeMappings: Set<Column.Type.CustomType>? = null
         private var flyway: Config.Db.Flyway? = null
 
         public class StatementCollectionBuilder internal constructor() {
@@ -163,7 +163,7 @@ public open class ConfigBuilder internal constructor() {
         }
 
         public class ColumnTypeMappingBuilder internal constructor(private val dbName: DbName) {
-            private val mappings = linkedSetOf<ColumnTypeMapping>()
+            private val mappings = linkedSetOf<Column.Type.CustomType>()
             public fun add(
                 sqlType: String,
                 columnTypeClass: String,
@@ -171,8 +171,8 @@ public open class ConfigBuilder internal constructor() {
             ): ColumnTypeMappingBuilder = apply {
                 val (schemaName, name) = sqlType.takeIfValidAbsoluteClazzName(size = 2)?.split('.')
                     ?: throw IllegalArgumentException("illegal sqlType '$sqlType', expected format <schema>.<name>")
-                val entity = ColumnTypeMapping(
-                    sqlType = SqlObjectName(
+                val entity = Column.Type.CustomType(
+                    name = SqlObjectName(
                         schema = SchemaName(dbName = dbName, schemaName = schemaName),
                         name = name,
                     ),
@@ -225,7 +225,7 @@ public open class ConfigBuilder internal constructor() {
             typeMappings = typeMappings?.distinctBy(TypeMapping::sqlType)?.toSet() ?: emptySet(),
             enumMappings = enumMappings?.distinctBy(EnumMapping::sqlType)?.toSet() ?: emptySet(),
             typeOverwrites = typeOverwrites?.distinctBy(TypeOverwrite::sqlColumn)?.toSet() ?: emptySet(),
-            columnTypeMappings = columnTypeMappings?.distinctBy(ColumnTypeMapping::sqlType)?.toSet() ?: emptySet(),
+            columnTypeMappings = columnTypeMappings?.distinctBy(Column.Type.CustomType::name)?.toSet() ?: emptySet(),
             flyway = flyway,
         )
 

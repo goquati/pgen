@@ -59,7 +59,13 @@ internal fun PropertySpec.Builder.initializer(column: Column, postfix: String, p
         postArgs = (it.second + postArgs.toList()).toTypedArray()
     }
 
-    when (val type = column.type) {
+    val type = when (val type = column.type) {
+        is Column.Type.Reference -> c.getRefTypeOrThrow(type)
+        else -> type
+    }
+
+    when (type) {
+        is Column.Type.Reference -> error("reference type should be resolved here")
         is Column.Type.NonPrimitive.Array -> {
             fun default() = @Suppress("SpreadOperator") initializer(
                 "array<%T>(name = %S)$postfix",
@@ -256,9 +262,9 @@ internal fun PropertySpec.Builder.initializer(column: Column, postfix: String, p
             *postArgs
         )
 
-        is Column.Type.CustomPrimitive -> @Suppress("SpreadOperator") initializer(
+        is Column.Type.CustomType -> @Suppress("SpreadOperator") initializer(
             "registerColumn(name = %S, type = %T())$postfix",
-            columnName, c.getColumnTypeMapping(type).columnType.poet, *postArgs
+            columnName, type.columnType.poet, *postArgs
         )
     }
 }

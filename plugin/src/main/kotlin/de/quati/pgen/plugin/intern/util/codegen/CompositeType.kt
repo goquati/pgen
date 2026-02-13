@@ -109,8 +109,9 @@ internal fun CompositeType.toTypeSpecInternal() = buildDataClass(this@toTypeSpec
     )
 }
 
-context(_: CodeGenContext, _: DbContext)
-private fun CodeBlock.Builder.addPgFieldConverter(type: Column.Type) = when (type) {
+context(c: CodeGenContext, _: DbContext)
+private fun CodeBlock.Builder.addPgFieldConverter(type: Column.Type): CodeBlock.Builder = when (type) {
+    is Column.Type.Reference -> addPgFieldConverter(c.getRefTypeOrThrow(type))
     Column.Type.Primitive.BOOL,
     Column.Type.Primitive.DATE,
     Column.Type.Primitive.FLOAT4,
@@ -131,9 +132,8 @@ private fun CodeBlock.Builder.addPgFieldConverter(type: Column.Type) = when (typ
     is Column.Type.NonPrimitive.PgVector,
     is Column.Type.NonPrimitive.Composite,
     is Column.Type.NonPrimitive.Domain,
-    is Column.Type.NonPrimitive.Reference,
-    is Column.Type.CustomPrimitive ->
-        throw NotImplementedError("Unsupported composite field type ${type.sqlType}")
+    is Column.Type.NonPrimitive.Overwrite,
+    is Column.Type.CustomType -> throw NotImplementedError("Unsupported composite field type ${type.sqlType}")
 
     is Column.Type.NonPrimitive.Enum -> add("%T.Enum(%T::class)", Poet.Pgen.pgStructFieldConverter, type.getTypeName())
     is Column.Type.NonPrimitive.Numeric -> add("%T.BigDecimal", Poet.Pgen.pgStructFieldConverter)

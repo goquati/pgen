@@ -3,6 +3,8 @@ package de.quati.pgen.plugin.intern.model.oas
 import de.quati.kotlin.util.poet.toKebabCase
 import de.quati.pgen.plugin.intern.model.sql.Column
 import de.quati.pgen.plugin.intern.model.sql.SqlObjectName
+import de.quati.pgen.plugin.intern.util.codegen.SpecContext
+import de.quati.pgen.plugin.intern.util.codegen.oas.DbContext
 
 internal sealed interface TableFieldTypeOasData {
     data class Type(
@@ -31,17 +33,19 @@ internal sealed interface TableFieldTypeOasData {
     }
 
     companion object {
+        context(c: SpecContext, _ : DbContext)
         fun fromData(type: Column.Type): TableFieldTypeOasData = when (type) {
+            is Column.Type.Reference -> fromData(c.getRefTypeOrThrow(type))
             is Column.Type.NonPrimitive.Array -> Array(items = fromData(type.elementType))
             is Column.Type.NonPrimitive.Domain -> Type(type = "string", format = type.name.name.toKebabCase())
-            is Column.Type.NonPrimitive.Reference ->
+            is Column.Type.NonPrimitive.Overwrite ->
                 Type(type = "string", format = type.valueClassName.className.toKebabCase())
 
             is Column.Type.NonPrimitive.Enum -> Enum(name = type.name)
             is Column.Type.NonPrimitive.Numeric -> Type(type = "number")
             is Column.Type.NonPrimitive.Composite -> Type(type = "string")
             is Column.Type.NonPrimitive.PgVector -> Type(type = "string")
-            is Column.Type.CustomPrimitive -> Type(type = "string")
+            is Column.Type.CustomType -> Type(type = "string")
             Column.Type.Primitive.BOOL -> Type(type = "boolean")
             Column.Type.Primitive.BINARY -> Type(type = "string", format = "byte")
             Column.Type.Primitive.DATE -> Type(type = "string", format = "date")

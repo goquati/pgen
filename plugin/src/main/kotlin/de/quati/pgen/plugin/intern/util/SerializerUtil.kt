@@ -39,7 +39,8 @@ internal object ColumnTypeSerializer : KSerializer<Column.Type> {
     override fun serialize(encoder: Encoder, value: Column.Type) {
         when (value) {
             is Column.Type.Primitive -> encoder.encodeSerializableValue(String.serializer(), value.sqlType)
-            is Column.Type.CustomPrimitive -> encoder.encodeSerializableValue(String.serializer(), value.sqlType)
+            is Column.Type.Reference -> encoder.encodeSerializableValue(String.serializer(), value.sqlType)
+            is Column.Type.CustomType -> serialize(encoder, value.toRef())
             is Column.Type.NonPrimitive ->
                 encoder.encodeSerializableValue(Column.Type.NonPrimitive.serializer(), value)
         }
@@ -47,19 +48,19 @@ internal object ColumnTypeSerializer : KSerializer<Column.Type> {
 
     private fun String.deserialize() =
         Column.Type.Primitive.entries.firstOrNull { it.sqlType.equals(this, ignoreCase = true) }
-            ?: Column.Type.CustomPrimitive(this)
+            ?: let(Column.Type::Reference)
 
     override fun deserialize(decoder: Decoder): Column.Type = when (decoder) {
         is JsonDecoder -> when (val node = decoder.decodeJsonElement()) {
-            is JsonPrimitive -> node.content.deserialize()
             is JsonObject -> decoder.json.decodeFromJsonElement<Column.Type.NonPrimitive>(node)
+            is JsonPrimitive -> node.content.deserialize()
             else -> throw SerializationException("Invalid JSON for Column.Type")
         }
 
         is YamlInput -> {
             when (val node = decoder.node) {
-                is YamlScalar -> node.content.deserialize()
                 is YamlMap -> decoder.decodeSerializableValue(Column.Type.NonPrimitive.serializer())
+                is YamlScalar -> node.content.deserialize()
                 else -> throw SerializationException("Invalid YAML for Column.Type")
             }
         }

@@ -1,6 +1,5 @@
 package de.quati.pgen.plugin.intern.service
 
-import de.quati.pgen.plugin.intern.model.config.ColumnTypeMapping
 import de.quati.pgen.plugin.intern.model.config.Config
 import de.quati.pgen.plugin.intern.model.config.SqlObjectFilter
 import de.quati.pgen.plugin.intern.model.sql.Column
@@ -13,6 +12,9 @@ import de.quati.pgen.plugin.intern.model.sql.SqlObjectName
 import de.quati.pgen.plugin.intern.model.sql.SqlStatementName
 import de.quati.pgen.plugin.intern.model.sql.Statement
 import de.quati.pgen.plugin.intern.model.sql.Table
+import de.quati.pgen.plugin.intern.service.ColumnData.Companion.parseColumnData
+import de.quati.pgen.plugin.intern.service.TypeData.Companion.parseTypeData
+import de.quati.pgen.plugin.intern.util.codegen.oas.DbContext
 import org.intellij.lang.annotations.Language
 import org.postgresql.util.PGobject
 import java.io.Closeable
@@ -21,11 +23,11 @@ import java.sql.ResultSet
 import kotlin.use
 
 internal class DbService(
-    val dbName: DbName,
-    columnTypeMappings: Collection<ColumnTypeMapping>,
+    dbName: DbName,
+    columnTypeMappings: Collection<Type.CustomType>,
     connectionConfig: Config.Db.Connection
-) : Closeable {
-    val columnTypeMappings = columnTypeMappings.associateBy { it.sqlType }
+) : Closeable, DbContext by dbName.toContext() {
+    val columnTypeMappings = columnTypeMappings.associateBy { it.name }
     private val connection = DriverManager.getConnection(
         connectionConfig.url,
         connectionConfig.user,
@@ -127,59 +129,101 @@ internal class DbService(
         }
     }
 
-    private fun ResultSet.getColumnType(
+    private fun TypeData.getColumnType(
         udtNameOverride: String? = null,
         columnTypeCategoryOverride: String? = null,
     ): Type {
-        val schema = dbName.toSchema(getString("column_type_schema")!!)
-        val columnTypeName = udtNameOverride ?: getString("column_type_name")!!
+        val rawType = getColumnTypeInner(
+            udtNameOverride = udtNameOverride,
+            columnTypeCategoryOverride = columnTypeCategoryOverride,
+        )
+        return run {
+            Type.NonPrimitive.Domain(
+                name = SqlObjectName(
+                    schema = SchemaName(
+                        dbName = dbName,
+                        schemaName = domainSchema ?: return@run null,
+                    ),
+                    name = domainName ?: return@run null,
+                ),
+                originalType = rawType,
+            )
+        } ?: rawType
+    }
+
+    private fun TypeData.getColumnTypeInner(
+        udtNameOverride: String? = null,
+        columnTypeCategoryOverride: String? = null,
+    ): Type {
+        val schema = dbName.toSchema(innerTypeSchema)
+        val columnTypeName = udtNameOverride ?: innerTypeName
         val sqlTypeName = SqlObjectName(schema = schema, name = columnTypeName)
-        val columnTypeCategory = columnTypeCategoryOverride ?: getString("column_type_category")!!
+        columnTypeMappings[sqlTypeName]?.also { return it }
+
+        val columnTypeCategory = columnTypeCategoryOverride ?: typeCategory!!
         if (columnTypeName.startsWith("_")) return Type.NonPrimitive.Array(
             getColumnType(
                 udtNameOverride = columnTypeName.removePrefix("_"),
-                columnTypeCategoryOverride = getString("column_element_type_category")!!,
+                columnTypeCategoryOverride = elementTypeCategory!!,
             )
         )
 
-        columnTypeMappings[sqlTypeName]?.also {
-            return it.toCustomPrimitiveType()
-        }
-
-        if (schema != dbName.schemaPgCatalog) {
-            fun unknownError(): Nothing =
-                error("Unknown column type '$columnTypeCategory' for column type '$schema:$columnTypeName'")
+        if (schema != dbName.schemaPgCatalog)
             return when (columnTypeCategory) {
                 "E" -> Type.NonPrimitive.Enum(sqlTypeName)
                 "C" -> Type.NonPrimitive.Composite(sqlTypeName)
                 "U" -> {
                     when (columnTypeName) {
                         Type.NonPrimitive.PgVector.VECTOR_NAME -> Type.NonPrimitive.PgVector(schema = schema.schemaName)
-                        else -> unknownError()
+                        else -> Type.Reference(sqlTypeName)
                     }
                 }
 
                 "S" -> when (columnTypeName) {
                     "citext" -> Type.Primitive.CITEXT
-                    else -> unknownError()
+                    else -> Type.Reference(sqlTypeName)
                 }
 
-                else -> unknownError()
+                else -> error("Unknown column type '$columnTypeCategory' for column type '$schema:$columnTypeName'")
             }
-        }
         return when (columnTypeName) {
-            "numeric" -> {
-                val precision = getInt("numeric_precision").takeIf { !wasNull() }
-                val scale = getInt("numeric_scale").takeIf { !wasNull() }
-                if (precision != null && scale != null)
-                    Type.NonPrimitive.Numeric(precision = precision, scale = scale)
-                else if (precision == null && scale == null)
+            "numeric" ->
+                if (numericPrecision != null && numericScale != null)
+                    Type.NonPrimitive.Numeric(precision = numericPrecision, scale = numericScale)
+                else if (numericPrecision == null && numericScale == null)
                     Type.Primitive.UNCONSTRAINED_NUMERIC
                 else
-                    error("invalid numeric type, precision: $precision, scale: $scale")
-            }
+                    error("invalid numeric type, precision: $numericPrecision, scale: $numericScale")
 
             else -> getPrimitiveType(columnTypeName)
+        }
+    }
+
+    fun getDomainTypes(filter: SqlObjectFilter): List<Type.NonPrimitive.Domain> {
+        if (filter.isEmpty()) return emptyList()
+        return executeQuery(
+            """select 
+                   d.domain_schema     as domain_schema,
+                   d.domain_name       as domain_name,
+                   d.udt_schema        as inner_type_schema,
+                   d.udt_name          as inner_type_name,
+                   d.numeric_precision as numeric_precision,
+                   d.numeric_scale     as numeric_scale,
+                   ty.typcategory      as type_category,
+                   tye.typcategory     as element_type_category
+            from information_schema.domains as d
+                     join pg_catalog.pg_namespace as na
+                          on d.udt_schema = na.nspname
+                     join pg_catalog.pg_type as ty
+                          on ty.typnamespace = na.oid and ty.typname = d.udt_name
+                     left join pg_catalog.pg_type as tye
+                               on ty.typelem != 0 and tye.oid = ty.typelem
+            where ${filter.toFilterString(schemaField = "d.domain_schema", tableField = "d.domain_name ")};
+            """
+        ) { row ->
+            row.parseTypeData().getColumnType().let {
+                it as? Type.NonPrimitive.Domain ?: error("expected domain type, got $it")
+            }
         }
     }
 
@@ -195,13 +239,13 @@ internal class DbService(
                 c.domain_schema as domain_schema,
                 c.domain_name as domain_name,
                 c.is_nullable AS is_nullable,
-                c.udt_schema AS column_type_schema,
-                c.udt_name AS column_type_name,
+                c.udt_schema AS inner_type_schema,
+                c.udt_name AS inner_type_name,
                 c.numeric_precision AS numeric_precision,
                 c.numeric_scale AS numeric_scale,
                 c.column_default AS column_default,
-                ty.typcategory AS column_type_category,
-                tye.typcategory AS column_element_type_category
+                ty.typcategory AS type_category,
+                tye.typcategory AS element_type_category
             FROM information_schema.columns AS c
             JOIN pg_catalog.pg_namespace AS na
                 ON c.udt_schema = na.nspname
@@ -213,8 +257,9 @@ internal class DbService(
                     AND tye.oid = ty.typelem
             WHERE ${filter.toFilterString(schemaField = "c.table_schema", tableField = "c.table_name")};
             """
-        ) { it.parseColumn() }.groupBy({ it.first }, { it.second })
+        ) { it.parseColumnData().parseColumn() }.groupBy({ it.first }, { it.second })
     }
+
 
     private fun getCompositeTypeFields(filter: SqlObjectFilter): Map<SqlObjectName, List<Column>> {
         return executeQuery(
@@ -232,8 +277,8 @@ internal class DbService(
                        ELSE NULL::name
                        END::information_schema.sql_identifier                            AS domain_name,
                    true                                                                  AS is_nullable,
-                   COALESCE(nbt.nspname, atn.nspname)::information_schema.sql_identifier AS column_type_schema,
-                   COALESCE(bt.typname, at.typname)::information_schema.sql_identifier   AS column_type_name,
+                   COALESCE(nbt.nspname, atn.nspname)::information_schema.sql_identifier AS inner_type_schema,
+                   COALESCE(bt.typname, at.typname)::information_schema.sql_identifier   AS inner_type_name,
                    information_schema._pg_numeric_precision(
                            information_schema._pg_truetypid(a.*, at.*),
                            information_schema._pg_truetypmod(a.*, at.*)
@@ -243,8 +288,8 @@ internal class DbService(
                            information_schema._pg_truetypmod(a.*, at.*)
                    )::information_schema.cardinal_number                                 AS numeric_scale,
                    NULL                                                                  AS column_default,
-                   at.typcategory                                                        AS column_type_category,
-                   ate.typcategory                                                       AS column_element_type_category
+                   at.typcategory                                                        AS type_category,
+                   ate.typcategory                                                       AS element_type_category
             FROM pg_catalog.pg_type AS t
                      JOIN pg_catalog.pg_class AS cls
                           ON cls.oid = t.typrelid
@@ -263,7 +308,7 @@ internal class DbService(
             WHERE cls.relkind = 'c'
               and ${filter.toFilterString(schemaField = "clsn.nspname", tableField = "cls.relname")};
         """
-        ) { it.parseColumn() }.groupBy({ it.first }, { it.second })
+        ) { it.parseColumnData().parseColumn() }.groupBy({ it.first }, { it.second })
     }
 
     private fun getPrimaryKeys(filter: SqlObjectFilter): Map<SqlObjectName, Table.PrimaryKey> {
@@ -466,30 +511,18 @@ internal class DbService(
         return enums
     }
 
-    private fun ResultSet.parseColumn(): Pair<SqlObjectName, Column> {
+    private fun ColumnData.parseColumn(): Pair<SqlObjectName, Column> {
         val tableName = SqlObjectName(
-            schema = dbName.toSchema(getString("table_schema")!!),
-            name = getString("table_name")!!,
+            schema = dbName.toSchema(tableSchema),
+            name = tableName,
         )
-        val rawType = getColumnType()
-        val type = run {
-            Type.NonPrimitive.Domain(
-                name = SqlObjectName(
-                    schema = SchemaName(
-                        dbName = dbName,
-                        schemaName = getString("domain_schema") ?: return@run null,
-                    ),
-                    name = getString("domain_name") ?: return@run null,
-                ),
-                originalType = rawType,
-            )
-        } ?: rawType
+        val type = typeData.getColumnType()
         return tableName to Column(
-            pos = getInt("pos"),
-            name = Column.Name(getString("column_name")!!),
+            pos = pos,
+            name = Column.Name(columnName),
             type = type,
-            isNullable = getBoolean("is_nullable"),
-            default = getString("column_default")
+            isNullable = isNullable,
+            default = columnDefault,
         )
     }
 
@@ -501,5 +534,56 @@ internal class DbService(
         private fun getPrimitiveType(name: String) =
             Type.Primitive.entries.firstOrNull { it.sqlType == name }
                 ?: error("undefined primitive type name '$name'")
+    }
+}
+
+
+private data class ColumnData(
+    val pos: Int,
+    val tableSchema: String,
+    val tableName: String,
+    val columnName: String,
+    val isNullable: Boolean,
+    val columnDefault: String?,
+    val typeData: TypeData,
+) {
+    companion object {
+        fun ResultSet.parseColumnData(): ColumnData {
+            return ColumnData(
+                pos = getInt("pos"),
+                tableSchema = getString("table_schema"),
+                tableName = getString("table_name"),
+                columnName = getString("column_name"),
+                isNullable = getBoolean("is_nullable"),
+                columnDefault = getString("column_default"),
+                typeData = parseTypeData(),
+            )
+        }
+    }
+}
+
+private data class TypeData(
+    val domainSchema: String?,
+    val domainName: String?,
+    val innerTypeSchema: String,
+    val innerTypeName: String,
+    val numericPrecision: Int?,
+    val numericScale: Int?,
+    val typeCategory: String?,
+    val elementTypeCategory: String?,
+) {
+    companion object {
+        fun ResultSet.parseTypeData(): TypeData {
+            return TypeData(
+                domainSchema = getString("domain_schema"),
+                domainName = getString("domain_name"),
+                innerTypeSchema = getString("inner_type_schema"),
+                innerTypeName = getString("inner_type_name"),
+                numericPrecision = getInt("numeric_precision").takeIf { !wasNull() },
+                numericScale = getInt("numeric_scale").takeIf { !wasNull() },
+                typeCategory = getString("type_category"),
+                elementTypeCategory = getString("element_type_category"),
+            )
+        }
     }
 }

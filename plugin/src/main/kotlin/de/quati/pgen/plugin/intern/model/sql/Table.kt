@@ -2,6 +2,7 @@ package de.quati.pgen.plugin.intern.model.sql
 
 import com.squareup.kotlinpoet.ClassName
 import de.quati.pgen.plugin.intern.util.codegen.CodeGenContext
+import de.quati.pgen.plugin.intern.util.codegen.SpecContext
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -13,8 +14,14 @@ internal data class Table(
     val uniqueConstraints: List<String> = emptyList(),
     val checkConstraints: List<String> = emptyList(),
 ) : SqlObject {
-    val eventColumns = columns.filter { it.type.isSupportedForWalEvents() }
-    val isEventTable = eventColumns.isNotEmpty()
+    context(_: SpecContext)
+    val eventColumns
+        get() = with(name.schema.dbName.toContext()) {
+            columns.filter { it.type.isSupportedForWalEvents() }
+        }
+
+    context(_: SpecContext)
+    val isEventTable get() = eventColumns.isNotEmpty()
 
     context(c: CodeGenContext)
     val constraintsTypeName

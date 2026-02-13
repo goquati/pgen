@@ -22,6 +22,7 @@ internal fun generateCode(
 
     CodeGenContext(
         config = config,
+        specContext = spec.toSpecContext(config),
         typeGroups = spec.tables.getColumnTypeGroups(),
     ).run {
         DirectorySyncService(

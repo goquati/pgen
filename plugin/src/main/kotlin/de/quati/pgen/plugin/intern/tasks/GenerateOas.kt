@@ -8,6 +8,7 @@ import de.quati.pgen.plugin.intern.model.oas.OasGenContext
 import de.quati.pgen.plugin.intern.model.oas.TableOasData
 import de.quati.pgen.plugin.intern.model.sql.PgenSpec
 import de.quati.pgen.plugin.intern.service.DirectorySyncService
+import de.quati.pgen.plugin.intern.util.codegen.SpecContext
 import de.quati.pgen.plugin.intern.util.codegen.oas.toOpenApi
 import org.gradle.internal.logging.text.StyledTextOutput
 
@@ -18,8 +19,9 @@ internal fun generateOas(
 ) {
     val spec = spec ?: config.loadSpec()
     val oasConfig = config.oas ?: return
-    val oasTables = getOasTables(config, spec).takeIf { it.isNotEmpty() } ?: return
-    val commonData = getOasCommon(config, spec)
+    val specContext = spec.toSpecContext(config)
+    val oasTables = with(specContext) { getOasTables(config, spec).takeIf { it.isNotEmpty() } } ?: return
+    val commonData = with(specContext) { getOasCommon(config, spec) }
     OasGenContext(
         pathPrefix = oasConfig.pathPrefix,
         meta = MetaOasData(
@@ -42,17 +44,20 @@ internal fun generateOas(
     }
 }
 
-
+context(_: SpecContext)
 internal fun getOasTables(config: Config, spec: PgenSpec): List<TableOasData> {
     val oasConfig = config.oas ?: return emptyList()
     val tableConfigs = oasConfig.tables.associateBy { it.name }
     val oasTables = spec.tables.mapNotNull { table ->
         val tableConfig = tableConfigs[table.name] ?: return@mapNotNull null
-        TableOasData.fromData(table, config = tableConfig)
+        with(table.dbName.toContext()) {
+            TableOasData.fromData(table, config = tableConfig)
+        }
     }
     return oasTables
 }
 
+context(_: SpecContext)
 internal fun getOasCommon(config: Config, spec: PgenSpec): CommonOasData? {
     val oasTables = getOasTables(config, spec).takeIf { it.isNotEmpty() } ?: emptyList()
     val validEnumNames = oasTables.flatMap { it.fields }.map { it.type.getEnumNameOrNull() }

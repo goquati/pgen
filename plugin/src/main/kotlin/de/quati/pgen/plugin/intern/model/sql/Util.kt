@@ -1,10 +1,15 @@
 package de.quati.pgen.plugin.intern.model.sql
 
+import de.quati.pgen.plugin.intern.util.codegen.SpecContext
+import de.quati.pgen.plugin.intern.util.codegen.oas.DbContext
+
+context(c: SpecContext, d: DbContext)
 internal fun Column.Type.isSupportedForWalEvents(): Boolean = when (this) {
-    is Column.Type.CustomPrimitive,
+    is Column.Type.Reference -> c.getRefTypeOrThrow(this).isSupportedForWalEvents()
+    is Column.Type.CustomType,
     is Column.Type.NonPrimitive.Array,
     is Column.Type.NonPrimitive.Composite,
-    is Column.Type.NonPrimitive.Reference,
+    is Column.Type.NonPrimitive.Overwrite,
     is Column.Type.NonPrimitive.Numeric,
     is Column.Type.NonPrimitive.PgVector,
     Column.Type.Primitive.BINARY,
@@ -36,5 +41,7 @@ internal fun Column.Type.isSupportedForWalEvents(): Boolean = when (this) {
     is Column.Type.NonPrimitive.Enum,
         -> true
 
-    is Column.Type.NonPrimitive.Domain -> originalType.isSupportedForWalEvents()
+    is Column.Type.NonPrimitive.Domain -> with(d) {
+        originalType.isSupportedForWalEvents()
+    }
 }

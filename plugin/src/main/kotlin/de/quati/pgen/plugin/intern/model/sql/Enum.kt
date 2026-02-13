@@ -6,4 +6,7 @@ import kotlinx.serialization.Serializable
 internal data class Enum(
     override val name: SqlObjectName,
     val fields: List<String>,
-) : SqlObject
+) : SqlObject {
+    val type get() = Column.Type.NonPrimitive.Enum(name)
+
+}

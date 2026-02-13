@@ -8,12 +8,12 @@ import de.quati.pgen.plugin.intern.model.sql.Column
 import de.quati.pgen.plugin.intern.model.sql.KotlinValueClass
 import de.quati.pgen.plugin.intern.model.sql.SqlColumnName
 import de.quati.pgen.plugin.intern.model.sql.Table
-import de.quati.pgen.plugin.intern.util.codegen.oas.DbContext
 
 internal class CodeGenContext(
     config: Config,
+    specContext: SpecContext,
     typeGroups: List<Set<SqlColumnName>>,
-) {
+) : SpecContext by specContext {
     val rootPackageName = config.packageName
     val connectionType = config.connectionType
     val typeMappings = config.dbConfigs.flatMap(Config.Db::typeMappings)
@@ -22,13 +22,6 @@ internal class CodeGenContext(
         .associate { it.sqlType to it.enumClass }
     val typeOverwrites = config.dbConfigs.flatMap(Config.Db::typeOverwrites)
         .associate { it.sqlColumn to it.valueClass }
-
-    val columnTypeMappings = config.dbConfigs.flatMap(Config.Db::columnTypeMappings).associateBy { it.sqlType }
-
-    context(d: DbContext)
-    fun getColumnTypeMapping(type: Column.Type.CustomPrimitive) =
-        columnTypeMappings[type.sqlObjectName] ?: error("no column type mapping for ${type.sqlObjectName}")
-
     val localConfigContext = config.oas?.localConfigContext?.let { c ->
         c.copy(
             type = ClassName(
@@ -51,9 +44,9 @@ internal class CodeGenContext(
     fun Table.update(): Table {
         val newColumns = columns.map { column ->
             val columnName = SqlColumnName(tableName = name, name = column.name.value)
-            if (column.type is Column.Type.NonPrimitive.Reference) return@map column
+            if (column.type is Column.Type.NonPrimitive.Overwrite) return@map column
             val kotlinClass = allTypeOverwrites[columnName] ?: return@map column
-            val newType = Column.Type.NonPrimitive.Reference(
+            val newType = Column.Type.NonPrimitive.Overwrite(
                 valueClass = kotlinClass,
                 originalType = when (val t = column.type) {
                     is Column.Type.NonPrimitive.Domain -> t.originalType

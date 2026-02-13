@@ -3,6 +3,7 @@ package de.quati.pgen.plugin.intern.model.config
 import com.squareup.kotlinpoet.ClassName
 import de.quati.kotlin.util.poet.PackageName
 import de.quati.pgen.plugin.CRUD
+import de.quati.pgen.plugin.intern.model.sql.Column
 import de.quati.pgen.plugin.intern.model.sql.DbName
 import de.quati.pgen.plugin.intern.model.sql.SqlObjectName
 import java.nio.file.Path
@@ -58,7 +59,7 @@ internal data class Config(
         val typeMappings: Set<TypeMapping>,
         val enumMappings: Set<EnumMapping>,
         val typeOverwrites: Set<TypeOverwrite>,
-        val columnTypeMappings: Set<ColumnTypeMapping>,
+        val columnTypeMappings: Set<Column.Type.CustomType>,
         val flyway: Flyway?,
     ) {
         data class Flyway(

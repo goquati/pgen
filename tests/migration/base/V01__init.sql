@@ -21,6 +21,7 @@ create type public.address as
 -- Domain based on uuid
 create domain public.user_id as uuid;
 create domain public.order_id as uuid;
+create domain public.email as text;
 
 -- Domain based on text
 create domain public.non_empty_text_domain as text
@@ -240,6 +241,20 @@ create table public.uuid_array_test_table
     key           text primary key,
     data          uuid[] not null,
     data_nullable uuid[]
+);
+
+create table public.uuid_domain_array_test_table
+(
+    key           text primary key,
+    data          public.user_id[] not null,
+    data_nullable public.user_id[]
+);
+
+create table public.text_domain_array_test_table
+(
+    key           text primary key,
+    data          public.email[] not null,
+    data_nullable public.email[]
 );
 
 -- test for name conflicts:

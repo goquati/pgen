@@ -571,6 +571,23 @@ tables:
     columnNames:
     - "group_id"
     - "name"
+- name: "foo.public.text_domain_array_test_table"
+  columns:
+  - name: "key"
+    type: "text"
+  - name: "data"
+    type:
+      type: "array"
+      elementType: "public.email"
+  - name: "data_nullable"
+    type:
+      type: "array"
+      elementType: "public.email"
+    isNullable: true
+  primaryKey:
+    keyName: "text_domain_array_test_table_pkey"
+    columnNames:
+    - "key"
 - name: "foo.public.update_entity"
   columns:
   - name: "id"
@@ -640,6 +657,23 @@ tables:
     keyName: "uuid_array_test_table_pkey"
     columnNames:
     - "key"
+- name: "foo.public.uuid_domain_array_test_table"
+  columns:
+  - name: "key"
+    type: "text"
+  - name: "data"
+    type:
+      type: "array"
+      elementType: "public.user_id"
+  - name: "data_nullable"
+    type:
+      type: "array"
+      elementType: "public.user_id"
+    isNullable: true
+  primaryKey:
+    keyName: "uuid_domain_array_test_table_pkey"
+    columnNames:
+    - "key"
 enums:
 - name: "foo.public.order_status"
   fields:
@@ -667,4 +701,7 @@ compositeTypes:
   - name: "country"
     type: "text"
     isNullable: true
+additionalDomainTypes:
+- name: "foo.public.email"
+  originalType: "text"
 statements: []

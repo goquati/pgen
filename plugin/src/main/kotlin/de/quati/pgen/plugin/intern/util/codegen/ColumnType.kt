@@ -11,13 +11,14 @@ import java.math.BigDecimal
 
 context(c: CodeGenContext, _: DbContext)
 internal fun Column.Type.getTypeName(innerArrayType: Boolean = true): TypeName = when (this) {
+    is Column.Type.Reference -> c.getRefTypeOrThrow(this).getTypeName(innerArrayType = innerArrayType)
     is Column.Type.NonPrimitive.Array -> if (innerArrayType)
         elementType.getTypeName()
     else
         List::class.asTypeName().parameterizedBy(elementType.getTypeName())
 
     is Column.Type.NonPrimitive.Domain -> getDomainTypename()
-    is Column.Type.NonPrimitive.Reference -> getValueClass().name.poet
+    is Column.Type.NonPrimitive.Overwrite -> getValueClass().name.poet
     is Column.Type.NonPrimitive.Enum -> name.typeName
     is Column.Type.NonPrimitive.PgVector -> FloatArray::class.asTypeName()
     is Column.Type.NonPrimitive.Composite -> name.typeName
@@ -46,13 +47,14 @@ internal fun Column.Type.getTypeName(innerArrayType: Boolean = true): TypeName =
     Column.Type.Primitive.UUID -> c.poet.uuid
     Column.Type.Primitive.UNCONSTRAINED_NUMERIC -> BigDecimal::class.asTypeName()
     Column.Type.Primitive.REG_CLASS -> Poet.Pgen.Shared.regClass
-    is Column.Type.CustomPrimitive -> c.getColumnTypeMapping(this).value.poet
+    is Column.Type.CustomType -> value.poet
 }
 
 private fun codeBlock(format: String, vararg args: Any) = CodeBlock.builder().add(format, *args).build()
 
 context(c: CodeGenContext, _: DbContext)
 internal fun Column.Type.getExposedColumnType(): CodeBlock = when (this) {
+    is Column.Type.Reference -> c.getRefTypeOrThrow(this).getExposedColumnType()
     is Column.Type.NonPrimitive.Array ->
         codeBlock("%T(%L)", Poet.Pgen.getArrayColumnType, elementType.getExposedColumnType())
 
@@ -76,7 +78,7 @@ internal fun Column.Type.getExposedColumnType(): CodeBlock = when (this) {
     is Column.Type.NonPrimitive.Domain ->
         codeBlock("%T(kClass=%T::class, sqlType=%S)", Poet.Pgen.domainTypeColumn, getDomainTypename(), sqlType)
 
-    is Column.Type.NonPrimitive.Reference ->
+    is Column.Type.NonPrimitive.Overwrite ->
         codeBlock(
             "%T(kClass=%T::class, sqlType=%S)",
             Poet.Pgen.domainTypeColumn,
@@ -108,5 +110,18 @@ internal fun Column.Type.getExposedColumnType(): CodeBlock = when (this) {
     Column.Type.Primitive.JSONB -> codeBlock("%T()", Poet.Pgen.defaultJsonColumnType)
     Column.Type.Primitive.UNCONSTRAINED_NUMERIC -> codeBlock("%T()", Poet.Pgen.unconstrainedNumericColumnType)
     Column.Type.Primitive.REG_CLASS -> codeBlock("%T()", Poet.Pgen.regClassColumnType)
-    is Column.Type.CustomPrimitive -> codeBlock("%T()", c.getColumnTypeMapping(this).columnType.poet)
+    is Column.Type.CustomType -> codeBlock("%T()", columnType.poet)
+}
+
+internal fun Column.Type.toSqlObjectNameOrNull() = when (this) {
+    is Column.Type.NonPrimitive.Domain -> name
+    is Column.Type.NonPrimitive.Enum -> name
+    is Column.Type.NonPrimitive.Composite -> name
+    is Column.Type.Reference,
+    is Column.Type.CustomType,
+    is Column.Type.NonPrimitive.Overwrite,
+    is Column.Type.NonPrimitive.Array,
+    is Column.Type.NonPrimitive.Numeric,
+    is Column.Type.NonPrimitive.PgVector,
+    is Column.Type.Primitive -> null
 }

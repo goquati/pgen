@@ -58,6 +58,33 @@ internal data class Column(
     sealed interface Type {
         val sqlType: String
 
+        data class Reference(override val sqlType: String) : Type {
+            constructor(name: SqlObjectName) : this("${name.schema.schemaName}.${name.name}")
+
+            context(c: DbContext)
+            val name
+                get(): SqlObjectName {
+                    val (schemaName, typeName) = sqlType.split(".")
+                        .also { require(it.size == 2) { "invalid sql type name '$sqlType'" } }
+                    return SqlObjectName(
+                        schema = SchemaName(
+                            dbName = c.dbName,
+                            schemaName = schemaName
+                        ),
+                        name = typeName
+                    )
+                }
+        }
+
+        data class CustomType(
+            val name: SqlObjectName,
+            val columnType: KotlinClassName,
+            val value: KotlinClassName,
+        ) : Type {
+            override val sqlType get() = "${name.schema.schemaName}.${name.name}"
+            fun toRef() = Reference(name)
+        }
+
         @Serializable
         sealed interface NonPrimitive : Type {
             val primitiveElementTypeOrNull: Primitive? get() = null
@@ -144,7 +171,7 @@ internal data class Column(
 
             @Serializable
             @SerialName("reference")
-            data class Reference(
+            data class Overwrite(
                 private val valueClass: KotlinValueClass,
                 override val originalType: Type,
             ) : DomainType {
@@ -157,23 +184,6 @@ internal data class Column(
                 context(c: CodeGenContext)
                 override fun getValueClass(): KotlinValueClass = valueClass
             }
-        }
-
-        data class CustomPrimitive(override val sqlType: String) : Type {
-
-            context(c: DbContext)
-            val sqlObjectName
-                get(): SqlObjectName {
-                    val (schemaName, typeName) = sqlType.split(".")
-                        .also { require(it.size == 2) { "invalid sql type name '$sqlType'" } }
-                    return SqlObjectName(
-                        schema = SchemaName(
-                            dbName = c.dbName,
-                            schemaName = schemaName
-                        ),
-                        name = typeName
-                    )
-                }
         }
 
         enum class Primitive(override val sqlType: String) : Type {
