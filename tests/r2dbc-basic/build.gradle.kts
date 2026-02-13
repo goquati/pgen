@@ -39,7 +39,7 @@ pgen {
             password("postgres")
         }
         flyway { // optional
-            migrationDirectory("$projectDir/src/main/resources/migration/foo")
+            migrationDirectory("$projectDir/../migration/base")
         }
         tableFilter {
             addSchemas("public")
@@ -73,7 +73,7 @@ pgen {
             password("postgres")
         }
         flyway { // optional
-            migrationDirectory("$projectDir/src/main/resources/migration/bar")
+            migrationDirectory("$projectDir/../migration/vector")
         }
         tableFilter {
             addSchemas("public")

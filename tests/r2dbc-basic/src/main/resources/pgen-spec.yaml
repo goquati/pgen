@@ -255,7 +255,7 @@ tables:
   - name: "name"
     type: "text"
   primaryKey:
-    keyName: "event_entity_pkey"
+    keyName: "event_entity_id_pk"
     columnNames:
     - "id"
 - name: "foo.public.flyway_schema_history"

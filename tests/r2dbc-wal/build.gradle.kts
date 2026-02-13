@@ -40,7 +40,7 @@ pgen {
             password("postgres")
         }
         flyway { // optional
-            migrationDirectory("$projectDir/src/main/resources/migration")
+            migrationDirectory("$projectDir/../migration/wal")
         }
         tableFilter {
             addSchemas("public")
