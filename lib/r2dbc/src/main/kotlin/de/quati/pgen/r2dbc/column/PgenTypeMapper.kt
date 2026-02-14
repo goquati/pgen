@@ -6,14 +6,17 @@ import de.quati.pgen.core.column.PgenColumnType
 import io.r2dbc.postgresql.codec.PostgresTypes
 import io.r2dbc.postgresql.codec.PostgresqlObjectId
 import io.r2dbc.spi.Parameters
+import io.r2dbc.spi.Row
 import io.r2dbc.spi.Statement
 import io.r2dbc.spi.Type
 import org.jetbrains.exposed.v1.core.CustomEnumerationColumnType
 import org.jetbrains.exposed.v1.core.IColumnType
 import org.jetbrains.exposed.v1.core.vendors.DatabaseDialect
 import org.jetbrains.exposed.v1.core.vendors.PostgreSQLDialect
+import org.jetbrains.exposed.v1.r2dbc.mappers.PresentValueContainer
 import org.jetbrains.exposed.v1.r2dbc.mappers.R2dbcTypeMapping
 import org.jetbrains.exposed.v1.r2dbc.mappers.TypeMapper
+import org.jetbrains.exposed.v1.r2dbc.mappers.ValueContainer
 import kotlin.reflect.KClass
 
 
@@ -29,9 +32,26 @@ public class PgenTypeMapper : TypeMapper {
         IntervalColumnType::class,
         CompositeColumnType::class,
         PgenColumnType::class,
-        PgenEnumArrayColumnType::class,
+        PgenArrayColumnType::class,
         CustomEnumerationColumnType::class,
     )
+
+    override fun <T> getValue(
+        row: Row,
+        type: Class<T>?,
+        index: Int,
+        dialect: DatabaseDialect,
+        columnType: IColumnType<*>
+    ): ValueContainer<T?> {
+        return when (columnType) {
+            is PgenArrayColumnType<*, *> ->
+                @Suppress("UNCHECKED_CAST") PresentValueContainer(
+                    row.get(index - 1, columnType.dbClassType.java) as T
+                )
+
+            else -> super.getValue(row, type, index, dialect, columnType)
+        }
+    }
 
     override fun setValue(
         statement: Statement,
@@ -59,8 +79,7 @@ public class PgenTypeMapper : TypeMapper {
             is Int8RangeColumnType -> bind(INT8RANGE_TYPE, value)
             is Int4MultiRangeColumnType -> bind(INT4MULTIRANGE_TYPE, value)
             is Int8MultiRangeColumnType -> bind(INT8MULTIRANGE_TYPE, value)
-            is PgenEnumArrayColumnType<*, *> -> bind(PostgresqlObjectId.UNSPECIFIED, value)
-            is PgenUuidArrayColumnType -> bind(PostgresqlObjectId.UNSPECIFIED, value)
+            is PgenArrayColumnType<*, *> -> bind(columnType.oid, value)
 
             is CustomEnumerationColumnType -> if (value !is PgenEnum)
                 false // only pgen enums, skip other enum types

@@ -8,11 +8,17 @@ internal interface SpecContext {
     val referencesMapping: Map<SqlObjectName, Column.Type>
 
     context(c: DbContext)
-    fun getRefTypeOrThrow(ref: Column.Type.Reference): Column.Type {
+    fun resolve(type: Column.Type): Column.Type.Actual = when (type) {
+        is Column.Type.Reference -> getRefTypeOrThrow(type)
+        is Column.Type.Actual -> type
+    }
+
+    context(c: DbContext)
+    private fun getRefTypeOrThrow(ref: Column.Type.Reference): Column.Type.Actual {
         return referencesMapping[ref.name]?.takeIf { it != ref }?.let { type ->
             when (type) {
                 is Column.Type.Reference -> getRefTypeOrThrow(type)
-                else -> type
+                is Column.Type.Actual -> type
             }
         } ?: error("Reference not found: $ref")
     }

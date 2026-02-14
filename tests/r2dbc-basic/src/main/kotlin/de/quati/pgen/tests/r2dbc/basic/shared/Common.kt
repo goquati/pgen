@@ -4,4 +4,6 @@ import kotlin.uuid.Uuid
 
 @OptIn(kotlin.uuid.ExperimentalUuidApi::class)
 @JvmInline
-value class UserId(val value: Uuid)
+value class UserId(val value: Uuid) {
+    constructor(value: String) : this(Uuid.parse(value))
+}

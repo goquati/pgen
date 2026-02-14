@@ -4,8 +4,7 @@ import de.quati.pgen.plugin.intern.util.codegen.SpecContext
 import de.quati.pgen.plugin.intern.util.codegen.oas.DbContext
 
 context(c: SpecContext, d: DbContext)
-internal fun Column.Type.isSupportedForWalEvents(): Boolean = when (this) {
-    is Column.Type.Reference -> c.getRefTypeOrThrow(this).isSupportedForWalEvents()
+internal fun Column.Type.isSupportedForWalEvents(): Boolean = when (val type = c.resolve(this)) {
     is Column.Type.CustomType,
     is Column.Type.NonPrimitive.Array,
     is Column.Type.NonPrimitive.Composite,
@@ -42,6 +41,6 @@ internal fun Column.Type.isSupportedForWalEvents(): Boolean = when (this) {
         -> true
 
     is Column.Type.NonPrimitive.Domain -> with(d) {
-        originalType.isSupportedForWalEvents()
+        type.originalType.isSupportedForWalEvents()
     }
 }

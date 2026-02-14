@@ -2,10 +2,8 @@ package de.quati.pgen.r2dbc.column
 
 import de.quati.pgen.shared.PgenEnum
 import org.jetbrains.exposed.v1.core.Column
-import org.jetbrains.exposed.v1.core.ColumnType
 import org.jetbrains.exposed.v1.core.CustomEnumerationColumnType
 import org.jetbrains.exposed.v1.core.Table
-import org.jetbrains.exposed.v1.core.statements.api.RowApi
 
 public inline fun <reified T> Table.pgenEnumColumnType(
     name: String,
@@ -28,68 +26,4 @@ public inline fun <reified T> Table.pgenEnum(
 ): Column<T> where T : PgenEnum, T : Enum<T> {
     val enumColumnType = pgenEnumColumnType<T>(name = name, sql = sql)
     return registerColumn(name = name, type = enumColumnType)
-}
-
-public inline fun <reified T> Table.pgenEnumArray(
-    name: String,
-    sql: String,
-): Column<List<T>> where T : PgenEnum, T : Enum<T> {
-    val enumColumnType = pgenEnumColumnType<T>(name = "${name}_element", sql = sql)
-    return registerColumn(name = name, type = PgenEnumArrayColumnType(enumColumnType))
-}
-
-
-public class PgenEnumArrayColumnType<T, R : List<Any?>>(
-    public val delegate: CustomEnumerationColumnType<T>,
-) : ColumnType<R>() where T : PgenEnum, T : Enum<T> {
-
-    override fun sqlType(): String = delegate.sqlType() + "[]"
-
-    @Suppress("UNCHECKED_CAST")
-    override fun notNullValueToDB(value: R): Any = (value as List<T>)
-        .map { delegate.notNullValueToDB(it) }
-        .map { (it as PgenEnum).pgenEnumLabel }
-        .joinToString(separator = ",", prefix = "{", postfix = "}") { it }
-
-    @Suppress("UNCHECKED_CAST")
-    override fun valueFromDB(value: Any): R? {
-        return when (value) {
-            is Array<*> -> recursiveValueFromDB(value.toList()) as R?
-            is List<*> -> recursiveValueFromDB(value) as R?
-            is java.sql.Array -> recursiveValueFromDB((value.array as Array<*>).toList()) as R?
-            is String -> {
-                if (!value.startsWith("{")) error("Invalid array literal: $value")
-                val elements = if (value == "{}")
-                    emptyList()
-                else
-                    value.removePrefix("{").removeSuffix("}").split(",")
-                recursiveValueFromDB(elements) as R?
-            }
-
-            else -> value as R?
-        }
-    }
-
-    private fun recursiveValueFromDB(value: List<*>): List<Any?> =
-        value.map { it?.let { delegate.valueFromDB(it) } }
-
-    override fun readObject(rs: RowApi, index: Int): Any? = rs.getObject(index)
-
-    override fun nonNullValueToString(value: R): String {
-        @Suppress("UNCHECKED_CAST")
-        return ARRAY_LITERAL_PREFIX + (value as List<T>).joinToString(",", "[", "]") {
-            it.let { delegate.nonNullValueToString(it) }
-        }
-    }
-
-    override fun nonNullValueAsDefaultString(value: R): String {
-        @Suppress("UNCHECKED_CAST")
-        return ARRAY_LITERAL_PREFIX + (value as List<T>).joinToString(",", "[", "]") {
-            it.let { delegate.nonNullValueAsDefaultString(it) }
-        }
-    }
-
-    private companion object {
-        private const val ARRAY_LITERAL_PREFIX = "ARRAY"
-    }
 }

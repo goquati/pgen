@@ -14,6 +14,7 @@ import de.quati.kotlin.util.poet.dsl.addProperty
 import de.quati.kotlin.util.poet.dsl.buildDataClass
 import de.quati.kotlin.util.poet.dsl.buildObject
 import de.quati.kotlin.util.poet.dsl.getter
+import de.quati.kotlin.util.poet.dsl.initializer
 import de.quati.kotlin.util.poet.dsl.primaryConstructor
 import de.quati.pgen.plugin.intern.model.sql.Table
 import de.quati.kotlin.util.poet.makeDifferent
@@ -63,17 +64,18 @@ internal fun Table.toTypeSpecInternal() = buildObject(this@toTypeSpecInternal.na
             name = column.prettyName,
             type = Poet.Exposed.column.parameterizedBy(column.getColumnTypeName()),
         ) {
-            val postArgs = mutableListOf<Any>()
-            val postfix = buildString {
-                foreignKeysSingle[column.name]?.let { fKey ->
-                    append(".references(ref = %T.${fKey.reference.targetColumn.pretty}, fkName = %S)")
-                    postArgs.add(fKey.targetTable.typeName)
-                    postArgs.add(fKey.name)
+            initializer {
+                add(initializerBlock(column))
+                column.getDefaultExpression()?.also { add(it) }
+                foreignKeysSingle[column.name]?.also { fKey ->
+                    add(
+                        ".references(ref = %T.${fKey.reference.targetColumn.pretty}, fkName = %S)",
+                        fKey.targetTable.typeName, fKey.name,
+                    )
                 }
                 if (column.isNullable)
-                    append(".nullable()")
+                    add(".nullable()")
             }
-            initializer(column, postfix = postfix, postArgs = postArgs)
         }
     }
     if (this@toTypeSpecInternal.primaryKey != null) {

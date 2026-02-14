@@ -34,8 +34,7 @@ internal sealed interface TableFieldTypeOasData {
 
     companion object {
         context(c: SpecContext, _ : DbContext)
-        fun fromData(type: Column.Type): TableFieldTypeOasData = when (type) {
-            is Column.Type.Reference -> fromData(c.getRefTypeOrThrow(type))
+        fun fromData(type: Column.Type): TableFieldTypeOasData = when (val type = c.resolve(type)) {
             is Column.Type.NonPrimitive.Array -> Array(items = fromData(type.elementType))
             is Column.Type.NonPrimitive.Domain -> Type(type = "string", format = type.name.name.toKebabCase())
             is Column.Type.NonPrimitive.Overwrite ->

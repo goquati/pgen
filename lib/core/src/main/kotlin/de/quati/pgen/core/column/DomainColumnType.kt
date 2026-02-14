@@ -45,8 +45,23 @@ public class DomainColumnType<T : Any, R>(
         val innerValue = originType.valueFromDB(value)
         return builder(innerValue)
     }
-}
 
+    public companion object {
+        public inline fun <reified T : Any, R> create(
+            sqlType: String,
+            originType: IColumnType<R>,
+            noinline builder: (R?) -> T,
+        ): DomainColumnType<T, R> {
+            val type = DomainColumnType(
+                kClass = T::class,
+                sqlType = sqlType,
+                originType = originType,
+                builder = builder,
+            )
+            return type
+        }
+    }
+}
 
 public inline fun <reified T : Any, R> Table.domainType(
     name: String,
@@ -54,11 +69,6 @@ public inline fun <reified T : Any, R> Table.domainType(
     originType: IColumnType<R>,
     noinline builder: (R?) -> T,
 ): Column<T> {
-    val type = DomainColumnType(
-        kClass = T::class,
-        sqlType = sqlType,
-        originType = originType,
-        builder = builder,
-    )
+    val type = DomainColumnType.create(sqlType = sqlType, originType = originType, builder = builder)
     return registerColumn(name = name, type = type)
 }

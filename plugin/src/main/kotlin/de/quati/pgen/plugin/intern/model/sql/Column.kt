@@ -58,6 +58,8 @@ internal data class Column(
     sealed interface Type {
         val sqlType: String
 
+        sealed interface Actual : Type
+
         data class Reference(override val sqlType: String) : Type {
             constructor(name: SqlObjectName) : this("${name.schema.schemaName}.${name.name}")
 
@@ -80,13 +82,13 @@ internal data class Column(
             val name: SqlObjectName,
             val columnType: KotlinClassName,
             val value: KotlinClassName,
-        ) : Type {
+        ) : Actual {
             override val sqlType get() = "${name.schema.schemaName}.${name.name}"
             fun toRef() = Reference(name)
         }
 
         @Serializable
-        sealed interface NonPrimitive : Type {
+        sealed interface NonPrimitive : Actual {
             val primitiveElementTypeOrNull: Primitive? get() = null
 
             @Serializable
@@ -186,7 +188,7 @@ internal data class Column(
             }
         }
 
-        enum class Primitive(override val sqlType: String) : Type {
+        enum class Primitive(override val sqlType: String) : Actual {
             BOOL("bool"),
             BINARY("bytea"),
             DATE("date"),

@@ -205,6 +205,7 @@ internal object Poet {
 
         val domainType = packageNameCoreColumnType.className("domainType")
         val domainTypeColumn = packageNameCoreColumnType.className("DomainTypeColumn")
+        val domainColumnType = packageNameCoreColumnType.className("DomainColumnType")
 
         val getArrayColumnType = packageNameCoreColumnType.className("getArrayColumnType")
 
@@ -271,8 +272,14 @@ internal object Poet {
 
         context(c: CodeGenContext)
         val pgenUuidArray get() = when (c.connectionType) {
-            Config.ConnectionType.JDBC -> throw NotImplementedError("pgenUuidArray")
+            Config.ConnectionType.JDBC -> throw NotImplementedError("pgenUuidArray for JDBC")
             Config.ConnectionType.R2DBC -> packageNameDriverColumnType.className("pgenUuidArray")
+        }
+
+        context(c: CodeGenContext)
+        val pgenDomainArray get() = when (c.connectionType) {
+            Config.ConnectionType.JDBC -> throw NotImplementedError("pgenDomainArray for JDBC")
+            Config.ConnectionType.R2DBC -> packageNameDriverColumnType.className("pgenDomainArray")
         }
 
         context(c: CodeGenContext)

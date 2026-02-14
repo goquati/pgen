@@ -110,8 +110,9 @@ internal fun CompositeType.toTypeSpecInternal() = buildDataClass(this@toTypeSpec
 }
 
 context(c: CodeGenContext, _: DbContext)
-private fun CodeBlock.Builder.addPgFieldConverter(type: Column.Type): CodeBlock.Builder = when (type) {
-    is Column.Type.Reference -> addPgFieldConverter(c.getRefTypeOrThrow(type))
+private fun CodeBlock.Builder.addPgFieldConverter(
+    type: Column.Type,
+): CodeBlock.Builder = when (val type = c.resolve(type)) {
     Column.Type.Primitive.BOOL,
     Column.Type.Primitive.DATE,
     Column.Type.Primitive.FLOAT4,
