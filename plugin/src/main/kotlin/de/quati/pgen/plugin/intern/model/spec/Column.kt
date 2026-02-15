@@ -196,6 +196,14 @@ internal data class Column(
             REG_CLASS("regclass");
 
             override val sqlType get() = SqlType(sqlTypeName)
+
+            companion object {
+                fun parse(name: String): Primitive {
+                    val type = SqlType.parse(name)
+                    return Primitive.entries.firstOrNull { it.sqlType == type }
+                        ?: error("undefined primitive type name '$name'")
+                }
+            }
         }
     }
 }

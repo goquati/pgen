@@ -4,8 +4,9 @@ import de.quati.pgen.plugin.intern.model.config.Config
 import de.quati.pgen.plugin.intern.model.config.SqlObjectFilter
 import de.quati.pgen.plugin.intern.model.spec.Column
 import de.quati.pgen.plugin.intern.model.spec.PgenSpec
-import de.quati.pgen.plugin.intern.service.DbService
+import de.quati.pgen.plugin.intern.service.db.DbServicePostgres
 import de.quati.pgen.plugin.intern.codegen.toSqlObjectNameOrNull
+import de.quati.pgen.plugin.intern.service.db.DbService
 import de.quati.pgen.plugin.intern.util.parseStatements
 import kotlin.io.path.createParentDirectories
 import kotlin.io.path.writeText
@@ -21,10 +22,12 @@ internal fun generateSpec(config: Config) {
 }
 
 internal fun generateDbSpec(config: Config.Db): PgenSpec.Database {
-    return DbService(
+    val dbService: DbService = DbServicePostgres(
         columnTypeMappings = config.columnTypeMappings,
         connectionConfig = config.connection ?: error("no DB connection config defined")
-    ).use { dbService ->
+    )
+
+    return dbService.use { dbService ->
         val statements = dbService.getStatements(parseStatements(config.statementScripts))
         val tables = dbService.getTablesWithForeignTables(config.tableFilter)
         val allColumnTypes = tables.asSequence().flatMap { it.columns }.map { it.type }
