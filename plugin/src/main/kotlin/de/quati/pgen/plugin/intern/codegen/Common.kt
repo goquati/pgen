@@ -82,8 +82,6 @@ internal object Poet {
         val time = packageNameDatetime.className("time")
         val timestamp = packageNameDatetime.className("timestamp")
         val timestampWithTimeZone = packageNameDatetime.className("timestampWithTimeZone")
-        val defaultExpTimestamp = packageNameDatetime.className("CurrentTimestamp")
-        val defaultExpTimestampZ = packageNameDatetime.className("CurrentTimestampWithTimeZone")
         val kotlinLocalDateColumnType = packageNameDatetime.className("KotlinLocalDateColumnType")
         val kotlinLocalTimeColumnType = packageNameDatetime.className("KotlinLocalTimeColumnType")
         val kotlinInstantColumnType = packageNameDatetime.className("KotlinInstantColumnType")
@@ -158,7 +156,6 @@ internal object Poet {
     object Pgen {
         private val packageNamePgen = PackageName("de.quati.pgen")
         private val packageNameCore = packageNamePgen.plus("core")
-        private val packageNameCoreUtil = packageNameCore.plus("util")
         private val packageNameCoreColumnType = packageNameCore.plus("column")
 
         object Shared {
@@ -173,6 +170,13 @@ internal object Poet {
             val walEventChangePayload = packageNameShared.className("WalEvent", "Change", "Payload")
             val walEventMetaData = packageNameShared.className("WalEvent", "MetaData")
             val walEventMessage = packageNameShared.className("WalEvent", "Message")
+        }
+        object Util {
+            private val packageNameCoreUtil = packageNameCore.plus("util")
+            val parseColumn = packageNameCoreUtil.className("parseColumn")
+            val parseColumnNullable = packageNameCoreUtil.className("parseColumnNullable")
+            val getColumnWithAlias = packageNameCoreUtil.className("get")
+            val pgenExpression = packageNameCoreUtil.className("PgenExpression")
         }
 
         context(c: CodeGenContext)
@@ -192,9 +196,6 @@ internal object Poet {
         val pgenWalEventTable = packageNameCore.className("PgenWalEventTable")
         val columnValueSet = packageNameCore.className("ColumnValueSet")
         val columnValue = packageNameCore.className("ColumnValue")
-
-        val parseColumn = packageNameCoreUtil.className("parseColumn")
-        val parseColumnNullable = packageNameCoreUtil.className("parseColumnNullable")
 
         val compositeColumnType = packageNameCoreColumnType.className("CompositeColumnType")
 
@@ -285,8 +286,6 @@ internal object Poet {
 
         context(c: CodeGenContext)
         val pgenEnumColumnType get() = packageNameDriverColumnType.className("pgenEnumColumnType")
-
-        val getColumnWithAlias = packageNameCoreUtil.className("get")
 
         context(c: CodeGenContext)
         val setLocalConfig

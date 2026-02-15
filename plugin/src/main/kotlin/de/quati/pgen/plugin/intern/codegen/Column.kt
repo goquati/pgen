@@ -9,47 +9,6 @@ import de.quati.pgen.plugin.intern.model.spec.Column
 
 
 context(c: CodeGenContext)
-internal fun Column.getDefaultExpression(): CodeBlock? = when (type) {
-    Column.Type.Primitive.TIMESTAMP -> when (defaultExpr) {
-        "now()" -> CodeBlock.of(".defaultExpression(%T)", Poet.Exposed.defaultExpTimestamp)
-        else -> null
-    }
-
-    Column.Type.Primitive.TIMESTAMP_WITH_TIMEZONE -> when (defaultExpr) {
-        "now()" -> CodeBlock.of(".defaultExpression(%T)", Poet.Exposed.defaultExpTimestampZ)
-        else -> null
-    }
-
-    Column.Type.Primitive.UUID -> when (defaultExpr) {
-        "gen_random_uuid()" -> CodeBlock.of(
-            ".defaultExpression(%T(%S, %T()))",
-            Poet.Exposed.customFunction, "gen_random_uuid", c.poet.uuidColumnType,
-        )
-
-        else -> null
-    }
-
-    Column.Type.Primitive.BOOL -> when (defaultExpr) {
-        "false" -> CodeBlock.of(".default(false)")
-        "true" -> CodeBlock.of(".default(true)")
-        else -> null
-    }
-
-    Column.Type.Primitive.INT4, Column.Type.Primitive.INT8 -> {
-        val prefix = "nextval('"
-        val suffix = "'::regclass)"
-        defaultExpr
-            ?.takeIf { it.startsWith(prefix) && it.endsWith(suffix) }
-            ?.removePrefix(prefix)?.removeSuffix(suffix)
-            ?.let { seqName ->
-                CodeBlock.of(".autoIncrement(%S)", seqName)
-            }
-    }
-
-    else -> null
-}
-
-context(c: CodeGenContext)
 internal fun initializerBlock(column: Column): CodeBlock {
     val columnName = column.name.value
     return when (val type = c.resolve(column.type)) {

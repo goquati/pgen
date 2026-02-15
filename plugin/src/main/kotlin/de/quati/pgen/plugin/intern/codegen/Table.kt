@@ -63,7 +63,8 @@ internal fun Table.toTypeSpecInternal() = buildObject(this@toTypeSpecInternal.na
         ) {
             initializer {
                 add(initializerBlock(column))
-                column.getDefaultExpression()?.also { add(it) }
+                if (column.defaultExpr != null)
+                    add(".defaultExpression(%T(%S))", Poet.Pgen.Util.pgenExpression, column.defaultExpr)
                 foreignKeysSingle[column.name]?.also { fKey ->
                     add(
                         ".references(ref = %T.${fKey.reference.targetColumn.pretty}, fkName = %S)",
@@ -217,7 +218,7 @@ private fun Table.toTypeSpecEntity() = buildDataClass(this@toTypeSpecEntity.enti
                     add(
                         "  %L = row.%T(%T.%L, alias),\n",
                         column.prettyName,
-                        Poet.Pgen.getColumnWithAlias,
+                        Poet.Pgen.Util.getColumnWithAlias,
                         tableTypeName,
                         column.prettyName,
                     )
@@ -314,7 +315,7 @@ private fun Table.toTypeSpecEventEntity() = buildDataClass(this@toTypeSpecEventE
                     add(
                         "  %L = row.%T(%T.%L, alias),\n",
                         column.prettyName,
-                        Poet.Pgen.getColumnWithAlias,
+                        Poet.Pgen.Util.getColumnWithAlias,
                         tableTypeName,
                         column.prettyName,
                     )
@@ -332,7 +333,7 @@ private fun Table.toTypeSpecEventEntity() = buildDataClass(this@toTypeSpecEventE
                     add(
                         "  %L = %T(data, %T.%L),\n",
                         column.prettyName,
-                        if (column.nullable) Poet.Pgen.parseColumnNullable else Poet.Pgen.parseColumn,
+                        if (column.nullable) Poet.Pgen.Util.parseColumnNullable else Poet.Pgen.Util.parseColumn,
                         tableTypeName,
                         column.prettyName,
                     )
