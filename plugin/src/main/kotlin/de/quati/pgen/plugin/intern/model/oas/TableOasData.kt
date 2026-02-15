@@ -3,9 +3,8 @@ package de.quati.pgen.plugin.intern.model.oas
 import com.squareup.kotlinpoet.ClassName
 import de.quati.pgen.plugin.CRUD
 import de.quati.pgen.plugin.intern.model.config.Config
-import de.quati.pgen.plugin.intern.model.sql.Table
-import de.quati.pgen.plugin.intern.util.codegen.SpecContext
-import de.quati.pgen.plugin.intern.util.codegen.oas.DbContext
+import de.quati.pgen.plugin.intern.model.spec.Table
+import de.quati.pgen.plugin.intern.codegen.CodeGenContext
 
 private infix fun <T> Set<T>.anyIn(other: Set<T>) = this.intersect(other).isNotEmpty()
 
@@ -36,14 +35,14 @@ internal data class TableOasData(
 
     fun getOasServiceName() = "I${nameCapitalized}Service"
     companion object {
-        context(_: SpecContext, _: DbContext)
+        context(_: CodeGenContext)
         fun fromData(data: Table, config: Config.Oas.Table): TableOasData {
             val fields = data.columns.mapNotNull { column ->
                 val possibleNames = setOf(column.name.value, column.name.pretty)
                 if (possibleNames anyIn config.ignoreFields) return@mapNotNull null
                 TableFieldOasData(
                     name = column.prettyName,
-                    nullable = column.isNullable,
+                    nullable = column.nullable,
                     ignoreAtCreate = possibleNames anyIn config.ignoreFieldsAtCreate,
                     ignoreAtUpdate = possibleNames anyIn config.ignoreFieldsAtUpdate,
                     type = TableFieldTypeOasData.fromData(column.type),

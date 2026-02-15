@@ -10,17 +10,16 @@ import de.quati.pgen.plugin.intern.model.config.SqlObjectFilter.Objects
 import de.quati.pgen.plugin.intern.model.config.SqlObjectFilter.Schemas
 import de.quati.pgen.plugin.intern.model.config.TypeMapping
 import de.quati.pgen.plugin.intern.model.config.TypeOverwrite
-import de.quati.pgen.plugin.intern.model.sql.Column
-import de.quati.pgen.plugin.intern.model.sql.DbName
-import de.quati.pgen.plugin.intern.model.sql.KotlinClassName
-import de.quati.pgen.plugin.intern.model.sql.KotlinEnumClass
-import de.quati.pgen.plugin.intern.model.sql.KotlinValueClass
-import de.quati.pgen.plugin.intern.model.sql.SchemaName
-import de.quati.pgen.plugin.intern.model.sql.SqlColumnName
-import de.quati.pgen.plugin.intern.model.sql.SqlObjectName
+import de.quati.pgen.plugin.intern.model.spec.Column
+import de.quati.pgen.plugin.intern.model.spec.DbName
+import de.quati.pgen.plugin.intern.model.spec.KotlinClassName
+import de.quati.pgen.plugin.intern.model.spec.KotlinEnumClass
+import de.quati.pgen.plugin.intern.model.spec.KotlinValueClass
+import de.quati.pgen.plugin.intern.model.spec.SchemaName
+import de.quati.pgen.plugin.intern.model.spec.SqlColumnName
+import de.quati.pgen.plugin.intern.model.spec.SqlObjectName
 import java.nio.file.Path
 import kotlin.collections.addAll
-import kotlin.collections.plus
 import kotlin.io.path.Path
 
 
@@ -37,6 +36,8 @@ public open class ConfigBuilder internal constructor() {
     public fun packageName(name: String): ConfigBuilder = apply { packageName = name }
     public fun specFilePath(path: String): ConfigBuilder = apply { specFilePath = Path(path) }
     public fun specFilePath(path: Path): ConfigBuilder = apply { specFilePath = path }
+
+    @ExperimentalPgenApi
     public fun oas(block: Oas.() -> Unit): ConfigBuilder = apply { oas = Oas().apply(block).build() }
     public fun useKotlinUuidType(): ConfigBuilder = apply { uuidType = Config.UuidType.KOTLIN }
     public fun useJavaUuidType(): ConfigBuilder = apply { uuidType = Config.UuidType.JAVA }
@@ -73,6 +74,7 @@ public open class ConfigBuilder internal constructor() {
         private var typeOverwrites: Set<TypeOverwrite>? = null
         private var columnTypeMappings: Set<Column.Type.CustomType>? = null
         private var flyway: Config.Db.Flyway? = null
+        private val oasTables: MutableList<Config.Oas.Table> = mutableListOf()
 
         public class StatementCollectionBuilder internal constructor() {
             private val scripts = linkedSetOf<Path>()
@@ -81,20 +83,15 @@ public open class ConfigBuilder internal constructor() {
             internal fun build() = scripts.toSet()
         }
 
-        public class TypeMappingBuilder internal constructor(private val dbName: DbName) {
+        public class TypeMappingBuilder {
             private val mappings = linkedSetOf<TypeMapping>()
             public fun add(
                 sqlType: String,
                 clazz: String,
                 parseFunction: String? = null,
             ): TypeMappingBuilder = apply {
-                val (schemaName, name) = sqlType.takeIfValidAbsoluteClazzName(size = 2)?.split('.')
-                    ?: throw IllegalArgumentException("illegal sqlType '$sqlType', expected format <schema>.<name>")
                 val entity = TypeMapping(
-                    sqlType = SqlObjectName(
-                        schema = SchemaName(dbName = dbName, schemaName = schemaName),
-                        name = name,
-                    ),
+                    sqlType = SqlObjectName.parse(sqlType),
                     valueClass = KotlinValueClass(
                         name = clazz.toKotlinClassName(),
                         parseFunction = parseFunction?.takeIf(String::isNotBlank),
@@ -106,20 +103,15 @@ public open class ConfigBuilder internal constructor() {
             internal fun build() = mappings.toSet()
         }
 
-        public class EnumMappingBuilder internal constructor(private val dbName: DbName) {
+        public class EnumMappingBuilder {
             private val enumMappings = linkedSetOf<EnumMapping>()
             public fun add(
                 sqlType: String,
                 clazz: String,
                 mappings: Map<String, String> = emptyMap(),
             ): EnumMappingBuilder = apply {
-                val (schemaName, name) = sqlType.takeIfValidAbsoluteClazzName(size = 2)?.split('.')
-                    ?: throw IllegalArgumentException("illegal sqlType '$sqlType', expected format <schema>.<name>")
                 val entity = EnumMapping(
-                    sqlType = SqlObjectName(
-                        schema = SchemaName(dbName = dbName, schemaName = schemaName),
-                        name = name,
-                    ),
+                    sqlType = SqlObjectName.parse(sqlType),
                     enumClass = KotlinEnumClass(
                         name = clazz.toKotlinClassName(),
                         mappings = mappings,
@@ -131,26 +123,15 @@ public open class ConfigBuilder internal constructor() {
             internal fun build() = enumMappings.toSet()
         }
 
-        public class TypeOverwriteBuilder internal constructor(private val dbName: DbName) {
+        public class TypeOverwriteBuilder {
             private val overwrites = linkedSetOf<TypeOverwrite>()
             public fun add(
                 sqlColumn: String,
                 clazz: String,
                 parseFunction: String? = null,
             ): TypeOverwriteBuilder = apply {
-                val (schemaName, tableName, columnName) = sqlColumn.takeIfValidAbsoluteClazzName(size = 3)
-                    ?.split('.')
-                    ?: throw IllegalArgumentException(
-                        "illegal column name '$sqlColumn', expected format <schema>.<table>.<name>"
-                    )
                 val entity = TypeOverwrite(
-                    sqlColumn = SqlColumnName(
-                        tableName = SqlObjectName(
-                            schema = SchemaName(dbName = dbName, schemaName = schemaName),
-                            name = tableName,
-                        ),
-                        name = columnName,
-                    ),
+                    sqlColumn = SqlColumnName.parse(sqlColumn),
                     valueClass = KotlinValueClass(
                         name = clazz.toKotlinClassName(),
                         parseFunction = parseFunction?.takeIf(String::isNotBlank),
@@ -162,20 +143,15 @@ public open class ConfigBuilder internal constructor() {
             internal fun build() = overwrites.toSet()
         }
 
-        public class ColumnTypeMappingBuilder internal constructor(private val dbName: DbName) {
+        public class ColumnTypeMappingBuilder {
             private val mappings = linkedSetOf<Column.Type.CustomType>()
             public fun add(
                 sqlType: String,
                 columnTypeClass: String,
                 valueClass: String,
             ): ColumnTypeMappingBuilder = apply {
-                val (schemaName, name) = sqlType.takeIfValidAbsoluteClazzName(size = 2)?.split('.')
-                    ?: throw IllegalArgumentException("illegal sqlType '$sqlType', expected format <schema>.<name>")
                 val entity = Column.Type.CustomType(
-                    name = SqlObjectName(
-                        schema = SchemaName(dbName = dbName, schemaName = schemaName),
-                        name = name,
-                    ),
+                    name = SqlObjectName.parse(sqlType),
                     columnType = columnTypeClass.toKotlinClassName(),
                     value = valueClass.toKotlinClassName(),
                 )
@@ -190,7 +166,7 @@ public open class ConfigBuilder internal constructor() {
         ): Db = apply { connection = Connection().apply(block).build() }
 
         public fun tableFilter(block: SqlObjectFilter.() -> Unit): Db = apply {
-            tableFilter = SqlObjectFilter(dbName = dbName).apply(block).build()
+            tableFilter = SqlObjectFilter().apply(block).build()
         }
 
         public fun statements(block: StatementCollectionBuilder.() -> Unit): Db = apply {
@@ -198,23 +174,30 @@ public open class ConfigBuilder internal constructor() {
         }
 
         public fun typeMappings(block: TypeMappingBuilder.() -> Unit): Db = apply {
-            typeMappings = TypeMappingBuilder(dbName = dbName).apply(block).build()
+            typeMappings = TypeMappingBuilder().apply(block).build()
         }
 
         public fun enumMappings(block: EnumMappingBuilder.() -> Unit): Db = apply {
-            enumMappings = EnumMappingBuilder(dbName = dbName).apply(block).build()
+            enumMappings = EnumMappingBuilder().apply(block).build()
         }
 
         public fun typeOverwrites(block: TypeOverwriteBuilder.() -> Unit): Db = apply {
-            typeOverwrites = TypeOverwriteBuilder(dbName = dbName).apply(block).build()
+            typeOverwrites = TypeOverwriteBuilder().apply(block).build()
         }
 
         public fun columnTypeMappings(block: ColumnTypeMappingBuilder.() -> Unit): Db = apply {
-            columnTypeMappings = ColumnTypeMappingBuilder(dbName = dbName).apply(block).build()
+            columnTypeMappings = ColumnTypeMappingBuilder().apply(block).build()
         }
 
         public fun flyway(block: Flyway.() -> Unit): Db = apply {
             flyway = Flyway().apply(block).build()
+        }
+
+        @ExperimentalPgenApi
+        public fun table(sqlTable: String, block: OasTable.() -> Unit = {}) {
+            val objName = SqlObjectName.parse(sqlTable)
+            val table = OasTable(objName).apply(block).build()
+            oasTables.add(table)
         }
 
         internal fun build() = Config.Db(
@@ -227,23 +210,52 @@ public open class ConfigBuilder internal constructor() {
             typeOverwrites = typeOverwrites?.distinctBy(TypeOverwrite::sqlColumn)?.toSet() ?: emptySet(),
             columnTypeMappings = columnTypeMappings?.distinctBy(Column.Type.CustomType::name)?.toSet() ?: emptySet(),
             flyway = flyway,
+            oasTables = oasTables.distinctBy(Config.Oas.Table::name),
         )
 
+        public class OasTable internal constructor(private val name: SqlObjectName) {
+            private val ignoreFields: MutableSet<String> = mutableSetOf()
+            private val ignoreFieldsAtCreate: MutableSet<String> = mutableSetOf()
+            private val ignoreFieldsAtUpdate: MutableSet<String> = mutableSetOf()
+            private val ignoreMethods: MutableSet<CRUD> = mutableSetOf()
 
-        public class SqlObjectFilter internal constructor(
-            private val dbName: DbName,
-        ) {
+            public fun ignoreFields(vararg names: String): OasTable = apply { ignoreFields.addAll(names) }
+            public fun ignoreFieldsAtCreate(vararg names: String): OasTable = apply {
+                ignoreFieldsAtCreate.addAll(names)
+            }
+
+            public fun ignoreFieldsAtUpdate(vararg names: String): OasTable = apply {
+                ignoreFieldsAtUpdate.addAll(names)
+            }
+
+            public fun ignoreFieldsAtCreateAndUpdate(vararg names: String): OasTable = apply {
+                ignoreFieldsAtCreate(*names)
+                ignoreFieldsAtUpdate(*names)
+            }
+
+            public fun ignoreMethods(vararg methods: CRUD): OasTable = apply { ignoreMethods.addAll(methods) }
+
+            internal fun build() = Config.Oas.Table(
+                name = name,
+                ignoreFields = ignoreFields.toSet(),
+                ignoreFieldsAtCreate = ignoreFieldsAtCreate.toSet(),
+                ignoreFieldsAtUpdate = ignoreFieldsAtUpdate.toSet(),
+                ignoreMethods = ignoreMethods.toSet(),
+            )
+        }
+
+        public class SqlObjectFilter {
             private val schemas: MutableSet<SchemaName> = mutableSetOf()
             private val tables: MutableSet<SqlObjectName> = mutableSetOf()
 
             public fun addSchema(name: String): SqlObjectFilter =
-                apply { schemas.add(dbName.toSchema(name)) }
+                apply { schemas.add(SchemaName(name)) }
 
             public fun addSchemas(vararg names: String): SqlObjectFilter =
-                apply { schemas.addAll(names.map { dbName.toSchema(it) }) }
+                apply { schemas.addAll(names.map { SchemaName(it) }) }
 
             public fun addTable(schema: String, table: String): SqlObjectFilter =
-                apply { tables.add(SqlObjectName(dbName.toSchema(schema), table)) }
+                apply { tables.add(SqlObjectName(SchemaName(schema), table)) }
 
             internal fun build(): de.quati.pgen.plugin.intern.model.config.SqlObjectFilter {
                 val schemaFilter = Schemas(schemas).takeIf { it.isNotEmpty() }
@@ -284,10 +296,7 @@ public open class ConfigBuilder internal constructor() {
 
         private companion object {
             private fun String.toKotlinClassName(): KotlinClassName {
-                takeIfValidAbsoluteClazzName()
-                    ?: throw IllegalArgumentException(
-                        "illegal class name '$this', provide full class name with package"
-                    )
+                require('.' in this) { "illegal class name '$this', provide full class name with package" }
                 return KotlinClassName(
                     packageName = substringBeforeLast('.'),
                     className = substringAfterLast('.'),
@@ -305,7 +314,6 @@ public open class ConfigBuilder internal constructor() {
         public var pathPrefix: String = "/api"
         private var localConfigContext: Config.Oas.LocalConfigContext? = null
         private var mapper: Config.Oas.Mapper? = null
-        private val tables: MutableList<Config.Oas.Table> = mutableListOf()
         private val defaultIgnoreFields: MutableSet<String> = mutableSetOf()
         private val defaultIgnoreFieldsAtCreate: MutableSet<String> = mutableSetOf()
         private val defaultIgnoreFieldsAtUpdate: MutableSet<String> = mutableSetOf()
@@ -333,12 +341,6 @@ public open class ConfigBuilder internal constructor() {
             defaultIgnoreFieldsAtUpdate(*names)
         }
 
-        public fun table(sqlTable: String, block: Table.() -> Unit = {}) {
-            val objName = sqlTable.tableToSqlObjectName()
-            val table = Table(objName).apply(block).build()
-            tables.add(table)
-        }
-
         public fun mapper(packageOasModel: String): Oas = apply {
             mapper = Config.Oas.Mapper(packageOasModel = packageOasModel)
         }
@@ -350,46 +352,11 @@ public open class ConfigBuilder internal constructor() {
             oasCommonName = oasCommonName,
             pathPrefix = pathPrefix,
             mapper = mapper,
-            tables = tables.distinctBy { it.name }.map {
-                it.copy(
-                    ignoreFields = it.ignoreFields + defaultIgnoreFields,
-                    ignoreFieldsAtUpdate = it.ignoreFieldsAtUpdate + defaultIgnoreFieldsAtUpdate,
-                    ignoreFieldsAtCreate = it.ignoreFieldsAtCreate + defaultIgnoreFieldsAtCreate,
-                )
-            },
             localConfigContext = localConfigContext,
+            defaultIgnoreFields = defaultIgnoreFields.toSet(),
+            defaultIgnoreFieldsAtCreate = defaultIgnoreFieldsAtCreate.toSet(),
+            defaultIgnoreFieldsAtUpdate = defaultIgnoreFieldsAtUpdate.toSet(),
         )
-
-        public class Table internal constructor(private val name: SqlObjectName) {
-            private val ignoreFields: MutableSet<String> = mutableSetOf()
-            private val ignoreFieldsAtCreate: MutableSet<String> = mutableSetOf()
-            private val ignoreFieldsAtUpdate: MutableSet<String> = mutableSetOf()
-            private val ignoreMethods: MutableSet<CRUD> = mutableSetOf()
-
-            public fun ignoreFields(vararg names: String): Table = apply { ignoreFields.addAll(names) }
-            public fun ignoreFieldsAtCreate(vararg names: String): Table = apply {
-                ignoreFieldsAtCreate.addAll(names)
-            }
-
-            public fun ignoreFieldsAtUpdate(vararg names: String): Table = apply {
-                ignoreFieldsAtUpdate.addAll(names)
-            }
-
-            public fun ignoreFieldsAtCreateAndUpdate(vararg names: String): Table = apply {
-                ignoreFieldsAtCreate(*names)
-                ignoreFieldsAtUpdate(*names)
-            }
-
-            public fun ignoreMethods(vararg methods: CRUD): Table = apply { ignoreMethods.addAll(methods) }
-
-            internal fun build() = Config.Oas.Table(
-                name = name,
-                ignoreFields = ignoreFields.toSet(),
-                ignoreFieldsAtCreate = ignoreFieldsAtCreate.toSet(),
-                ignoreFieldsAtUpdate = ignoreFieldsAtUpdate.toSet(),
-                ignoreMethods = ignoreMethods.toSet(),
-            )
-        }
 
         public class LocalConfigContext internal constructor() {
             private var type: ClassName = ClassName("default", "ILocalConfigContext")
@@ -407,31 +374,6 @@ public open class ConfigBuilder internal constructor() {
                 type = type,
                 atMethods = atMethods.toSet(),
             )
-        }
-
-        private companion object {
-            private fun String.tableToSqlObjectName(): SqlObjectName {
-                val (dbName, schemaName, tableName) = takeIfValidAbsoluteClazzName(size = 3)
-                    ?.split('.')
-                    ?: throw IllegalArgumentException(
-                        "illegal column name '$this', expected format <dbName>.<schema>.<table>"
-                    )
-                return SqlObjectName(
-                    schema = SchemaName(dbName = DbName(dbName), schemaName = schemaName),
-                    name = tableName,
-                )
-            }
-        }
-    }
-
-    private companion object {
-        private fun String.takeIfValidAbsoluteClazzName(size: Int? = null): String? {
-            val parts = split('.')
-            if (parts.any(String::isBlank)) return null
-            return if (size != null)
-                takeIf { parts.size == size }
-            else
-                takeIf { parts.size > 1 }
         }
     }
 }

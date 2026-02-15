@@ -3,6 +3,7 @@ kotlin = "2.2.0"
 kotlinx-serialization = "1.9.0"
 flyway = "11.6.0"
 goquati = "2.1.0"
+jackson = "3.0.4"
 
 [libraries]
 
@@ -16,15 +17,19 @@ goquati-poet = { module = "de.quati:kotlin-util-poet", version.ref = "goquati" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json-jvm", version.ref = "kotlinx-serialization" }
 
 poet = { module = "com.squareup:kotlinpoet", version.ref = "kotlin" }
-kaml = { module = "com.charleskorn.kaml:kaml", version = "0.66.0" }
 
-
+jackson-kotlin = { module = "tools.jackson.module:jackson-module-kotlin", version.ref = "jackson" }
+jackson-yaml = { module = "tools.jackson.dataformat:jackson-dataformat-yaml", version.ref = "jackson" }
 
 [bundles]
 flyway = [
     "jdbc-postgresql",
     "flyway-core",
     "flyway-postgresql",
+]
+jackson = [
+    "jackson-kotlin",
+    "jackson-yaml",
 ]
 
 [plugins]

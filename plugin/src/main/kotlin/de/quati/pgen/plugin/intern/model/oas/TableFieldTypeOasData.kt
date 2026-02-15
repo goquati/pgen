@@ -1,10 +1,9 @@
 package de.quati.pgen.plugin.intern.model.oas
 
 import de.quati.kotlin.util.poet.toKebabCase
-import de.quati.pgen.plugin.intern.model.sql.Column
-import de.quati.pgen.plugin.intern.model.sql.SqlObjectName
-import de.quati.pgen.plugin.intern.util.codegen.SpecContext
-import de.quati.pgen.plugin.intern.util.codegen.oas.DbContext
+import de.quati.pgen.plugin.intern.model.spec.Column
+import de.quati.pgen.plugin.intern.model.spec.SqlObjectName
+import de.quati.pgen.plugin.intern.codegen.CodeGenContext
 
 internal sealed interface TableFieldTypeOasData {
     data class Type(
@@ -33,14 +32,14 @@ internal sealed interface TableFieldTypeOasData {
     }
 
     companion object {
-        context(c: SpecContext, _ : DbContext)
+        context(c: CodeGenContext)
         fun fromData(type: Column.Type): TableFieldTypeOasData = when (val type = c.resolve(type)) {
-            is Column.Type.NonPrimitive.Array -> Array(items = fromData(type.elementType))
-            is Column.Type.NonPrimitive.Domain -> Type(type = "string", format = type.name.name.toKebabCase())
-            is Column.Type.NonPrimitive.Overwrite ->
+            is Column.Type.NonPrimitive.Array -> Array(items = fromData(type.element))
+            is Column.Type.NonPrimitive.Domain -> Type(type = "string", format = type.ref.name.toKebabCase())
+            is Column.Type.Overwrite ->
                 Type(type = "string", format = type.valueClassName.className.toKebabCase())
 
-            is Column.Type.NonPrimitive.Enum -> Enum(name = type.name)
+            is Column.Type.NonPrimitive.Enum -> Enum(name = type.ref)
             is Column.Type.NonPrimitive.Numeric -> Type(type = "number")
             is Column.Type.NonPrimitive.Composite -> Type(type = "string")
             is Column.Type.NonPrimitive.PgVector -> Type(type = "string")

@@ -1,6 +1,6 @@
 package de.quati.pgen.plugin.intern.util
 
-import de.quati.pgen.plugin.intern.model.sql.Statement
+import de.quati.pgen.plugin.intern.model.spec.Statement
 import java.nio.file.Path
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.isDirectory

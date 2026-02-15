@@ -3,9 +3,9 @@ package de.quati.pgen.plugin.intern.model.config
 import com.squareup.kotlinpoet.ClassName
 import de.quati.kotlin.util.poet.PackageName
 import de.quati.pgen.plugin.CRUD
-import de.quati.pgen.plugin.intern.model.sql.Column
-import de.quati.pgen.plugin.intern.model.sql.DbName
-import de.quati.pgen.plugin.intern.model.sql.SqlObjectName
+import de.quati.pgen.plugin.intern.model.spec.Column
+import de.quati.pgen.plugin.intern.model.spec.DbName
+import de.quati.pgen.plugin.intern.model.spec.SqlObjectName
 import java.nio.file.Path
 
 internal data class Config(
@@ -16,12 +16,25 @@ internal data class Config(
     val oas: Oas?,
     val uuidType: UuidType,
 ) {
+    fun toGlobalConfig() = Global(
+        packageName = packageName,
+        connectionType = connectionType,
+        uuidType = uuidType,
+    )
+
     enum class ConnectionType {
         JDBC, R2DBC
     }
+
     enum class UuidType {
         JAVA, KOTLIN
     }
+
+    data class Global(
+        val packageName: PackageName,
+        val connectionType: ConnectionType,
+        val uuidType: UuidType,
+    )
 
     data class Oas(
         val title: String,
@@ -30,8 +43,10 @@ internal data class Config(
         val oasCommonName: String,
         val pathPrefix: String,
         val mapper: Mapper?,
-        val tables: List<Table>,
         val localConfigContext: LocalConfigContext?,
+        val defaultIgnoreFields: Set<String>,
+        val defaultIgnoreFieldsAtCreate: Set<String>,
+        val defaultIgnoreFieldsAtUpdate: Set<String>,
     ) {
         data class LocalConfigContext(
             val type: ClassName,
@@ -61,6 +76,7 @@ internal data class Config(
         val typeOverwrites: Set<TypeOverwrite>,
         val columnTypeMappings: Set<Column.Type.CustomType>,
         val flyway: Flyway?,
+        val oasTables: List<Oas.Table>,
     ) {
         data class Flyway(
             val migrationDirectory: Path,

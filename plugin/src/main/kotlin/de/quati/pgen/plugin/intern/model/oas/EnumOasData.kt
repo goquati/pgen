@@ -2,7 +2,7 @@ package de.quati.pgen.plugin.intern.model.oas
 
 import com.squareup.kotlinpoet.ClassName
 import de.quati.pgen.plugin.intern.model.config.Config
-import de.quati.pgen.plugin.intern.model.sql.Enum
+import de.quati.pgen.plugin.intern.model.spec.Enum
 
 internal data class EnumOasData(
     val name: String,

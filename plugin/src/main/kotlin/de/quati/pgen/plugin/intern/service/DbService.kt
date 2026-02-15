@@ -2,19 +2,18 @@ package de.quati.pgen.plugin.intern.service
 
 import de.quati.pgen.plugin.intern.model.config.Config
 import de.quati.pgen.plugin.intern.model.config.SqlObjectFilter
-import de.quati.pgen.plugin.intern.model.sql.Column
-import de.quati.pgen.plugin.intern.model.sql.Enum
-import de.quati.pgen.plugin.intern.model.sql.Column.Type
-import de.quati.pgen.plugin.intern.model.sql.CompositeType
-import de.quati.pgen.plugin.intern.model.sql.DbName
-import de.quati.pgen.plugin.intern.model.sql.SchemaName
-import de.quati.pgen.plugin.intern.model.sql.SqlObjectName
-import de.quati.pgen.plugin.intern.model.sql.SqlStatementName
-import de.quati.pgen.plugin.intern.model.sql.Statement
-import de.quati.pgen.plugin.intern.model.sql.Table
+import de.quati.pgen.plugin.intern.model.spec.Column
+import de.quati.pgen.plugin.intern.model.spec.Enum
+import de.quati.pgen.plugin.intern.model.spec.Column.Type
+import de.quati.pgen.plugin.intern.model.spec.CompositeType
+import de.quati.pgen.plugin.intern.model.spec.SchemaName
+import de.quati.pgen.plugin.intern.model.spec.SqlObjectName
+import de.quati.pgen.plugin.intern.model.spec.SqlStatementName
+import de.quati.pgen.plugin.intern.model.spec.SqlType
+import de.quati.pgen.plugin.intern.model.spec.Statement
+import de.quati.pgen.plugin.intern.model.spec.Table
 import de.quati.pgen.plugin.intern.service.ColumnData.Companion.parseColumnData
 import de.quati.pgen.plugin.intern.service.TypeData.Companion.parseTypeData
-import de.quati.pgen.plugin.intern.util.codegen.oas.DbContext
 import org.intellij.lang.annotations.Language
 import org.postgresql.util.PGobject
 import java.io.Closeable
@@ -23,16 +22,19 @@ import java.sql.ResultSet
 import kotlin.use
 
 internal class DbService(
-    dbName: DbName,
     columnTypeMappings: Collection<Type.CustomType>,
     connectionConfig: Config.Db.Connection
-) : Closeable, DbContext by dbName.toContext() {
+) : Closeable {
     val columnTypeMappings = columnTypeMappings.associateBy { it.name }
-    private val connection = DriverManager.getConnection(
-        connectionConfig.url,
-        connectionConfig.user,
-        connectionConfig.password,
-    )
+    private val connection by lazy {
+        if ("postgresql" in connectionConfig.url)
+            Class.forName("org.postgresql.Driver", true, this::class.java.classLoader) // forces init
+        DriverManager.getConnection(
+            connectionConfig.url,
+            connectionConfig.user,
+            connectionConfig.password,
+        )
+    }
 
     private fun execute(@Language("sql") query: String) {
         connection.createStatement().use { statement -> statement.execute(query) }
@@ -61,7 +63,7 @@ internal class DbService(
                     WHERE name = '${raw.preparedStmt()}';
                     """.trimIndent()
                 ) { rs -> (rs.getArray("types").array as Array<*>).map { (it as? PGobject)?.value!! } }
-                    .single().map { getPrimitiveType(it) }
+                    .single().map(::getPrimitiveType)
                 execute("DEALLOCATE ${raw.preparedStmt()};")
                 result
             }.getOrElse { error("Failed to extract input types of statement '${raw.name}': ${it.message}") }
@@ -77,12 +79,12 @@ internal class DbService(
             }.getOrElse { error("Failed to extract output types of statement '${raw.name}': ${it.message}") }
 
             Statement(
-                name = SqlStatementName(dbName = dbName, name = raw.name),
+                name = SqlStatementName(name = raw.name),
                 cardinality = raw.cardinality,
                 variables = raw.allVariables,
                 variableTypes = raw.uniqueSortedVariables.zip(inputTypes).toMap(),
                 columns = columns.map { c ->
-                    if (c.name.value in raw.nonNullColumns) c.copy(isNullable = false) else c
+                    if (c.name.value in raw.nonNullColumns) c.copy(nullable = false) else c
                 },
                 sql = raw.preparedSql,
             )
@@ -123,8 +125,8 @@ internal class DbService(
                 columns = columns[tableName]?.sortedBy { it.pos } ?: emptyList(),
                 primaryKey = primaryKeys[tableName],
                 foreignKeys = foreignKeys[tableName]?.sortedBy { it.name } ?: emptyList(),
-                uniqueConstraints = uniqueConstraints[tableName]?.sorted() ?: emptyList(),
-                checkConstraints = checkConstraints[tableName]?.sorted() ?: emptyList()
+                uniqueConstraints = uniqueConstraints[tableName]?.sortedBy { it.name } ?: emptyList(),
+                checkConstraints = checkConstraints[tableName]?.sortedBy { it.name } ?: emptyList()
             )
         }
     }
@@ -139,14 +141,11 @@ internal class DbService(
         )
         return run {
             Type.NonPrimitive.Domain(
-                name = SqlObjectName(
-                    schema = SchemaName(
-                        dbName = dbName,
-                        schemaName = domainSchema ?: return@run null,
-                    ),
+                ref = SqlObjectName(
+                    schema = domainSchema ?: return@run null,
                     name = domainName ?: return@run null,
                 ),
-                originalType = rawType,
+                base = rawType,
             )
         } ?: rawType
     }
@@ -155,7 +154,7 @@ internal class DbService(
         udtNameOverride: String? = null,
         columnTypeCategoryOverride: String? = null,
     ): Type {
-        val schema = dbName.toSchema(innerTypeSchema)
+        val schema = innerTypeSchema
         val columnTypeName = udtNameOverride ?: innerTypeName
         val sqlTypeName = SqlObjectName(schema = schema, name = columnTypeName)
         columnTypeMappings[sqlTypeName]?.also { return it }
@@ -168,13 +167,13 @@ internal class DbService(
             )
         )
 
-        if (schema != dbName.schemaPgCatalog)
+        if (schema != SchemaName.PgCatalog)
             return when (columnTypeCategory) {
                 "E" -> Type.NonPrimitive.Enum(sqlTypeName)
                 "C" -> Type.NonPrimitive.Composite(sqlTypeName)
                 "U" -> {
                     when (columnTypeName) {
-                        Type.NonPrimitive.PgVector.VECTOR_NAME -> Type.NonPrimitive.PgVector(schema = schema.schemaName)
+                        Type.NonPrimitive.PgVector.VECTOR_NAME -> Type.NonPrimitive.PgVector(schema = schema)
                         else -> Type.Reference(sqlTypeName)
                     }
                 }
@@ -332,7 +331,7 @@ internal class DbService(
             """
         ) { resultSet ->
             val table = SqlObjectName(
-                schema = dbName.toSchema(resultSet.getString("table_schema")!!),
+                schema = SchemaName(resultSet.getString("table_schema")!!),
                 name = resultSet.getString("table_name")!!,
             )
             table to PrimaryKeyColumn(
@@ -343,9 +342,9 @@ internal class DbService(
         }.groupBy({ it.first }, { it.second })
             .mapValues { (table, columns) ->
                 Table.PrimaryKey(
-                    keyName = columns.map { it.keyName }.distinct().singleOrNull()
+                    name = columns.map { it.keyName }.distinct().singleOrNull()
                         ?: error("multiple primary keys for table $table"),
-                    columnNames = columns.sortedBy { it.idx }.map { it.columnName },
+                    columns = columns.sortedBy { it.idx }.map { it.columnName },
                 )
             }
     }
@@ -382,11 +381,11 @@ internal class DbService(
             val meta = ForeignKeyMetaData(
                 name = resultSet.getString("constraint_name")!!,
                 sourceTable = SqlObjectName(
-                    schema = dbName.toSchema(resultSet.getString("source_schema")!!),
+                    schema = SchemaName(resultSet.getString("source_schema")!!),
                     name = resultSet.getString("source_table")!!,
                 ),
                 targetTable = SqlObjectName(
-                    schema = dbName.toSchema(resultSet.getString("target_schema")!!),
+                    schema = SchemaName(resultSet.getString("target_schema")!!),
                     name = resultSet.getString("target_table")!!,
                 ),
             )
@@ -407,7 +406,7 @@ internal class DbService(
             }.groupBy({ it.first }, { it.second })
     }
 
-    private fun getUniqueConstraints(filter: SqlObjectFilter): Map<SqlObjectName, List<String>> {
+    private fun getUniqueConstraints(filter: SqlObjectFilter): Map<SqlObjectName, List<Table.UniqueConstraint>> {
         if (filter.isEmpty()) return emptyMap()
         return executeQuery(
             """
@@ -421,17 +420,17 @@ internal class DbService(
             """
         ) { resultSet ->
             val table = SqlObjectName(
-                schema = dbName.toSchema(resultSet.getString("schema")!!),
+                schema = SchemaName(resultSet.getString("schema")!!),
                 name = resultSet.getString("table_name")!!,
             )
             val name = resultSet.getString("constraint_name")!!
             table to name
         }
             .groupBy({ it.first }, { it.second })
-            .mapValues { it.value.distinct().sorted() }
+            .mapValues { it.value.distinct().sorted().map { name -> Table.UniqueConstraint(name) } }
     }
 
-    private fun getCheckConstraints(filter: SqlObjectFilter): Map<SqlObjectName, List<String>> {
+    private fun getCheckConstraints(filter: SqlObjectFilter): Map<SqlObjectName, List<Table.CheckConstraint>> {
         if (filter.isEmpty()) return emptyMap()
         return executeQuery(
             """
@@ -446,14 +445,14 @@ internal class DbService(
             """
         ) { resultSet ->
             val table = SqlObjectName(
-                schema = dbName.toSchema(resultSet.getString("schema")!!),
+                schema = SchemaName(resultSet.getString("schema")!!),
                 name = resultSet.getString("table_name")!!,
             )
             val name = resultSet.getString("constraint_name")!!
             table to name
         }
             .groupBy({ it.first }, { it.second })
-            .mapValues { it.value.distinct().sorted() }
+            .mapValues { it.value.distinct().sorted().map { name -> Table.CheckConstraint(name) } }
     }
 
     fun getCompositeTypes(compositeTypeNames: Set<SqlObjectName>): List<CompositeType> {
@@ -489,7 +488,7 @@ internal class DbService(
             """
         ) { resultSet ->
             val name = SqlObjectName(
-                schema = dbName.toSchema(resultSet.getString("enum_schema")!!),
+                schema = SchemaName(resultSet.getString("enum_schema")!!),
                 name = resultSet.getString("enum_name"),
             )
             val field = EnumField(
@@ -513,7 +512,7 @@ internal class DbService(
 
     private fun ColumnData.parseColumn(): Pair<SqlObjectName, Column> {
         val tableName = SqlObjectName(
-            schema = dbName.toSchema(tableSchema),
+            schema = tableSchema,
             name = tableName,
         )
         val type = typeData.getColumnType()
@@ -521,26 +520,25 @@ internal class DbService(
             pos = pos,
             name = Column.Name(columnName),
             type = type,
-            isNullable = isNullable,
-            default = columnDefault,
+            nullable = isNullable,
+            defaultExpr = columnDefault,
         )
     }
 
     override fun close() {
         connection.close()
     }
-
-    companion object {
-        private fun getPrimitiveType(name: String) =
-            Type.Primitive.entries.firstOrNull { it.sqlType == name }
-                ?: error("undefined primitive type name '$name'")
-    }
 }
 
+internal fun getPrimitiveType(name: String): Type.Primitive {
+    val type = SqlType(name)
+    return Type.Primitive.entries.firstOrNull { it.sqlType == type }
+        ?: error("undefined primitive type name '$name'")
+}
 
 private data class ColumnData(
     val pos: Int,
-    val tableSchema: String,
+    val tableSchema: SchemaName,
     val tableName: String,
     val columnName: String,
     val isNullable: Boolean,
@@ -551,7 +549,7 @@ private data class ColumnData(
         fun ResultSet.parseColumnData(): ColumnData {
             return ColumnData(
                 pos = getInt("pos"),
-                tableSchema = getString("table_schema"),
+                tableSchema = getString("table_schema")!!.let(::SchemaName),
                 tableName = getString("table_name"),
                 columnName = getString("column_name"),
                 isNullable = getBoolean("is_nullable"),
@@ -563,9 +561,9 @@ private data class ColumnData(
 }
 
 private data class TypeData(
-    val domainSchema: String?,
+    val domainSchema: SchemaName?,
     val domainName: String?,
-    val innerTypeSchema: String,
+    val innerTypeSchema: SchemaName,
     val innerTypeName: String,
     val numericPrecision: Int?,
     val numericScale: Int?,
@@ -575,9 +573,9 @@ private data class TypeData(
     companion object {
         fun ResultSet.parseTypeData(): TypeData {
             return TypeData(
-                domainSchema = getString("domain_schema"),
+                domainSchema = getString("domain_schema")?.let(::SchemaName),
                 domainName = getString("domain_name"),
-                innerTypeSchema = getString("inner_type_schema"),
+                innerTypeSchema = getString("inner_type_schema")!!.let(::SchemaName),
                 innerTypeName = getString("inner_type_name"),
                 numericPrecision = getInt("numeric_precision").takeIf { !wasNull() },
                 numericScale = getInt("numeric_scale").takeIf { !wasNull() },

@@ -1,7 +1,7 @@
 package de.quati.pgen.plugin.intern.model.config
 
-import de.quati.pgen.plugin.intern.model.sql.SchemaName
-import de.quati.pgen.plugin.intern.model.sql.SqlObjectName
+import de.quati.pgen.plugin.intern.model.spec.SchemaName
+import de.quati.pgen.plugin.intern.model.spec.SqlObjectName
 
 internal sealed interface SqlObjectFilter {
     fun toFilterString(schemaField: String, tableField: String): String
@@ -11,7 +11,7 @@ internal sealed interface SqlObjectFilter {
 
     data class Schemas(val schemaNames: Set<SchemaName>) : SqlObjectFilter {
         override fun toFilterString(schemaField: String, tableField: String): String {
-            val schemasStr = schemaNames.toSet().joinToString(",") { "'${it.schemaName}'" }
+            val schemasStr = schemaNames.toSet().joinToString(",") { "'$it'" }
             return "$schemaField IN ($schemasStr)"
         }
 
@@ -21,7 +21,7 @@ internal sealed interface SqlObjectFilter {
 
     data class Objects(val objectNames: Set<SqlObjectName>) : SqlObjectFilter {
         override fun toFilterString(schemaField: String, tableField: String): String {
-            val objectsStr = objectNames.joinToString(",") { "('${it.schema.schemaName}','${it.name}')" }
+            val objectsStr = objectNames.joinToString(",") { "('${it.schema}','${it.name}')" }
             return "($schemaField, $tableField) IN ($objectsStr)"
         }
 

@@ -1,6 +1,6 @@
 package de.quati.pgen.plugin.intern.model.oas
 
-import de.quati.pgen.plugin.intern.model.sql.Column
+import de.quati.pgen.plugin.intern.model.spec.Column
 
 internal data class TableFieldOasData(
     val name: String,
