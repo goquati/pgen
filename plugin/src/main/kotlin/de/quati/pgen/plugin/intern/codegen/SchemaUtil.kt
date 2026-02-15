@@ -37,7 +37,7 @@ internal fun FileSpec.Builder.addSchemaUtils(
 
         addProperty(
             name = "tables",
-            type = List::class.asTypeName().parameterizedBy(Poet.Pgen.pgenTable),
+            type = List::class.asTypeName().parameterizedBy(Poet.Pgen.Core.pgenTable),
         ) {
             initializer(buildCodeBlock {
                 add("listOf(\n")
@@ -50,12 +50,12 @@ internal fun FileSpec.Builder.addSchemaUtils(
 
         addProperty(
             name = "eventTables",
-            type = List::class.asTypeName().parameterizedBy(Poet.Pgen.pgenWalEventTable),
+            type = List::class.asTypeName().parameterizedBy(Poet.Pgen.Core.pgenWalEventTable),
         ) {
             getter {
                 addStatement(
                     "return tables.filterIsInstance<%T>()",
-                    Poet.Pgen.pgenWalEventTable,
+                    Poet.Pgen.Core.pgenWalEventTable,
                 )
             }
         }

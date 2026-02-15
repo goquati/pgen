@@ -21,6 +21,10 @@ import de.quati.pgen.plugin.intern.codegen.getColumnTypeName
 @OptIn(ExperimentalKotlinPoetApi::class)
 context(c: CodeGenContext, _: Config.Oas.Mapper)
 internal fun FileSpec.Builder.addTableService(data: TableOasData) = addInterface(data.getOasServiceName()) {
+    val poetDriver = when (val driver = Poet.Pgen.Driver) {
+        is Poet.Pgen.IDriver.Jdbc -> throw IllegalStateException("JDBC driver not supported")
+        is Poet.Pgen.IDriver.R2dbc -> driver
+    }
 
     val idType = data.sqlData.columns.singleOrNull { it.prettyName == "id" }
         // TODO check if id is primary key
@@ -85,7 +89,7 @@ internal fun FileSpec.Builder.addTableService(data: TableOasData) = addInterface
                     .%T(%T.Entity::create)
                     .collect { send(it) }
             """.trimIndent(),
-                Poet.Pgen.setLocalConfig,
+                poetDriver.setLocalConfig,
                 data.sqlData.name.typeName,
                 Poet.Exposed.selectAll(),
                 Poet.flowMap,
@@ -113,7 +117,7 @@ internal fun FileSpec.Builder.addTableService(data: TableOasData) = addInterface
                     .let { it ?: throw %T.BadRequest("Cannot create ${data.namePretty}") }
                     .let(%T.Entity::create)
             """.trimIndent(),
-                Poet.Pgen.setLocalConfig,
+                poetDriver.setLocalConfig,
                 data.sqlData.name.typeName,
                 Poet.Exposed.insertReturning(),
                 Poet.flowSingleOrNull,
@@ -137,7 +141,7 @@ internal fun FileSpec.Builder.addTableService(data: TableOasData) = addInterface
                 ${"// ".takeIf { localConfigContext == null } ?: ""}%T(c)
                 %T.%T { %T.id %T id }
                 """.trimIndent(),
-                Poet.Pgen.setLocalConfig,
+                poetDriver.setLocalConfig,
                 data.sqlData.name.typeName,
                 Poet.Exposed.deleteWhere(),
                 data.sqlData.name.typeName,
@@ -172,7 +176,7 @@ internal fun FileSpec.Builder.addTableService(data: TableOasData) = addInterface
                     .let { it ?: throw %T.BadRequest("Cannot update $${data.namePretty} with id: $id") }
                     .let(%T.Entity::create)
                 """.trimIndent(),
-                Poet.Pgen.setLocalConfig,
+                poetDriver.setLocalConfig,
                 data.sqlData.name.typeName,
                 Poet.Exposed.updateReturning(),
                 data.sqlData.name.typeName,

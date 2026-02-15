@@ -4,7 +4,6 @@ import com.squareup.kotlinpoet.CodeBlock
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.asTypeName
 import com.squareup.kotlinpoet.buildCodeBlock
-import de.quati.pgen.plugin.intern.model.config.Config
 import de.quati.pgen.plugin.intern.model.spec.Column
 
 
@@ -17,16 +16,16 @@ internal fun initializerBlock(column: Column): CodeBlock {
 
             when (val elementType = c.resolve(type.element)) {
                 is Column.Type.NonPrimitive.Enum -> buildCodeBlock {
-                    add("%T<%T>(\n", Poet.Pgen.pgenEnumArray, type.getTypeName())
+                    add("%T<%T>(\n", Poet.Pgen.Driver.pgenEnumArray, type.getTypeName())
                     add("    name = %S,\n", columnName)
                     add("    sql = %S,\n", "${elementType.ref}")
                     add(")")
                 }
 
-                Column.Type.Primitive.UUID -> when (c.connectionType) {
-                    Config.ConnectionType.JDBC -> default()
-                    Config.ConnectionType.R2DBC -> buildCodeBlock {
-                        add("%T(\n", Poet.Pgen.pgenUuidArray)
+                Column.Type.Primitive.UUID -> when (val driver = Poet.Pgen.Driver) {
+                    is Poet.Pgen.IDriver.Jdbc -> default()
+                    is Poet.Pgen.IDriver.R2dbc -> buildCodeBlock {
+                        add("%T(\n", driver.pgenUuidArray)
                         add("    name = %S,\n", columnName)
                         add(")")
                     }
@@ -37,11 +36,11 @@ internal fun initializerBlock(column: Column): CodeBlock {
                     type.getTypeName(), columnName, elementType.getColumnTypeTypeName()
                 )
 
-                is Column.Type.DomainType -> when (c.connectionType) {
-                    Config.ConnectionType.JDBC -> buildCodeBlock {
+                is Column.Type.DomainType -> when (val driver = Poet.Pgen.Driver) {
+                    is Poet.Pgen.IDriver.Jdbc -> buildCodeBlock {
                         add("array(\n")
                         add("    name = %S,\n", columnName)
-                        add("    columnType = %T.create(\n", Poet.Pgen.domainColumnType)
+                        add("    columnType = %T.create(\n", Poet.Pgen.Core.Column.domainColumnType)
                         add("        sqlType = %S,\n", elementType.sqlType)
                         add("        originType = "); add(elementType.base.getExposedColumnType()); add(",\n")
                         add(
@@ -49,12 +48,12 @@ internal fun initializerBlock(column: Column): CodeBlock {
                             elementType.getDomainTypename(),
                             elementType.base.getTypeName(),
                         )
-                        add("    ),\n", Poet.Pgen.domainTypeColumn)
+                        add("    ),\n", Poet.Pgen.Core.Column.domainTypeColumn)
                         add(")")
                     }
 
-                    Config.ConnectionType.R2DBC -> buildCodeBlock {
-                        add("%T(\n", Poet.Pgen.pgenDomainArray)
+                    is Poet.Pgen.IDriver.R2dbc -> buildCodeBlock {
+                        add("%T(\n", driver.pgenDomainArray)
                         add("    name = %S,\n", columnName)
                         add("    sqlType = %S,\n", elementType.sqlType)
                         add("    originType = "); add(elementType.base.getExposedColumnType()); add(",\n")
@@ -72,7 +71,7 @@ internal fun initializerBlock(column: Column): CodeBlock {
         }
 
         is Column.Type.NonPrimitive.Enum -> buildCodeBlock {
-            add("%T<%T>(\n", Poet.Pgen.pgenEnum, type.getTypeName())
+            add("%T<%T>(\n", Poet.Pgen.Driver.pgenEnum, type.getTypeName())
             add("    name = %S,\n", columnName)
             add("    sql = %S,\n", "${type.ref}")
             add(")")
@@ -84,7 +83,7 @@ internal fun initializerBlock(column: Column): CodeBlock {
         )
 
         is Column.Type.DomainType -> buildCodeBlock {
-            add("%T<%T, %T>(\n", Poet.Pgen.domainType, type.getDomainTypename(), type.base.getTypeName())
+            add("%T<%T, %T>(\n", Poet.Pgen.Core.Column.domainType, type.getDomainTypename(), type.base.getTypeName())
             add("    name = %S,\n", columnName)
             add("    sqlType = %S,\n", type.sqlType)
             add("    originType = "); add(type.base.getExposedColumnType()); add(",\n")
@@ -102,7 +101,7 @@ internal fun initializerBlock(column: Column): CodeBlock {
                 name = %S,
                 schema = %S,
             )""".trimIndent(),
-            Poet.Pgen.pgVector,
+            Poet.Pgen.Driver.pgVector,
             columnName,
             type.schema
         )
@@ -112,17 +111,23 @@ internal fun initializerBlock(column: Column): CodeBlock {
         Column.Type.Primitive.BINARY -> CodeBlock.of("binary(name = %S)", columnName)
         Column.Type.Primitive.VARCHAR -> CodeBlock.of("text(name = %S)", columnName)
         Column.Type.Primitive.DATE -> CodeBlock.of("%T(name = %S)", Poet.Exposed.date, columnName)
-        Column.Type.Primitive.INTERVAL -> CodeBlock.of("%T(name = %S)", Poet.Pgen.interval, columnName)
-        Column.Type.Primitive.INT4RANGE -> CodeBlock.of("%T(name = %S)", Poet.Pgen.int4Range, columnName)
-        Column.Type.Primitive.INT8RANGE -> CodeBlock.of("%T(name = %S)", Poet.Pgen.int8Range, columnName)
-        Column.Type.Primitive.INT4MULTIRANGE -> CodeBlock.of("%T(name = %S)", Poet.Pgen.int4MultiRange, columnName)
-        Column.Type.Primitive.INT8MULTIRANGE -> CodeBlock.of("%T(name = %S)", Poet.Pgen.int8MultiRange, columnName)
+        Column.Type.Primitive.INTERVAL -> CodeBlock.of("%T(name = %S)", Poet.Pgen.Driver.interval, columnName)
+        Column.Type.Primitive.INT4RANGE -> CodeBlock.of("%T(name = %S)", Poet.Pgen.Driver.int4Range, columnName)
+        Column.Type.Primitive.INT8RANGE -> CodeBlock.of("%T(name = %S)", Poet.Pgen.Driver.int8Range, columnName)
+        Column.Type.Primitive.INT4MULTIRANGE -> CodeBlock.of(
+            "%T(name = %S)", Poet.Pgen.Driver.int4MultiRange, columnName
+        )
+
+        Column.Type.Primitive.INT8MULTIRANGE -> CodeBlock.of(
+            "%T(name = %S)", Poet.Pgen.Driver.int8MultiRange, columnName
+        )
+
         Column.Type.Primitive.INT4 -> CodeBlock.of("integer(name = %S)", columnName)
         Column.Type.Primitive.FLOAT4 -> CodeBlock.of("float(name = %S)", columnName)
         Column.Type.Primitive.FLOAT8 -> CodeBlock.of("double(name = %S)", columnName)
         Column.Type.Primitive.INT2 -> CodeBlock.of("short(name = %S)", columnName)
         Column.Type.Primitive.TEXT -> CodeBlock.of("text(name = %S)", columnName)
-        Column.Type.Primitive.CITEXT -> CodeBlock.of("%T(name = %S)", Poet.Pgen.citext, columnName)
+        Column.Type.Primitive.CITEXT -> CodeBlock.of("%T(name = %S)", Poet.Pgen.Driver.citext, columnName)
         Column.Type.Primitive.TIME -> CodeBlock.of("%T(name = %S)", Poet.Exposed.time, columnName)
         Column.Type.Primitive.TIMESTAMP -> CodeBlock.of("%T(name = %S)", Poet.Exposed.timestamp, columnName)
         Column.Type.Primitive.UUID -> CodeBlock.of("%L(name = %S)", c.poet.uuidColumn, columnName)
@@ -144,12 +149,12 @@ internal fun initializerBlock(column: Column): CodeBlock {
 
         Column.Type.Primitive.UNCONSTRAINED_NUMERIC -> CodeBlock.of(
             "registerColumn(name = %S, type = %T())",
-            columnName, Poet.Pgen.unconstrainedNumericColumnType
+            columnName, Poet.Pgen.Core.Column.unconstrainedNumericColumnType
         )
 
         Column.Type.Primitive.REG_CLASS -> CodeBlock.of(
             "%T(name = %S)".trimIndent(),
-            Poet.Pgen.regClassColumn,
+            Poet.Pgen.Driver.regClassColumn,
             columnName,
         )
 

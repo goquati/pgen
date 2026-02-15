@@ -155,8 +155,48 @@ internal object Poet {
 
     object Pgen {
         private val packageNamePgen = PackageName("de.quati.pgen")
-        private val packageNameCore = packageNamePgen.plus("core")
-        private val packageNameCoreColumnType = packageNameCore.plus("column")
+
+        object Core {
+            private val packageNameCore = packageNamePgen.plus("core")
+
+            val pgenTable = packageNameCore.className("PgenTable")
+            val pgenWalEventTable = packageNameCore.className("PgenWalEventTable")
+            val columnValueSet = packageNameCore.className("ColumnValueSet")
+            val columnValue = packageNameCore.className("ColumnValue")
+
+            val fKeyConstraint = packageNameCore.className("Constraint", "ForeignKey")
+            val pKeyConstraint = packageNameCore.className("Constraint", "PrimaryKey")
+            val uniqueConstraint = packageNameCore.className("Constraint", "Unique")
+            val checkConstraint = packageNameCore.className("Constraint", "Check")
+            val notNullConstraint = packageNameCore.className("Constraint", "NotNull")
+
+            object Util {
+                private val packageNameCoreUtil = packageNameCore.plus("util")
+                val parseColumn = packageNameCoreUtil.className("parseColumn")
+                val parseColumnNullable = packageNameCoreUtil.className("parseColumnNullable")
+                val getColumnWithAlias = packageNameCoreUtil.className("get")
+                val pgenExpression = packageNameCoreUtil.className("PgenExpression")
+            }
+
+            object Column {
+                private val packageNameCoreColumn = packageNameCore.plus("column")
+
+                val compositeColumnType = packageNameCoreColumn.className("CompositeColumnType")
+
+                val domainType = packageNameCoreColumn.className("domainType")
+                val domainTypeColumn = packageNameCoreColumn.className("DomainTypeColumn")
+                val domainColumnType = packageNameCoreColumn.className("DomainColumnType")
+
+                val getArrayColumnType = packageNameCoreColumn.className("getArrayColumnType")
+
+                val defaultJsonColumnType = packageNameCoreColumn.className("DefaultJsonColumnType")
+                val unconstrainedNumericColumnType = packageNameCoreColumn.className("UnconstrainedNumericColumnType")
+
+                val pgStructFieldConverter = packageNameCoreColumn.className("PgStructFieldConverter")
+                val pgStructField = packageNameCoreColumn.className("PgStructField")
+                val pgStructFieldJoin = packageNameCoreColumn.className("join")
+            }
+        }
 
         object Shared {
             private val packageNameShared = packageNamePgen.plus("shared")
@@ -171,131 +211,45 @@ internal object Poet {
             val walEventMetaData = packageNameShared.className("WalEvent", "MetaData")
             val walEventMessage = packageNameShared.className("WalEvent", "Message")
         }
-        object Util {
-            private val packageNameCoreUtil = packageNameCore.plus("util")
-            val parseColumn = packageNameCoreUtil.className("parseColumn")
-            val parseColumnNullable = packageNameCoreUtil.className("parseColumnNullable")
-            val getColumnWithAlias = packageNameCoreUtil.className("get")
-            val pgenExpression = packageNameCoreUtil.className("PgenExpression")
-        }
 
         context(c: CodeGenContext)
-        private val packageNameDriver
+        val Driver
             get() = when (c.connectionType) {
-                Config.ConnectionType.JDBC -> packageNamePgen.plus("jdbc")
-                Config.ConnectionType.R2DBC -> packageNamePgen.plus("r2dbc")
+                Config.ConnectionType.JDBC -> IDriver.Jdbc
+                Config.ConnectionType.R2DBC -> IDriver.R2dbc
             }
 
-        context(c: CodeGenContext)
-        private val packageNameDriverColumnType get() = packageNameDriver.plus("column")
+        sealed class IDriver(packageNameDriver: PackageName) {
+            protected val packageNameDriverColumnType = packageNameDriver.plus("column")
+            protected val packageNameDriverUtil = packageNameDriver.plus("util")
+            val regClassColumn = packageNameDriverColumnType.className("regClass")
+            val regClassColumnType = packageNameDriverColumnType.className("RegClassColumnType")
+            val pgVector = packageNameDriverColumnType.className("pgVector")
+            val pgVectorColumnType = packageNameDriverColumnType.className("PgVectorColumnType")
+            val int4RangeColumnType = packageNameDriverColumnType.className("Int4RangeColumnType")
+            val int8RangeColumnType = packageNameDriverColumnType.className("Int8RangeColumnType")
+            val int4MultiRangeColumnType = packageNameDriverColumnType.className("Int4MultiRangeColumnType")
+            val int8MultiRangeColumnType = packageNameDriverColumnType.className("Int8MultiRangeColumnType")
+            val int4Range = packageNameDriverColumnType.className("int4Range")
+            val int8Range = packageNameDriverColumnType.className("int8Range")
+            val int4MultiRange = packageNameDriverColumnType.className("int4MultiRange")
+            val int8MultiRange = packageNameDriverColumnType.className("int8MultiRange")
+            val citextColumnType = packageNameDriverColumnType.className("CitextColumnType")
+            val citext = packageNameDriverColumnType.className("citext")
+            val intervalColumnType = packageNameDriverColumnType.className("IntervalColumnType")
+            val interval = packageNameDriverColumnType.className("interval")
+            val pgenEnum = packageNameDriverColumnType.className("pgenEnum")
+            val pgenEnumArray = packageNameDriverColumnType.className("pgenEnumArray")
+            val pgenEnumColumnType = packageNameDriverColumnType.className("pgenEnumColumnType")
 
-        context(c: CodeGenContext)
-        private val packageNameDriverUtil get() = packageNameDriver.plus("util")
-
-        val pgenTable = packageNameCore.className("PgenTable")
-        val pgenWalEventTable = packageNameCore.className("PgenWalEventTable")
-        val columnValueSet = packageNameCore.className("ColumnValueSet")
-        val columnValue = packageNameCore.className("ColumnValue")
-
-        val compositeColumnType = packageNameCoreColumnType.className("CompositeColumnType")
-
-        context(c: CodeGenContext)
-        val regClassColumn get() = packageNameDriverColumnType.className("regClass")
-
-        context(c: CodeGenContext)
-        val regClassColumnType get() = packageNameDriverColumnType.className("RegClassColumnType")
-
-        val domainType = packageNameCoreColumnType.className("domainType")
-        val domainTypeColumn = packageNameCoreColumnType.className("DomainTypeColumn")
-        val domainColumnType = packageNameCoreColumnType.className("DomainColumnType")
-
-        val getArrayColumnType = packageNameCoreColumnType.className("getArrayColumnType")
-
-        val defaultJsonColumnType = packageNameCoreColumnType.className("DefaultJsonColumnType")
-        val unconstrainedNumericColumnType = packageNameCoreColumnType.className("UnconstrainedNumericColumnType")
-
-        val pgStructFieldConverter = packageNameCoreColumnType.className("PgStructFieldConverter")
-        val pgStructField = packageNameCoreColumnType.className("PgStructField")
-        val pgStructFieldJoin = packageNameCoreColumnType.className("join")
-
-        val fKeyConstraint = packageNameCore.className("Constraint", "ForeignKey")
-        val pKeyConstraint = packageNameCore.className("Constraint", "PrimaryKey")
-        val uniqueConstraint = packageNameCore.className("Constraint", "Unique")
-        val checkConstraint = packageNameCore.className("Constraint", "Check")
-        val notNullConstraint = packageNameCore.className("Constraint", "NotNull")
-
-        context(c: CodeGenContext)
-        val pgVector get() = packageNameDriverColumnType.className("pgVector")
-
-        context(c: CodeGenContext)
-        val pgVectorColumnType get() = packageNameDriverColumnType.className("PgVectorColumnType")
-
-        context(c: CodeGenContext)
-        val int4RangeColumnType get() = packageNameDriverColumnType.className("Int4RangeColumnType")
-
-        context(c: CodeGenContext)
-        val int8RangeColumnType get() = packageNameDriverColumnType.className("Int8RangeColumnType")
-
-        context(c: CodeGenContext)
-        val int4MultiRangeColumnType get() = packageNameDriverColumnType.className("Int4MultiRangeColumnType")
-
-        context(c: CodeGenContext)
-        val int8MultiRangeColumnType get() = packageNameDriverColumnType.className("Int8MultiRangeColumnType")
-
-        context(c: CodeGenContext)
-        val int4Range get() = packageNameDriverColumnType.className("int4Range")
-
-        context(c: CodeGenContext)
-        val int8Range get() = packageNameDriverColumnType.className("int8Range")
-
-        context(c: CodeGenContext)
-        val int4MultiRange get() = packageNameDriverColumnType.className("int4MultiRange")
-
-        context(c: CodeGenContext)
-        val int8MultiRange get() = packageNameDriverColumnType.className("int8MultiRange")
-
-        context(c: CodeGenContext)
-        val citextColumnType get() = packageNameDriverColumnType.className("CitextColumnType")
-
-        context(c: CodeGenContext)
-        val citext get() = packageNameDriverColumnType.className("citext")
-
-        context(c: CodeGenContext)
-        val intervalColumnType get() = packageNameDriverColumnType.className("IntervalColumnType")
-
-        context(c: CodeGenContext)
-        val interval get() = packageNameDriverColumnType.className("interval")
-
-        context(c: CodeGenContext)
-        val pgenEnum get() = packageNameDriverColumnType.className("pgenEnum")
-
-        context(c: CodeGenContext)
-        val pgenEnumArray get() = packageNameDriverColumnType.className("pgenEnumArray")
-
-        context(c: CodeGenContext)
-        val pgenUuidArray get() = when (c.connectionType) {
-            Config.ConnectionType.JDBC -> throw NotImplementedError("pgenUuidArray for JDBC")
-            Config.ConnectionType.R2DBC -> packageNameDriverColumnType.className("pgenUuidArray")
-        }
-
-        context(c: CodeGenContext)
-        val pgenDomainArray get() = when (c.connectionType) {
-            Config.ConnectionType.JDBC -> throw NotImplementedError("pgenDomainArray for JDBC")
-            Config.ConnectionType.R2DBC -> packageNameDriverColumnType.className("pgenDomainArray")
-        }
-
-        context(c: CodeGenContext)
-        val pgenEnumColumnType get() = packageNameDriverColumnType.className("pgenEnumColumnType")
-
-        context(c: CodeGenContext)
-        val setLocalConfig
-            get() = when (c.connectionType) {
-                Config.ConnectionType.JDBC -> throw NotImplementedError("setLocalConfig")
-                Config.ConnectionType.R2DBC -> packageNameDriverUtil.className("setLocalConfig")
+            object Jdbc : IDriver(packageNameDriver = packageNamePgen.plus("jdbc"))
+            object R2dbc : IDriver(packageNameDriver = packageNamePgen.plus("r2dbc")) {
+                val pgenUuidArray = packageNameDriverColumnType.className("pgenUuidArray")
+                val pgenDomainArray = packageNameDriverColumnType.className("pgenDomainArray")
+                val setLocalConfig = packageNameDriverUtil.className("setLocalConfig")
             }
-
+        }
     }
-
 }
 
 context(c: CodeGenContext)
@@ -354,18 +308,18 @@ internal fun DirectorySyncService.syncSchemaUtils(
 context(c: CodeGenContext)
 internal fun DirectorySyncService.syncQueries(tables: Collection<Table>) {
     val fileName = "Queries.kt"
-        sync(
-            relativePath = c.poet.packageDb.toRelativePath(fileName),
-            content = buildFileSpec(
-                packageName = c.poet.packageDb,
-                name = fileName,
-                block = {
-                    tables.flatMap { it.toQueryFunctions() }.forEach {
-                        addFunction(it)
-                    }
+    sync(
+        relativePath = c.poet.packageDb.toRelativePath(fileName),
+        content = buildFileSpec(
+            packageName = c.poet.packageDb,
+            name = fileName,
+            block = {
+                tables.flatMap { it.toQueryFunctions() }.forEach {
+                    addFunction(it)
                 }
-            )
+            }
         )
+    )
 }
 
 context(c: CodeGenContext)

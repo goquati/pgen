@@ -53,10 +53,10 @@ private fun codeBlock(format: String, vararg args: Any) = CodeBlock.builder().ad
 context(c: CodeGenContext)
 internal fun Column.Type.getExposedColumnType(): CodeBlock = when (val type = c.resolve(this)) {
     is Column.Type.NonPrimitive.Array ->
-        codeBlock("%T(%L)", Poet.Pgen.getArrayColumnType, type.element.getExposedColumnType())
+        codeBlock("%T(%L)", Poet.Pgen.Core.Column.getArrayColumnType, type.element.getExposedColumnType())
 
     is Column.Type.NonPrimitive.PgVector ->
-        codeBlock("%T(schema=%S)", Poet.Pgen.pgVectorColumnType, type.schema)
+        codeBlock("%T(schema=%S)", Poet.Pgen.Driver.pgVectorColumnType, type.schema)
 
     is Column.Type.NonPrimitive.Composite ->
         codeBlock("%T(sqlType=%S)", type.getColumnTypeTypeName(), sqlType)
@@ -64,7 +64,7 @@ internal fun Column.Type.getExposedColumnType(): CodeBlock = when (val type = c.
     is Column.Type.NonPrimitive.Enum ->
         codeBlock(
             "%T(name=%S, sql=%s)",
-            Poet.Pgen.pgenEnumColumnType,
+            Poet.Pgen.Driver.pgenEnumColumnType,
             type.ref.name,
             sqlType
         )
@@ -73,12 +73,17 @@ internal fun Column.Type.getExposedColumnType(): CodeBlock = when (val type = c.
         codeBlock("%T(precision = ${type.precision}, scale = ${type.scale})", Poet.Exposed.decimalColumnType)
 
     is Column.Type.NonPrimitive.Domain ->
-        codeBlock("%T(kClass=%T::class, sqlType=%S)", Poet.Pgen.domainTypeColumn, type.getDomainTypename(), sqlType)
+        codeBlock(
+            "%T(kClass=%T::class, sqlType=%S)",
+            Poet.Pgen.Core.Column.domainTypeColumn,
+            type.getDomainTypename(),
+            sqlType
+        )
 
     is Column.Type.Overwrite ->
         codeBlock(
             "%T(kClass=%T::class, sqlType=%S)",
-            Poet.Pgen.domainTypeColumn,
+            Poet.Pgen.Core.Column.domainTypeColumn,
             type.getValueClass().name.poet,
             type.base.sqlType
         )
@@ -88,25 +93,28 @@ internal fun Column.Type.getExposedColumnType(): CodeBlock = when (val type = c.
     Column.Type.Primitive.BINARY -> codeBlock("%T()", Poet.Exposed.binaryColumnType)
     Column.Type.Primitive.VARCHAR -> codeBlock("%T()", Poet.Exposed.textColumnType)
     Column.Type.Primitive.DATE -> codeBlock("%T()", Poet.Exposed.kotlinLocalDateColumnType)
-    Column.Type.Primitive.INTERVAL -> codeBlock("%T()", Poet.Pgen.intervalColumnType)
-    Column.Type.Primitive.INT4RANGE -> codeBlock("%T()", Poet.Pgen.int4RangeColumnType)
-    Column.Type.Primitive.INT8RANGE -> codeBlock("%T()", Poet.Pgen.int8RangeColumnType)
-    Column.Type.Primitive.INT4MULTIRANGE -> codeBlock("%T()", Poet.Pgen.int4MultiRangeColumnType)
-    Column.Type.Primitive.INT8MULTIRANGE -> codeBlock("%T()", Poet.Pgen.int8MultiRangeColumnType)
+    Column.Type.Primitive.INTERVAL -> codeBlock("%T()", Poet.Pgen.Driver.intervalColumnType)
+    Column.Type.Primitive.INT4RANGE -> codeBlock("%T()", Poet.Pgen.Driver.int4RangeColumnType)
+    Column.Type.Primitive.INT8RANGE -> codeBlock("%T()", Poet.Pgen.Driver.int8RangeColumnType)
+    Column.Type.Primitive.INT4MULTIRANGE -> codeBlock("%T()", Poet.Pgen.Driver.int4MultiRangeColumnType)
+    Column.Type.Primitive.INT8MULTIRANGE -> codeBlock("%T()", Poet.Pgen.Driver.int8MultiRangeColumnType)
     Column.Type.Primitive.INT4 -> codeBlock("%T()", Poet.Exposed.integerColumnType)
     Column.Type.Primitive.FLOAT4 -> codeBlock("%T()", Poet.Exposed.floatColumnType)
     Column.Type.Primitive.FLOAT8 -> codeBlock("%T()", Poet.Exposed.doubleColumnType)
     Column.Type.Primitive.INT2 -> codeBlock("%T()", Poet.Exposed.shortColumnType)
     Column.Type.Primitive.TEXT -> codeBlock("%T()", Poet.Exposed.textColumnType)
-    Column.Type.Primitive.CITEXT -> codeBlock("%T()", Poet.Pgen.citextColumnType)
+    Column.Type.Primitive.CITEXT -> codeBlock("%T()", Poet.Pgen.Driver.citextColumnType)
     Column.Type.Primitive.TIME -> codeBlock("%T()", Poet.Exposed.kotlinLocalTimeColumnType)
     Column.Type.Primitive.TIMESTAMP -> codeBlock("%T()", Poet.Exposed.kotlinInstantColumnType)
     Column.Type.Primitive.TIMESTAMP_WITH_TIMEZONE -> codeBlock("%T()", Poet.Exposed.kotlinOffsetDateTimeColumnType)
     Column.Type.Primitive.UUID -> codeBlock("%T()", c.poet.uuidColumnType)
-    Column.Type.Primitive.JSON -> codeBlock("%T()", Poet.Pgen.defaultJsonColumnType)
-    Column.Type.Primitive.JSONB -> codeBlock("%T()", Poet.Pgen.defaultJsonColumnType)
-    Column.Type.Primitive.UNCONSTRAINED_NUMERIC -> codeBlock("%T()", Poet.Pgen.unconstrainedNumericColumnType)
-    Column.Type.Primitive.REG_CLASS -> codeBlock("%T()", Poet.Pgen.regClassColumnType)
+    Column.Type.Primitive.JSON -> codeBlock("%T()", Poet.Pgen.Core.Column.defaultJsonColumnType)
+    Column.Type.Primitive.JSONB -> codeBlock("%T()", Poet.Pgen.Core.Column.defaultJsonColumnType)
+    Column.Type.Primitive.UNCONSTRAINED_NUMERIC -> codeBlock(
+        "%T()", Poet.Pgen.Core.Column.unconstrainedNumericColumnType
+    )
+
+    Column.Type.Primitive.REG_CLASS -> codeBlock("%T()", Poet.Pgen.Driver.regClassColumnType)
     is Column.Type.CustomType -> codeBlock("%T()", type.columnType.poet)
 }
 

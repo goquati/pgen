@@ -30,7 +30,7 @@ internal fun CompositeType.toTypeSpecInternal() = buildDataClass(this@toTypeSpec
     addType(
         buildObject("ColumnType") {
             superclass(
-                Poet.Pgen.compositeColumnType
+                Poet.Pgen.Core.Column.compositeColumnType
                     .parameterizedBy(this@toTypeSpecInternal.name.typeName)
             )
             addFunction("sqlType") {
@@ -48,12 +48,12 @@ internal fun CompositeType.toTypeSpecInternal() = buildDataClass(this@toTypeSpec
                         Config.ConnectionType.JDBC -> add(
                             "is %T -> %T.parseFields(value.value ?: \"\")\n",
                             Poet.Jdbc.PGobject,
-                            Poet.Pgen.pgStructField,
+                            Poet.Pgen.Core.Column.pgStructField,
                         )
 
                         Config.ConnectionType.R2DBC -> Unit
                     }
-                    add("is String -> %T.parseFields(value)\n", Poet.Pgen.pgStructField)
+                    add("is String -> %T.parseFields(value)\n", Poet.Pgen.Core.Column.pgStructField)
                     add(
                         "else -> error(\"Unexpected value for " +
                                 $$"$${this@toTypeSpecInternal.name.prettyName}: $value\")\n"
@@ -84,7 +84,7 @@ internal fun CompositeType.toTypeSpecInternal() = buildDataClass(this@toTypeSpec
                         add(".serialize(value.%L))\n", column.prettyName)
                     }
                     endControlFlow()
-                    add("return dataStr.%T()", Poet.Pgen.pgStructFieldJoin)
+                    add("return dataStr.%T()", Poet.Pgen.Core.Column.pgStructFieldJoin)
                 }
             }
 
@@ -135,14 +135,19 @@ private fun CodeBlock.Builder.addPgFieldConverter(
     is Column.Type.Overwrite,
     is Column.Type.CustomType -> throw NotImplementedError("Unsupported composite field type ${type.sqlType}")
 
-    is Column.Type.NonPrimitive.Enum -> add("%T.Enum(%T::class)", Poet.Pgen.pgStructFieldConverter, type.getTypeName())
-    is Column.Type.NonPrimitive.Numeric -> add("%T.BigDecimal", Poet.Pgen.pgStructFieldConverter)
-    Column.Type.Primitive.INT2 -> add("%T.Small", Poet.Pgen.pgStructFieldConverter)
-    Column.Type.Primitive.INT4 -> add("%T.Int", Poet.Pgen.pgStructFieldConverter)
-    Column.Type.Primitive.INT8 -> add("%T.Long", Poet.Pgen.pgStructFieldConverter)
-    Column.Type.Primitive.TEXT -> add("%T.String", Poet.Pgen.pgStructFieldConverter)
-    Column.Type.Primitive.UUID -> add("%T.Uuid", Poet.Pgen.pgStructFieldConverter)
-    Column.Type.Primitive.VARCHAR -> add("%T.String", Poet.Pgen.pgStructFieldConverter)
-    Column.Type.Primitive.UNCONSTRAINED_NUMERIC -> add("%T.BigDecimal", Poet.Pgen.pgStructFieldConverter)
-    Column.Type.Primitive.BINARY -> add("%T.ByteArray", Poet.Pgen.pgStructFieldConverter)
+    is Column.Type.NonPrimitive.Enum -> add(
+        "%T.Enum(%T::class)",
+        Poet.Pgen.Core.Column.pgStructFieldConverter,
+        type.getTypeName()
+    )
+
+    is Column.Type.NonPrimitive.Numeric -> add("%T.BigDecimal", Poet.Pgen.Core.Column.pgStructFieldConverter)
+    Column.Type.Primitive.INT2 -> add("%T.Small", Poet.Pgen.Core.Column.pgStructFieldConverter)
+    Column.Type.Primitive.INT4 -> add("%T.Int", Poet.Pgen.Core.Column.pgStructFieldConverter)
+    Column.Type.Primitive.INT8 -> add("%T.Long", Poet.Pgen.Core.Column.pgStructFieldConverter)
+    Column.Type.Primitive.TEXT -> add("%T.String", Poet.Pgen.Core.Column.pgStructFieldConverter)
+    Column.Type.Primitive.UUID -> add("%T.Uuid", Poet.Pgen.Core.Column.pgStructFieldConverter)
+    Column.Type.Primitive.VARCHAR -> add("%T.String", Poet.Pgen.Core.Column.pgStructFieldConverter)
+    Column.Type.Primitive.UNCONSTRAINED_NUMERIC -> add("%T.BigDecimal", Poet.Pgen.Core.Column.pgStructFieldConverter)
+    Column.Type.Primitive.BINARY -> add("%T.ByteArray", Poet.Pgen.Core.Column.pgStructFieldConverter)
 }

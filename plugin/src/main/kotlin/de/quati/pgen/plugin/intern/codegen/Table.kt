@@ -28,9 +28,9 @@ internal fun Table.toTypeSpecInternal() = buildObject(this@toTypeSpecInternal.na
     superclass(Poet.Exposed.table)
     addSuperinterface(
         if (isEventTable)
-            Poet.Pgen.pgenWalEventTable
+            Poet.Pgen.Core.pgenWalEventTable
         else
-            Poet.Pgen.pgenTable
+            Poet.Pgen.Core.pgenTable
     )
     addSuperclassConstructorParameter("%S", this@toTypeSpecInternal.name.toString())
     addFunction(
@@ -64,7 +64,7 @@ internal fun Table.toTypeSpecInternal() = buildObject(this@toTypeSpecInternal.na
             initializer {
                 add(initializerBlock(column))
                 if (column.defaultExpr != null)
-                    add(".defaultExpression(%T(%S))", Poet.Pgen.Util.pgenExpression, column.defaultExpr)
+                    add(".defaultExpression(%T(%S))", Poet.Pgen.Core.Util.pgenExpression, column.defaultExpr)
                 foreignKeysSingle[column.name]?.also { fKey ->
                     add(
                         ".references(ref = %T.${fKey.reference.targetColumn.pretty}, fkName = %S)",
@@ -140,20 +140,20 @@ private fun Table.toConstraintsObject() = buildObject(this@toConstraintsObject.c
     }
 
     this@toConstraintsObject.primaryKey?.also { pkey ->
-        addConstraint(name = pkey.name, clazz = Poet.Pgen.pKeyConstraint)
+        addConstraint(name = pkey.name, clazz = Poet.Pgen.Core.pKeyConstraint)
     }
     this@toConstraintsObject.foreignKeys.forEach { fkey ->
-        addConstraint(name = fkey.name, clazz = Poet.Pgen.fKeyConstraint)
+        addConstraint(name = fkey.name, clazz = Poet.Pgen.Core.fKeyConstraint)
     }
     this@toConstraintsObject.uniqueConstraints.forEach { con ->
-        addConstraint(name = con.name, clazz = Poet.Pgen.uniqueConstraint)
+        addConstraint(name = con.name, clazz = Poet.Pgen.Core.uniqueConstraint)
     }
     this@toConstraintsObject.checkConstraints.forEach { con ->
-        addConstraint(name = con.name, clazz = Poet.Pgen.checkConstraint)
+        addConstraint(name = con.name, clazz = Poet.Pgen.Core.checkConstraint)
     }
     this@toConstraintsObject.columns.filter { !it.nullable }.forEach { column ->
         val name = column.name.value + "_not_null"
-        val clazz = Poet.Pgen.notNullConstraint
+        val clazz = Poet.Pgen.Core.notNullConstraint
         addProperty(
             name = name.toCamelCase(capitalized = false),
             type = clazz,
@@ -176,7 +176,7 @@ private fun Table.toTypeSpecEntity() = buildDataClass(this@toTypeSpecEntity.enti
     val tableTypeName = this@toTypeSpecEntity.name.typeName
     val entityTypeName = this@toTypeSpecEntity.entityTypeName
 
-    addSuperinterface(Poet.Pgen.columnValueSet)
+    addSuperinterface(Poet.Pgen.Core.columnValueSet)
     primaryConstructor {
         columns.forEach { column ->
             val type = column.getColumnTypeName()
@@ -189,13 +189,13 @@ private fun Table.toTypeSpecEntity() = buildDataClass(this@toTypeSpecEntity.enti
 
     addFunction("toList") {
         addModifiers(KModifier.OVERRIDE)
-        returns(List::class.asTypeName().parameterizedBy(Poet.Pgen.columnValue.parameterizedBy(STAR)))
+        returns(List::class.asTypeName().parameterizedBy(Poet.Pgen.Core.columnValue.parameterizedBy(STAR)))
         addCode {
             add("return listOfNotNull(\n")
             columns.forEach { column ->
                 add(
                     "  %T(column = %T.%L, value = %L),\n",
-                    Poet.Pgen.columnValue,
+                    Poet.Pgen.Core.columnValue,
                     tableTypeName,
                     column.prettyName,
                     column.prettyName,
@@ -218,7 +218,7 @@ private fun Table.toTypeSpecEntity() = buildDataClass(this@toTypeSpecEntity.enti
                     add(
                         "  %L = row.%T(%T.%L, alias),\n",
                         column.prettyName,
-                        Poet.Pgen.Util.getColumnWithAlias,
+                        Poet.Pgen.Core.Util.getColumnWithAlias,
                         tableTypeName,
                         column.prettyName,
                     )
@@ -273,7 +273,7 @@ private fun Table.toTypeSpecEventEntity() = buildDataClass(this@toTypeSpecEventE
     val tableTypeName = this@toTypeSpecEventEntity.name.typeName
     val entityTypeName = this@toTypeSpecEventEntity.eventEntityTypeName
 
-    addSuperinterface(Poet.Pgen.columnValueSet)
+    addSuperinterface(Poet.Pgen.Core.columnValueSet)
     primaryConstructor {
         columns.forEach { column ->
             val type = column.getColumnTypeName()
@@ -286,13 +286,13 @@ private fun Table.toTypeSpecEventEntity() = buildDataClass(this@toTypeSpecEventE
 
     addFunction("toList") {
         addModifiers(KModifier.OVERRIDE)
-        returns(List::class.asTypeName().parameterizedBy(Poet.Pgen.columnValue.parameterizedBy(STAR)))
+        returns(List::class.asTypeName().parameterizedBy(Poet.Pgen.Core.columnValue.parameterizedBy(STAR)))
         addCode {
             add("return listOfNotNull(\n")
             columns.forEach { column ->
                 add(
                     "  %T(column = %T.%L, value = %L),\n",
-                    Poet.Pgen.columnValue,
+                    Poet.Pgen.Core.columnValue,
                     tableTypeName,
                     column.prettyName,
                     column.prettyName,
@@ -315,7 +315,7 @@ private fun Table.toTypeSpecEventEntity() = buildDataClass(this@toTypeSpecEventE
                     add(
                         "  %L = row.%T(%T.%L, alias),\n",
                         column.prettyName,
-                        Poet.Pgen.Util.getColumnWithAlias,
+                        Poet.Pgen.Core.Util.getColumnWithAlias,
                         tableTypeName,
                         column.prettyName,
                     )
@@ -333,7 +333,7 @@ private fun Table.toTypeSpecEventEntity() = buildDataClass(this@toTypeSpecEventE
                     add(
                         "  %L = %T(data, %T.%L),\n",
                         column.prettyName,
-                        if (column.nullable) Poet.Pgen.Util.parseColumnNullable else Poet.Pgen.Util.parseColumn,
+                        if (column.nullable) Poet.Pgen.Core.Util.parseColumnNullable else Poet.Pgen.Core.Util.parseColumn,
                         tableTypeName,
                         column.prettyName,
                     )
@@ -347,7 +347,7 @@ private fun Table.toTypeSpecEventEntity() = buildDataClass(this@toTypeSpecEventE
 context(c: CodeGenContext)
 private fun Table.toTypeSpecUpdateEntity(
 ) = buildDataClass(this@toTypeSpecUpdateEntity.updateEntityTypeName.simpleName) {
-    addSuperinterface(Poet.Pgen.columnValueSet)
+    addSuperinterface(Poet.Pgen.Core.columnValueSet)
     primaryConstructor {
         this@toTypeSpecUpdateEntity.columns.forEach { column ->
             val innerType = column.getColumnTypeName()
@@ -361,7 +361,7 @@ private fun Table.toTypeSpecUpdateEntity(
 
     addFunction("toList") {
         addModifiers(KModifier.OVERRIDE)
-        returns(List::class.asTypeName().parameterizedBy(Poet.Pgen.columnValue.parameterizedBy(STAR)))
+        returns(List::class.asTypeName().parameterizedBy(Poet.Pgen.Core.columnValue.parameterizedBy(STAR)))
         addCode {
             add("return listOfNotNull(\n")
             this@toTypeSpecUpdateEntity.columns.forEach { column ->
@@ -369,7 +369,7 @@ private fun Table.toTypeSpecUpdateEntity(
                     "  %L.%T()?.let { %T(column = %T.%L, value = it.value) },\n",
                     column.prettyName,
                     Poet.QuatiUtil.optionTakeSome,
-                    Poet.Pgen.columnValue,
+                    Poet.Pgen.Core.columnValue,
                     this@toTypeSpecUpdateEntity.name.typeName,
                     column.prettyName,
                 )
@@ -383,7 +383,7 @@ private fun Table.toTypeSpecUpdateEntity(
 context(c: CodeGenContext)
 private fun Table.toTypeSpecCreateEntity(
 ) = buildDataClass(this@toTypeSpecCreateEntity.createEntityTypeName.simpleName) {
-    addSuperinterface(Poet.Pgen.columnValueSet)
+    addSuperinterface(Poet.Pgen.Core.columnValueSet)
     primaryConstructor {
         this@toTypeSpecCreateEntity.columns.forEach { column ->
             val innerType = column.getColumnTypeName()
@@ -400,14 +400,14 @@ private fun Table.toTypeSpecCreateEntity(
 
     addFunction("toList") {
         addModifiers(KModifier.OVERRIDE)
-        returns(List::class.asTypeName().parameterizedBy(Poet.Pgen.columnValue.parameterizedBy(STAR)))
+        returns(List::class.asTypeName().parameterizedBy(Poet.Pgen.Core.columnValue.parameterizedBy(STAR)))
         addCode {
             add("return listOfNotNull(\n")
             this@toTypeSpecCreateEntity.columns.forEach { column ->
                 if (column.defaultExpr == null)
                     add(
                         "  %T(column = %T.%L, value =%L),\n",
-                        Poet.Pgen.columnValue,
+                        Poet.Pgen.Core.columnValue,
                         this@toTypeSpecCreateEntity.name.typeName,
                         column.prettyName,
                         column.prettyName,
@@ -417,7 +417,7 @@ private fun Table.toTypeSpecCreateEntity(
                         "  %L.%T()?.let { %T(column = %T.%L, value = it.value) },\n",
                         column.prettyName,
                         Poet.QuatiUtil.optionTakeSome,
-                        Poet.Pgen.columnValue,
+                        Poet.Pgen.Core.columnValue,
                         this@toTypeSpecCreateEntity.name.typeName,
                         column.prettyName,
                     )
