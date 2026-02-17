@@ -20,10 +20,9 @@ val dbPortBase = envFile.getDbPort("r2dbc_basic")
 val dbPortBaseVector = envFile.getDbPort("r2dbc_basic_vector")
 
 registerStartDbTask(profile = "r2dbc-base")
-tasks.findByName("pgenFlywayMigration")!!.dependsOn("startDb")
-tasks.findByName("pgenGenerate")!!.dependsOn("pgenFlywayMigration")
+tasks.findByName("pgenGenerateSpec")!!.dependsOn("startDb")
 tasks.findByName("check")!!.apply {
-    dependsOn("pgenGenerate")
+    dependsOn("pgenGenerateSpec")
     finalizedBy("stopDb")
 }
 tasks.compileKotlin { dependsOn("pgenGenerateCode") }

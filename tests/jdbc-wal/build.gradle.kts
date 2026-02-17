@@ -21,10 +21,9 @@ val envFile = EnvFile(rootProject)
 val dbPort = envFile.getDbPort("jdbc_wal")
 
 registerStartDbTask(profile = "jdbc-wal")
-tasks.findByName("pgenFlywayMigration")!!.dependsOn("startDb")
-tasks.findByName("pgenGenerate")!!.dependsOn("pgenFlywayMigration")
+tasks.findByName("pgenGenerateSpec")!!.dependsOn("startDb")
 tasks.findByName("check")!!.apply {
-    dependsOn("pgenGenerate")
+    dependsOn("pgenGenerateSpec")
     finalizedBy("stopDb")
 }
 tasks.compileKotlin { dependsOn("pgenGenerateCode") }

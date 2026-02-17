@@ -9,7 +9,9 @@
 
 1. Start Postgres:
     - `docker-compose up -d`
-2. Execute the example:
+2. DB migration and generate spec:
+    - `./gradlew pgenGenerateSpec`
+3. Execute the example:
     - `./gradlew runMain`
 
 You should see output similar to:

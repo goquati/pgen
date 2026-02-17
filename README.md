@@ -84,7 +84,6 @@ tasks.compileKotlin { dependsOn("pgenGenerateCode") }
 ### 4) Local workflow
 
 ```bash
-./gradlew pgenFlywayMigration   # optional, when Flyway is configured
 ./gradlew pgenGenerateSpec      # connect to DB, produce pgen-spec.yaml
 ./gradlew pgenGenerateCode      # generate Kotlin from spec
 ```
@@ -103,10 +102,8 @@ Commit only the spec, since the generated code is fully reproducible from it.
 
 | Task                  | Description                                                                   |
 |-----------------------|-------------------------------------------------------------------------------|
-| `pgenFlywayMigration` | Runs Flyway migrations (if configured).                                       |
 | `pgenGenerateSpec`    | Connects to PostgreSQL, introspects schema, and generates the YAML spec file. |
 | `pgenGenerateCode`    | Generates Kotlin code from the spec only. No DB required.                     |
-| `pgenGenerate`        | Shorthand: `pgenGenerateSpec` + `pgenGenerateCode`.                           |
 
 ---
 

@@ -46,7 +46,6 @@ tasks.register<JavaExec>("runMain") {
     mainClass.set("de.quati.pgen.example.jdbc.MainKt")
 }
 tasks.compileKotlin {
-    dependsOn("pgenFlywayMigration")
     dependsOn("pgenGenerateCode")
 }
 
