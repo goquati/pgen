@@ -156,9 +156,11 @@ create table public.domain_test_table
 (
     key               text primary key,
     user_id_nullable  public.user_id,
-    user_id           public.user_id not null,
-    order_id_nullable public.user_id,
-    order_id          public.user_id not null
+    user_id           public.user_id  not null,
+    order_id_nullable public.order_id,
+    order_id          public.order_id not null,
+    email_nullable    public.email,
+    email             public.email    not null
 );
 
 create table public.enum_test_table

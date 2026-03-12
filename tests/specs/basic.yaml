@@ -179,14 +179,25 @@ databases:
     - name: "order_id_nullable"
       type:
         kind: "domain"
-        ref: "public.user_id"
+        ref: "public.order_id"
         base: "uuid"
       nullable: true
     - name: "order_id"
       type:
         kind: "domain"
-        ref: "public.user_id"
+        ref: "public.order_id"
         base: "uuid"
+    - name: "email_nullable"
+      type:
+        kind: "domain"
+        ref: "public.email"
+        base: "text"
+      nullable: true
+    - name: "email"
+      type:
+        kind: "domain"
+        ref: "public.email"
+        base: "text"
     primaryKey:
       name: "domain_test_table_pkey"
       columns:
@@ -705,6 +716,3 @@ databases:
     - name: "country"
       type: "text"
       nullable: true
-  additionalDomainTypes:
-  - ref: "public.email"
-    base: "text"
