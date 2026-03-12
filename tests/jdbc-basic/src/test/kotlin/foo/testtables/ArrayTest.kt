@@ -1,6 +1,8 @@
 package foo.testtables
 
 import de.quati.pgen.jdbc.util.transaction
+import de.quati.pgen.tests.jdbc.basic.generated.db.foo.public1.Address
+import de.quati.pgen.tests.jdbc.basic.generated.db.foo.public1.CompositeArrayTestTable
 import de.quati.pgen.tests.jdbc.basic.generated.db.foo.public1.Email
 import de.quati.pgen.tests.jdbc.basic.generated.db.foo.public1.EnumArrayTestTable
 import de.quati.pgen.tests.jdbc.basic.generated.db.foo.public1.OrderStatus
@@ -153,6 +155,44 @@ class ArrayTest {
             }
             table.selectAll().where { table.key eq "bar" }.single()
                 .let(UuidDomainArrayTestTable.Entity::create)
+        }.also { row ->
+            row.data shouldBe d3
+            row.dataNullable shouldBe d2
+        }
+    }
+
+    @Test
+    fun `composite array tests`() {
+        val table = CompositeArrayTestTable
+        cleanUp(table)
+        val d1 = listOf(
+            Address(street = "s1", city = "c1", country = "l1", postalCode = "p1"),
+            Address(street = "s2", city = "c2", country = "l2", postalCode = "p2"),
+        )
+        val d2 = listOf<Address>()
+        val d3 = listOf(
+            Address(street = "s3", city = "c3", country = "l3", postalCode = "p3"),
+        )
+
+        db.transaction {
+            table.insert {
+                it[table.key] = "foo"
+                it[table.data] = d1
+            }
+            table.selectAll().where { table.key eq "foo" }.single()
+                .let(CompositeArrayTestTable.Entity::create)
+        }.also { row ->
+            row.data shouldBe d1
+            row.dataNullable shouldBe null
+        }
+        db.transaction {
+            table.insert {
+                it[table.key] = "bar"
+                it[table.data] = d3
+                it[table.dataNullable] = d2
+            }
+            table.selectAll().where { table.key eq "bar" }.single()
+                .let(CompositeArrayTestTable.Entity::create)
         }.also { row ->
             row.data shouldBe d3
             row.dataNullable shouldBe d2

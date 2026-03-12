@@ -259,6 +259,13 @@ create table public.text_domain_array_test_table
     data_nullable public.email[]
 );
 
+create table public.composite_array_test_table
+(
+    key           text primary key,
+    data          public.address[] not null,
+    data_nullable public.address[]
+);
+
 -- test for name conflicts:
 create table public.event_entity
 (

@@ -91,6 +91,27 @@ databases:
       name: "citext_test_table_pkey"
       columns:
       - "key"
+  - name: "public.composite_array_test_table"
+    columns:
+    - name: "key"
+      type: "text"
+    - name: "data"
+      type:
+        kind: "array"
+        element:
+          kind: "composite"
+          ref: "public.address"
+    - name: "data_nullable"
+      type:
+        kind: "array"
+        element:
+          kind: "composite"
+          ref: "public.address"
+      nullable: true
+    primaryKey:
+      name: "composite_array_test_table_pkey"
+      columns:
+      - "key"
   - name: "public.constraints"
     columns:
     - name: "id"

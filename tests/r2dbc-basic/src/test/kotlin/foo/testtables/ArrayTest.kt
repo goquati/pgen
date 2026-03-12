@@ -1,6 +1,8 @@
 package foo.testtables
 
 import de.quati.pgen.r2dbc.util.suspendTransaction
+import de.quati.pgen.tests.r2dbc.basic.generated.db.foo.public1.Address
+import de.quati.pgen.tests.r2dbc.basic.generated.db.foo.public1.CompositeArrayTestTable
 import de.quati.pgen.tests.r2dbc.basic.generated.db.foo.public1.Email
 import de.quati.pgen.tests.r2dbc.basic.generated.db.foo.public1.EnumArrayTestTable
 import de.quati.pgen.tests.r2dbc.basic.generated.db.foo.public1.OrderStatus
@@ -14,7 +16,7 @@ import kotlinx.coroutines.runBlocking
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.r2dbc.insert
 import org.jetbrains.exposed.v1.r2dbc.selectAll
-import kotlin.collections.single
+import org.junit.jupiter.api.Disabled
 import kotlin.test.Test
 import kotlin.uuid.Uuid
 
@@ -150,6 +152,45 @@ class ArrayTest {
             }
             table.selectAll().where { table.key eq "bar" }.single()
                 .let(UuidDomainArrayTestTable.Entity::create)
+        }.also { row ->
+            row.data shouldBe d3
+            row.dataNullable shouldBe d2
+        }
+    }
+
+    @Test
+    @Disabled // TODO not yet supported
+    fun `composite array tests`(): Unit = runBlocking  {
+        val table = CompositeArrayTestTable
+        cleanUp(table)
+        val d1 = listOf(
+            Address(street = "s1", city = "c1", country = "l1", postalCode = "p1"),
+            Address(street = "s2", city = "c2", country = "l2", postalCode = "p2"),
+        )
+        val d2 = listOf<Address>()
+        val d3 = listOf(
+            Address(street = "s3", city = "c3", country = "l3", postalCode = "p3"),
+        )
+
+        db.suspendTransaction {
+            table.insert {
+                it[table.key] = "foo"
+                it[table.data] = d1
+            }
+            table.selectAll().where { table.key eq "foo" }.single()
+                .let(CompositeArrayTestTable.Entity::create)
+        }.also { row ->
+            row.data shouldBe d1
+            row.dataNullable shouldBe null
+        }
+        db.suspendTransaction {
+            table.insert {
+                it[table.key] = "bar"
+                it[table.data] = d3
+                it[table.dataNullable] = d2
+            }
+            table.selectAll().where { table.key eq "bar" }.single()
+                .let(CompositeArrayTestTable.Entity::create)
         }.also { row ->
             row.data shouldBe d3
             row.dataNullable shouldBe d2
