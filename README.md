@@ -35,7 +35,7 @@ from the checked-in spec in CI — no database required there.
 ```kotlin
 plugins {
     alias(libs.plugins.kotlinJvm)
-    id("de.quati.pgen") version "0.48.2"
+    id("de.quati.pgen") version "0.49.0"
 }
 ```
 
@@ -170,7 +170,7 @@ Below is a reference set you can adapt to your project:
 
 ```kotlin
 dependencies {
-    implementation("de.quati.pgen:r2dbc:0.48.2")
+    implementation("de.quati.pgen:r2dbc:0.49.0")
 
     // Exposed core modules
     val exposedVersion = "1.0.0-rc-4"

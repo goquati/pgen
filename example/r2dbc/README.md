@@ -28,7 +28,7 @@ The pgen Gradle plugin is configured in [build.gradle.kts](./build.gradle.kts) o
 ```
 plugins {
     kotlin("jvm") version "2.2.0"
-    id("de.quati.pgen") version "0.48.2"
+    id("de.quati.pgen") version "0.49.0"
 }
 
 pgen {
