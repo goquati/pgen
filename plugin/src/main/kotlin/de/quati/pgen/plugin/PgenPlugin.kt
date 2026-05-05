@@ -29,7 +29,7 @@ public class PgenPlugin : Plugin<Project> {
             task.outputs.upToDateWhen { false }
             task.doLast {
                 val config = configProvider.get()
-                val out = project.serviceOf<StyledTextOutputFactory>().create("pgen")!!
+                val out = it.project.serviceOf<StyledTextOutputFactory>().create("pgen")!!
                 flywayMigration(config, out)
                 generateSpec(config = config)
             }
@@ -41,7 +41,7 @@ public class PgenPlugin : Plugin<Project> {
             task.inputs.files(configProvider.map { it.specFilePath })
             task.outputs.dir(genDir)
             task.doLast {
-                val out = project.serviceOf<StyledTextOutputFactory>().create("pgen")!!
+                val out = it.project.serviceOf<StyledTextOutputFactory>().create("pgen")!!
                 generateCode(config = configProvider.get(), outputPath = genDir.get(), out = out)
             }
         }
