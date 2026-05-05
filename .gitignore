@@ -8,7 +8,7 @@ build/
 .env
 test_migration
 test-queries.sql
-tests/**/resources/pgen-spec.yaml
+tests/**/resources/pgen-spec.json
 
 ### IntelliJ IDEA ###
 .idea/modules.xml

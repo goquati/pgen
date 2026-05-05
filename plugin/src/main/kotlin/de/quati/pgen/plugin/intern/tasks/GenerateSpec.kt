@@ -17,8 +17,8 @@ internal fun generateSpec(config: Config) {
     val spec = PgenSpec(
         databases = databases.sortedBy { it.name },
     )
-    val yamlStr = spec.encodeToYaml()
-    config.specFilePath.createParentDirectories().writeText(yamlStr)
+    val jsonStr = spec.encodeToYaml()
+    config.specFilePath.createParentDirectories().writeText(jsonStr)
 }
 
 internal fun generateDbSpec(config: Config.Db): PgenSpec.Database {

@@ -18,18 +18,11 @@ kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serializa
 
 poet = { module = "com.squareup:kotlinpoet", version.ref = "kotlin" }
 
-jackson-kotlin = { module = "tools.jackson.module:jackson-module-kotlin", version.ref = "jackson" }
-jackson-yaml = { module = "tools.jackson.dataformat:jackson-dataformat-yaml", version.ref = "jackson" }
-
 [bundles]
 flyway = [
     "jdbc-postgresql",
     "flyway-core",
     "flyway-postgresql",
-]
-jackson = [
-    "jackson-kotlin",
-    "jackson-yaml",
 ]
 
 [plugins]

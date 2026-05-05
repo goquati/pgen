@@ -23,7 +23,6 @@ dependencies {
     implementation(libs.goquati.poet)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.bundles.flyway)
-    implementation(libs.bundles.jackson)
     compileOnly(kotlin("gradle-plugin"))
 }
 

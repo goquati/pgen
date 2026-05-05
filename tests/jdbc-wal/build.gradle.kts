@@ -54,6 +54,6 @@ pgen {
     }
 
     packageName(outputModule)
-    specFilePath("$projectDir/src/main/resources/pgen-spec.yaml")
+    specFilePath("$projectDir/src/main/resources/pgen-spec.json")
     setConnectionTypeJdbc()
 }

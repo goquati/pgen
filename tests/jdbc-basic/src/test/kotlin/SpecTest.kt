@@ -6,8 +6,8 @@ import kotlin.test.Test
 class SpecTest {
     @Test
     fun `test spec generation`() {
-        val expectedSpec = Path("../specs/basic.yaml").readText()
-        val actualSpec = SpecTest::class.java.getResource("/pgen-spec.yaml")!!.readText()
+        val expectedSpec = Path("../specs/basic.json").readText()
+        val actualSpec = SpecTest::class.java.getResource("/pgen-spec.json")!!.readText()
         expectedSpec shouldBe actualSpec
     }
 }
