@@ -7,19 +7,20 @@ import de.quati.pgen.plugin.intern.codegen.sync
 import de.quati.pgen.plugin.intern.codegen.syncQueries
 import de.quati.pgen.plugin.intern.codegen.syncSchemaUtils
 import org.gradle.api.file.Directory
-import org.gradle.internal.logging.text.StyledTextOutput
+import org.gradle.api.logging.Logger
+
 
 
 internal fun generateCode(
     config: Config,
     outputPath: Directory,
-    out: StyledTextOutput,
+    logger: Logger,
 ) {
-    generateOas(config, out)
+    generateOas(config, logger = logger)
     DirectorySyncService(
         outDir = outputPath.dir(config.packageName.parts.joinToString("/")).asFile.toPath(),
         name = "pgen code",
-        out = out,
+        logger = logger,
     ).useWith {
         config.forEachCodeGenContext {
             dbSpec.enums.forEach { sync(it) }

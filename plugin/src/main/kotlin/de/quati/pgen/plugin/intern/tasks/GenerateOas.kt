@@ -10,11 +10,11 @@ import de.quati.pgen.plugin.intern.model.oas.TableOasData
 import de.quati.pgen.plugin.intern.service.DirectorySyncService
 import de.quati.pgen.plugin.intern.codegen.CodeGenContext
 import de.quati.pgen.plugin.intern.codegen.oas.toOpenApi
-import org.gradle.internal.logging.text.StyledTextOutput
+import org.gradle.api.logging.Logger
 
 internal fun generateOas(
     config: Config,
-    out: StyledTextOutput,
+    logger: Logger,
 ) {
     val oasConfig = config.oas ?: return
 
@@ -41,7 +41,7 @@ internal fun generateOas(
         DirectorySyncService(
             outDir = oasConfig.oasRootPath,
             name = "OpenApi files",
-            out = out,
+            logger = logger,
         ).useWith {
             oasTables.forEach {
                 sync(relativePath = it.nameCapitalized + ".yaml", content = it.toOpenApi())

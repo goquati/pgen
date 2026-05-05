@@ -1,7 +1,7 @@
 package de.quati.pgen.plugin.intern.service
 
 import com.squareup.kotlinpoet.FileSpec
-import org.gradle.internal.logging.text.StyledTextOutput
+import org.gradle.api.logging.Logger
 import java.nio.file.Path
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.absolute
@@ -17,7 +17,7 @@ import kotlin.io.path.writeText
 internal open class DirectorySyncService(
     private val outDir: Path,
     private val name: String,
-    private val out: StyledTextOutput,
+    private val logger: Logger,
 ) {
     private var filesCreated = mutableSetOf<Path>()
     private var filesUpdated = mutableSetOf<Path>()
@@ -42,13 +42,12 @@ internal open class DirectorySyncService(
         filesDeleted += filesToDelete
 
         fun Set<*>.printSize() = size.toString().padStart(3)
-        out.withStyle(StyledTextOutput.Style.Info)
-        out.println("package '$name' synced:")
-        out.println("   #files unchanged = ${filesUnchanged.printSize()}")
-        out.println("   #files created   = ${filesCreated.printSize()}")
-        out.println("   #files updated   = ${filesUpdated.printSize()}")
-        out.println("   #files deleted   = ${filesDeleted.printSize()}")
-        out.println()
+        logger.info("package '$name' synced:")
+        logger.info("   #files unchanged = ${filesUnchanged.printSize()}")
+        logger.info("   #files created   = ${filesCreated.printSize()}")
+        logger.info("   #files updated   = ${filesUpdated.printSize()}")
+        logger.info("   #files deleted   = ${filesDeleted.printSize()}")
+        logger.info("")
     }
 
     private fun checkFilePath(path: Path) {

@@ -5,17 +5,13 @@ import de.quati.pgen.plugin.intern.tasks.generateCode
 import de.quati.pgen.plugin.intern.tasks.generateSpec
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.internal.logging.text.StyledTextOutputFactory
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.jetbrains.kotlin.gradle.dsl.KotlinProjectExtension
 import org.jetbrains.kotlin.gradle.dsl.kotlinExtension
-import javax.inject.Inject
 
 
 @Suppress("unused")
-public class PgenPlugin @Inject constructor(
-    private val styledTextOutputFactory: StyledTextOutputFactory
-) : Plugin<Project> {
+public class PgenPlugin : Plugin<Project> {
 
     override fun apply(project: Project) {
         val configBuilder = project.extensions.create("pgen", ConfigBuilder::class.java)
@@ -31,8 +27,7 @@ public class PgenPlugin @Inject constructor(
             task.outputs.upToDateWhen { false }
             task.doLast {
                 val config = configProvider.get()
-                val out = styledTextOutputFactory.create("pgen")!!
-                flywayMigration(config, out)
+                flywayMigration(config, logger = it.logger)
                 generateSpec(config = config)
             }
         }
@@ -43,8 +38,7 @@ public class PgenPlugin @Inject constructor(
             task.inputs.files(configProvider.map { it.specFilePath })
             task.outputs.dir(genDir)
             task.doLast {
-                val out = styledTextOutputFactory.create("pgen")!!
-                generateCode(config = configProvider.get(), outputPath = genDir.get(), out = out)
+                generateCode(config = configProvider.get(), outputPath = genDir.get(), logger = it.logger)
             }
         }
 
