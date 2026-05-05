@@ -2,7 +2,7 @@
 
 Build type-safe Kotlin data access from your PostgreSQL schema with a single Gradle plugin.
 
-pgen connects to a PostgreSQL database, introspects the schema, writes a stable YAML specification, and generates Kotlin
+pgen connects to a PostgreSQL database, introspects the schema, writes a stable JSON specification, and generates Kotlin
 sources for JetBrains Exposed with JDBC or R2DBC. Use it locally against a real DB, then regenerate deterministically
 from the checked-in spec in CI — no database required there.
 
@@ -10,7 +10,7 @@ from the checked-in spec in CI — no database required there.
 
 ## ✨ Highlights
 
-- Schema-first workflow: DB → `pgen-spec.yaml` → Kotlin
+- Schema-first workflow: DB → `pgen-spec.json` → Kotlin
 - Deterministic CI builds: generate from spec only (no DB)
 - JDBC and R2DBC support
 - Optional Flyway migrations before extraction
@@ -70,7 +70,7 @@ pgen {
 
     packageName(outputModule)
     outputPath("$projectDir/src/main/kotlin/${outputModule.replace('.', '/')}")
-    specFilePath("$projectDir/src/main/resources/pgen-spec.yaml")
+    specFilePath("$projectDir/src/main/resources/pgen-spec.json")
     setConnectionTypeR2dbc() // or setConnectionTypeJdbc()
 }
 ```
@@ -84,7 +84,7 @@ tasks.compileKotlin { dependsOn("pgenGenerateCode") }
 ### 4) Local workflow
 
 ```bash
-./gradlew pgenGenerateSpec      # connect to DB, produce pgen-spec.yaml
+./gradlew pgenGenerateSpec      # connect to DB, produce pgen-spec.json
 ./gradlew pgenGenerateCode      # generate Kotlin from spec
 ```
 
@@ -102,7 +102,7 @@ Commit only the spec, since the generated code is fully reproducible from it.
 
 | Task                  | Description                                                                   |
 |-----------------------|-------------------------------------------------------------------------------|
-| `pgenGenerateSpec`    | Connects to PostgreSQL, introspects schema, and generates the YAML spec file. |
+| `pgenGenerateSpec`    | Connects to PostgreSQL, introspects schema, and generates the JSON spec file. |
 | `pgenGenerateCode`    | Generates Kotlin code from the spec only. No DB required.                     |
 
 ---
@@ -115,7 +115,7 @@ src/
     kotlin/
       de/quati/pgen/example/generated/   ← generated sources
     resources/
-      pgen-spec.yaml                     ← generated schema spec
+      pgen-spec.json                     ← generated schema spec
       migration/base/                    ← Flyway migrations
 ```
 

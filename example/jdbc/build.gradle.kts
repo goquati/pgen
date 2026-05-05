@@ -68,6 +68,6 @@ pgen {
     }
 
     packageName("$group.jdbc.generated")
-    specFilePath("$projectDir/src/main/resources/pgen-spec.yaml")
+    specFilePath("$projectDir/src/main/resources/pgen-spec.json")
     setConnectionTypeJdbc()
 }

@@ -68,6 +68,6 @@ pgen {
     }
 
     packageName("$group.r2dbc.generated")
-    specFilePath("$projectDir/src/main/resources/pgen-spec.yaml")
+    specFilePath("$projectDir/src/main/resources/pgen-spec.json")
     setConnectionTypeR2dbc()
 }
