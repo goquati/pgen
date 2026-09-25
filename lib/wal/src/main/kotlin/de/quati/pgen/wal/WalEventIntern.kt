@@ -72,6 +72,17 @@ internal sealed interface WalEventIntern {
         }
     }
 
+    /** Transaction boundaries, only used internally to acknowledge whole transactions. */
+    sealed interface Transaction : WalEventIntern
+
+    @Serializable
+    @SerialName("B")
+    data object Begin : Transaction
+
+    @Serializable
+    @SerialName("C")
+    data object Commit : Transaction
+
     @Serializable
     @SerialName("M")
     data class Message(

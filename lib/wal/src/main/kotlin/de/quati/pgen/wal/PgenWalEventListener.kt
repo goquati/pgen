@@ -5,6 +5,7 @@ import de.quati.pgen.shared.TableNameWithSchema
 import de.quati.pgen.shared.WalEvent
 import de.quati.pgen.shared.requireValidPgIdentifier
 import de.quati.pgen.wal.ReplicaIdentity.Companion.toSql
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -18,16 +19,19 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.json.JsonObject
 import org.postgresql.PGConnection
 import org.postgresql.PGProperty
 import org.postgresql.replication.PGReplicationStream
 import org.postgresql.util.PSQLException
 import org.slf4j.LoggerFactory
+import java.nio.ByteBuffer
 import java.sql.Connection
 import java.sql.DriverManager
 import java.util.Properties
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicReference
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
@@ -43,6 +47,10 @@ import kotlin.time.Duration.Companion.seconds
  * ### Semantics
  * - WAL events are processed **best-effort**:
  *   parsing or mapping errors are logged, and the corresponding LSN is still acknowledged.
+ * - LSNs are acknowledged per transaction: the commit LSN is acknowledged once all events
+ *   of the transaction have been emitted to [flow]. If the listener is stopped or the
+ *   connection is lost in between, the whole transaction is redelivered, so delivery is
+ *   at-least-once.
  * - Backpressure is controlled via the underlying [MutableSharedFlow] configuration.
  *   Depending on its buffer and overflow strategy, slow collectors may suspend WAL
  *   consumption.
@@ -72,8 +80,8 @@ public class PgenWalEventListener private constructor(
     private var job: Job? = null
     private val jobMutex = Mutex(locked = false)
 
-    private var streamConnection: Connection? = null
-    private val streamConnectionMutex = Mutex(locked = false)
+    // only used by [stop] to force-close the connection if the streaming job does not terminate in time
+    private val streamConnection = AtomicReference<Connection?>(null)
 
     /**
      * A shared flow emitting parsed WAL change events for the configured tables.
@@ -143,9 +151,15 @@ public class PgenWalEventListener private constructor(
     /**
      * Stops the WAL event listener.
      *
-     * This method cancels the streaming coroutine, attempts to interrupt any ongoing
-     * replication read, waits for the job to terminate, and closes the replication
-     * connection.
+     * This method cancels the streaming coroutine and wakes up its blocking replication
+     * read by emitting a (non-transactional) logical wake-up message, which is never
+     * exposed via [flow]. The streaming coroutine thereby completes the WAL message it is
+     * currently processing (and acknowledges it, if it completes a transaction) before it
+     * closes the replication stream gracefully. A transaction whose commit has not been
+     * acknowledged yet is redelivered on the next [start].
+     *
+     * If the wake-up message cannot be emitted or the streaming coroutine does not
+     * terminate within 30 seconds, the replication connection is closed forcibly.
      *
      * Calling this method is idempotent; calling it when the listener is not running
      * has no effect.
@@ -153,23 +167,43 @@ public class PgenWalEventListener private constructor(
     public suspend fun stop() {
         jobMutex.withLock {
             val currentJob = job ?: return@withLock
-            currentJob.cancel()
-            streamConnectionMutex.withLock {
-                runCatching {
-                    streamConnection?.unwrap(PGConnection::class.java)?.cancelQuery()
-                }
-            }
             withContext(NonCancellable) {
-                currentJob.join()
-                job = null
-                streamConnectionMutex.withLock {
-                    runCatching {
-                        streamConnection?.close()
+                currentJob.cancel()
+                val stopped = emitWakeUpMessage() &&
+                    withTimeoutOrNull(STOP_TIMEOUT) { currentJob.join() } != null
+                if (!stopped) {
+                    log.warn("WAL listener did not stop gracefully, closing replication connection forcibly")
+                    streamConnection.get()?.let { conn ->
+                        runCatching { conn.unwrap(PGConnection::class.java).cancelQuery() }
+                        runCatching { conn.close() }
                     }
-                    streamConnection = null
+                    currentJob.join()
                 }
+                job = null
             }
         }
+    }
+
+    /**
+     * Emits a non-transactional logical message, which lets the blocking replication read of
+     * the streaming job return, so that it can terminate gracefully.
+     */
+    private suspend fun emitWakeUpMessage(): Boolean = withContext(Dispatchers.IO) {
+        runCatching {
+            createConnection().use { conn ->
+                // flush parameter is only available since PostgreSQL 17, otherwise the WAL writer flushes it shortly
+                val sql = if (conn.metaData.databaseMajorVersion >= PG_VERSION_EMIT_MESSAGE_FLUSH)
+                    "select pg_logical_emit_message(false, ?, '', true)"
+                else
+                    "select pg_logical_emit_message(false, ?, '')"
+                conn.prepareStatement(sql).use { stmt ->
+                    stmt.setString(1, WAKE_UP_MESSAGE_PREFIX)
+                    stmt.execute()
+                }
+            }
+        }.onFailure {
+            log.warn("failed to emit WAL wake-up message: ${it.message}")
+        }.isSuccess
     }
 
     private fun createConnection(
@@ -196,7 +230,7 @@ public class PgenWalEventListener private constructor(
                 .withSlotName(slot)
                 .withStatusInterval(statusUpdateInterval.inWholeMilliseconds.toInt(), TimeUnit.MILLISECONDS)
                 .withSlotOption("format-version", "2")
-                .withSlotOption("include-transaction", "false")
+                .withSlotOption("include-transaction", "true")
                 .withSlotOption("include-timestamp", "true")
                 .withSlotOption("include-types", "false")
                 .withSlotOption("include-typmod", "false")
@@ -217,49 +251,24 @@ public class PgenWalEventListener private constructor(
         var reconnectionCount = 0
         while (isActive) {
             try {
-                val conn = streamConnectionMutex.withLock {
-                    if (!isActive) return@withLock null
-                    streamConnection?.close()
-                    val newConn = createConnection(
-                        additionalProperties = mapOf(
-                            PGProperty.ASSUME_MIN_SERVER_VERSION to "9.4",
-                            PGProperty.REPLICATION to "database",
-                        )
+                val conn = createConnection(
+                    additionalProperties = mapOf(
+                        PGProperty.ASSUME_MIN_SERVER_VERSION to "9.4",
+                        PGProperty.REPLICATION to "database",
                     )
+                )
+                streamConnection.set(conn)
+                try {
+                    if (!isActive) break
                     if (reconnectionCount++ > 0)
                         log.info("created new replication connection (reconnection #${reconnectionCount - 1})")
-                    streamConnection = newConn
-                    newConn
-                } ?: break // is null/break if the job is inactive/canceled
-                conn.usePgReplicationStream { stream ->
-                    while (isActive) {
-                        val buffer = stream.readPending() ?: stream.read() ?: continue
-                        val lsn = stream.lastReceiveLSN
-                        runCatching {
-                            val bytes = ByteArray(buffer.remaining()).also { bytes -> buffer.get(bytes) }
-                            val message = WalEventIntern.parse(bytes)
-                            when (message) {
-                                is WalEventIntern.Change -> {
-                                    val mapper = tableInfo[message.tableNameWithSchema]?.mapper
-                                        ?: error("no mapper for table ${message.tableNameWithSchema} found")
-                                    val change = message.toEvent(mapper)
-                                    mutableSharedFlow.emit(change)
-                                }
-
-                                is WalEventIntern.Message -> {
-                                    val info = message.toEvent()
-                                    mutableSharedFlow.emit(info)
-                                }
-                            }
-                        }.onFailure {
-                            log.error("error during WAL-Event parsing: ${it.message}", it)
-                        }
-                        stream.setAppliedLSN(lsn)
-                        stream.setFlushedLSN(lsn)
-                        stream.forceUpdateStatus()
-                        backoff.reset()
-                    }
+                    conn.usePgReplicationStream { stream -> consumeStream(stream, backoff) }
+                } finally {
+                    streamConnection.compareAndSet(conn, null)
+                    runCatching { conn.close() }
                 }
+            } catch (e: CancellationException) {
+                throw e
             } catch (@Suppress("TooGenericExceptionCaught") e: Exception) {
                 if (e is PSQLException &&
                     e.sqlState == SQL_STATE_QUERY_CANCELED &&
@@ -269,6 +278,65 @@ public class PgenWalEventListener private constructor(
                 backoff.incrementAndWait()
             }
         }
+    }
+
+    /**
+     * Consumes the replication stream until the coroutine is canceled.
+     *
+     * Changes and transactional messages are only acknowledged with the LSN of their
+     * transaction's commit record. PostgreSQL always redelivers a whole transaction whose
+     * commit LSN is beyond the confirmed flush LSN, so acknowledging an LSN within a
+     * transaction would lead to redelivery of the entire transaction anyway.
+     *
+     * Cancellation is checked between messages (the blocking read is woken up by [stop])
+     * and while suspended in [MutableSharedFlow.emit]. Hence, a commit is only acknowledged
+     * after all events of its transaction have been emitted.
+     */
+    private suspend fun CoroutineScope.consumeStream(stream: PGReplicationStream, backoff: Backoff) {
+        var inTransaction = false
+        while (isActive) {
+            val buffer = stream.read() ?: error("replication stream is closed")
+            val lsn = stream.lastReceiveLSN
+            when (val message = parseMessage(buffer)) {
+                WalEventIntern.Begin -> inTransaction = true
+                WalEventIntern.Commit -> inTransaction = false
+                is WalEventIntern.Change, is WalEventIntern.Message -> mapEvent(message)?.let {
+                    mutableSharedFlow.emit(it)
+                }
+
+                null -> Unit
+            }
+            if (!inTransaction) {
+                stream.setAppliedLSN(lsn)
+                stream.setFlushedLSN(lsn)
+                stream.forceUpdateStatus()
+            }
+            backoff.reset()
+        }
+    }
+
+    private fun parseMessage(buffer: ByteBuffer): WalEventIntern? = try {
+        val bytes = ByteArray(buffer.remaining()).also { bytes -> buffer.get(bytes) }
+        WalEventIntern.parse(bytes)
+    } catch (@Suppress("TooGenericExceptionCaught") e: Exception) {
+        log.error("error during WAL-Event parsing: ${e.message}", e)
+        null
+    }
+
+    private fun mapEvent(message: WalEventIntern): WalEvent<*>? = try {
+        when (message) {
+            is WalEventIntern.Change -> {
+                val mapper = tableInfo[message.tableNameWithSchema]?.mapper
+                    ?: error("no mapper for table ${message.tableNameWithSchema} found")
+                message.toEvent(mapper)
+            }
+
+            is WalEventIntern.Message -> message.takeIf { it.prefix != WAKE_UP_MESSAGE_PREFIX }?.toEvent()
+            is WalEventIntern.Transaction -> null
+        }
+    } catch (@Suppress("TooGenericExceptionCaught") e: Exception) {
+        log.error("error during WAL-Event mapping: ${e.message}", e)
+        null
     }
 
     /**
@@ -419,6 +487,9 @@ public class PgenWalEventListener private constructor(
         private const val SQL_STATE_DUPLICATE_OBJECT = "42710"
         private const val SQL_STATE_UNDEFINED_OBJECT = "42704"
         private const val SQL_STATE_QUERY_CANCELED = "57014"
+        private const val WAKE_UP_MESSAGE_PREFIX = "de.quati.pgen.wal.wakeup"
+        private const val PG_VERSION_EMIT_MESSAGE_FLUSH = 17
+        private val STOP_TIMEOUT = 30.seconds
 
         private fun Connection.deleteSlot(name: String) =
             prepareStatement("select pg_drop_replication_slot(?)").use { stmt ->
