@@ -1,7 +1,7 @@
 package foo.testtables
 
 import de.quati.pgen.jdbc.util.transaction
-import de.quati.pgen.tests.jdbc.basic.generated.db.foo.public1.AutoIncrementTestTable
+import de.quati.pgen.tests.jdbc.basic.generated.db.foo.public.AutoIncrementTestTable
 import io.kotest.matchers.shouldBe
 import org.jetbrains.exposed.v1.jdbc.batchInsert
 import kotlin.test.BeforeTest

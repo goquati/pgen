@@ -1,7 +1,7 @@
 package foo.testtables
 
 import de.quati.pgen.r2dbc.util.suspendTransaction
-import de.quati.pgen.tests.r2dbc.basic.generated.db.foo.public1.AutoIncrementTestTable
+import de.quati.pgen.tests.r2dbc.basic.generated.db.foo.public.AutoIncrementTestTable
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.exposed.v1.r2dbc.batchInsert

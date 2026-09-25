@@ -1,10 +1,10 @@
 import de.quati.pgen.shared.TableNameWithSchema
 import de.quati.pgen.shared.WalEvent
-import de.quati.pgen.tests.jdbc.wal.generated.db.base.public1.CitextTestTable
-import de.quati.pgen.tests.jdbc.wal.generated.db.base.public1.DateTimeTestTable
-import de.quati.pgen.tests.jdbc.wal.generated.db.base.public1.DomainTestTable
-import de.quati.pgen.tests.jdbc.wal.generated.db.base.public1.EnumArrayTestTable
-import de.quati.pgen.tests.jdbc.wal.generated.db.base.public1.EnumTestTable
+import de.quati.pgen.tests.jdbc.wal.generated.db.base.public.CitextTestTable
+import de.quati.pgen.tests.jdbc.wal.generated.db.base.public.DateTimeTestTable
+import de.quati.pgen.tests.jdbc.wal.generated.db.base.public.DomainTestTable
+import de.quati.pgen.tests.jdbc.wal.generated.db.base.public.EnumArrayTestTable
+import de.quati.pgen.tests.jdbc.wal.generated.db.base.public.EnumTestTable
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.runBlocking

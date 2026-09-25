@@ -1,9 +1,9 @@
 package foo.testtables
 
 import de.quati.pgen.jdbc.util.transaction
-import de.quati.pgen.tests.jdbc.basic.generated.db.foo.public1.DomainTestTable
-import de.quati.pgen.tests.jdbc.basic.generated.db.foo.public1.Email
-import de.quati.pgen.tests.jdbc.basic.generated.db.foo.public1.OrderId
+import de.quati.pgen.tests.jdbc.basic.generated.db.foo.public.DomainTestTable
+import de.quati.pgen.tests.jdbc.basic.generated.db.foo.public.Email
+import de.quati.pgen.tests.jdbc.basic.generated.db.foo.public.OrderId
 import de.quati.pgen.tests.jdbc.basic.shared.UserId
 import io.kotest.matchers.shouldBe
 import org.jetbrains.exposed.v1.core.eq

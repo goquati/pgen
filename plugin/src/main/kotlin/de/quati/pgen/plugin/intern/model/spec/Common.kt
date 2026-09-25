@@ -1,8 +1,8 @@
 package de.quati.pgen.plugin.intern.model.spec
 
 import com.squareup.kotlinpoet.ClassName
+import de.quati.kotlin.util.poet.KotlinKeywords
 import de.quati.pgen.plugin.intern.codegen.CodeGenContext
-import de.quati.kotlin.util.poet.kotlinKeywords
 import de.quati.kotlin.util.poet.makeDifferent
 import de.quati.kotlin.util.poet.toCamelCase
 import de.quati.kotlin.util.poet.toSnakeCase
@@ -14,7 +14,7 @@ import kotlinx.serialization.Serializable
 internal value class DbName(val name: String) : Comparable<DbName> {
     override fun toString() = name
     override fun compareTo(other: DbName) = name.compareTo(other.name)
-    val prettyName get() = name.toSnakeCase(uppercase = false).makeDifferent(kotlinKeywords, "")
+    val prettyName get() = name.toSnakeCase(uppercase = false).makeDifferent(KotlinKeywords.hard, "")
 
 }
 
@@ -23,7 +23,7 @@ internal value class DbName(val name: String) : Comparable<DbName> {
 internal value class SchemaName(val name: String) : Comparable<SchemaName> {
     override fun toString() = name
     override fun compareTo(other: SchemaName) = name.compareTo(other.name)
-    val prettyName get() = name.toSnakeCase(uppercase = false).makeDifferent(kotlinKeywords, "")
+    val prettyName get() = name.toSnakeCase(uppercase = false).makeDifferent(KotlinKeywords.hard, "")
 
     context(c: CodeGenContext)
     val packageName get() = c.poet.packageDb.plus(prettyName)

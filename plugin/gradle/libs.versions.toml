@@ -1,22 +1,23 @@
 [versions]
-kotlin = "2.2.0"
-kotlinx-serialization = "1.9.0"
-flyway = "11.6.0"
-goquati = "2.1.0"
-jackson = "3.0.4"
+kotlin = "2.4.20"
+kotlinx-serialization = "1.11.0"
+flyway = "13.7.0"
+quati-util = "2.6.0"
+jdbc-postgresql = "42.7.13"
+poet = "2.4.0"
+gradle-plugin-publish = "2.2.1"
 
 [libraries]
-
-jdbc-postgresql = { module = "org.postgresql:postgresql", version = "42.7.7" }
+jdbc-postgresql = { module = "org.postgresql:postgresql", version.ref = "jdbc-postgresql" }
 flyway-core = { module = "org.flywaydb:flyway-core", version.ref = "flyway" }
 flyway-postgresql = { module = "org.flywaydb:flyway-database-postgresql", version.ref = "flyway" }
 
-goquati-base = { module = "de.quati:kotlin-util", version.ref = "goquati" }
-goquati-poet = { module = "de.quati:kotlin-util-poet", version.ref = "goquati" }
+goquati-base = { module = "de.quati:kotlin-util", version.ref = "quati-util" }
+goquati-poet = { module = "de.quati:kotlin-util-poet", version.ref = "quati-util" }
 
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json-jvm", version.ref = "kotlinx-serialization" }
 
-poet = { module = "com.squareup:kotlinpoet", version.ref = "kotlin" }
+poet = { module = "com.squareup:kotlinpoet", version.ref = "poet" }
 
 [bundles]
 flyway = [
@@ -28,4 +29,4 @@ flyway = [
 [plugins]
 kotlinJvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
-gradlePluginPublish = { id = "com.gradle.plugin-publish", version = "1.2.1" }
+gradlePluginPublish = { id = "com.gradle.plugin-publish", version.ref = "gradle-plugin-publish" }

@@ -1,14 +1,14 @@
 package foo.testtables
 
 import de.quati.pgen.r2dbc.util.suspendTransaction
-import de.quati.pgen.tests.r2dbc.basic.generated.db.foo.public1.Address
-import de.quati.pgen.tests.r2dbc.basic.generated.db.foo.public1.CompositeArrayTestTable
-import de.quati.pgen.tests.r2dbc.basic.generated.db.foo.public1.Email
-import de.quati.pgen.tests.r2dbc.basic.generated.db.foo.public1.EnumArrayTestTable
-import de.quati.pgen.tests.r2dbc.basic.generated.db.foo.public1.OrderStatus
-import de.quati.pgen.tests.r2dbc.basic.generated.db.foo.public1.TextDomainArrayTestTable
-import de.quati.pgen.tests.r2dbc.basic.generated.db.foo.public1.UuidArrayTestTable
-import de.quati.pgen.tests.r2dbc.basic.generated.db.foo.public1.UuidDomainArrayTestTable
+import de.quati.pgen.tests.r2dbc.basic.generated.db.foo.public.Address
+import de.quati.pgen.tests.r2dbc.basic.generated.db.foo.public.CompositeArrayTestTable
+import de.quati.pgen.tests.r2dbc.basic.generated.db.foo.public.Email
+import de.quati.pgen.tests.r2dbc.basic.generated.db.foo.public.EnumArrayTestTable
+import de.quati.pgen.tests.r2dbc.basic.generated.db.foo.public.OrderStatus
+import de.quati.pgen.tests.r2dbc.basic.generated.db.foo.public.TextDomainArrayTestTable
+import de.quati.pgen.tests.r2dbc.basic.generated.db.foo.public.UuidArrayTestTable
+import de.quati.pgen.tests.r2dbc.basic.generated.db.foo.public.UuidDomainArrayTestTable
 import de.quati.pgen.tests.r2dbc.basic.shared.UserId
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.flow.single

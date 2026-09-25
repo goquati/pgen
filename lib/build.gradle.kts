@@ -1,4 +1,3 @@
-import com.vanniktech.maven.publish.SonatypeHost
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 
@@ -98,10 +97,7 @@ subprojects {
                 developerConnection = "scm:git:git@github.com:${githubUser}/${githubProject}.git"
             }
         }
-        publishToMavenCentral(
-            SonatypeHost.CENTRAL_PORTAL,
-            automaticRelease = true,
-        )
+        publishToMavenCentral(automaticRelease = true)
         signAllPublications()
     }
 }

@@ -1,7 +1,7 @@
 package foo.testtables
 
 import de.quati.pgen.jdbc.util.transaction
-import de.quati.pgen.tests.jdbc.basic.generated.db.foo.public1.DurationTestTable
+import de.quati.pgen.tests.jdbc.basic.generated.db.foo.public.DurationTestTable
 import io.kotest.matchers.shouldBe
 import kotlinx.datetime.DateTimePeriod
 import org.jetbrains.exposed.v1.core.eq
