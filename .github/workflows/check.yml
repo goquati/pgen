@@ -29,6 +29,9 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
       # ---- r2dbc-basic ----
       - name: Check r2dbc-basic
         id: check_r2dbc_basic
