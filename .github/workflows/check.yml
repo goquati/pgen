@@ -1,12 +1,6 @@
 name: Check
 
 on:
-  push:
-    branches: ['main']
-    paths-ignore:
-      - 'example/**'
-      - 'CHANGELOG.md'
-      - 'README.md'
   pull_request:
     paths-ignore:
       - 'example/**'
@@ -28,6 +22,9 @@ jobs:
         with:
           java-version: '21'
           distribution: 'temurin'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
 
       # ---- r2dbc-basic ----
       - name: Check r2dbc-basic

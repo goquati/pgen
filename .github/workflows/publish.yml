@@ -1,29 +1,44 @@
-name: Bump version, Tag, Publish & Release
+name: Publish
+# Triggered by publishing a GitHub release. The release's tag name (X.Y.Z) is the version.
 on:
-  workflow_dispatch:
-    inputs:
-      version:
-        description: "Version / tag name (e.g. 1.2.3 or v1.2.3)"
-        required: true
-        type: string
-      dry_run:
-        description: "Dry-run: don't actually publish (Gradle --dry-run)"
-        required: false
-        default: "false"
-        type: choice
-        options: ["false", "true"]
+  release:
+    types: [published]
 
+concurrency:
+  group: publish
+  cancel-in-progress: false
+
+env:
+  VERSION: ${{ github.event.release.tag_name }}
+
+# Each publish target runs in its own job, so a failed run can be resumed via "Re-run failed jobs"
+# without publishing the same version twice.
 jobs:
   validate:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Validate version format
         shell: bash
         run: |
           set -euo pipefail
-          VERSION="${{ inputs.version }}"
-          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "Invalid version '$VERSION'. Expected format: X.Y.Z (numeric, e.g. 1.0.0, 1.42.333)"
+          if [[ ! "$VERSION" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
+            echo "Invalid tag '$VERSION'. Expected format: X.Y.Z (numeric without leading zeros, e.g. 1.0.0)"
+            exit 1
+          fi
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Ensure tag is on main
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/main; then
+            echo "Tag '$VERSION' ($GITHUB_SHA) is not on main."
             exit 1
           fi
 
@@ -33,22 +48,72 @@ jobs:
     permissions:
       contents: read
 
-  bump:
+  publish-lib:
     needs: check
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Publish library to Maven Central
+        env:
+          GIT_TAG_VERSION: ${{ env.VERSION }}
+          ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.MAVEN_USERNAME }}
+          ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.MAVEN_TOKEN }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyId: ${{ secrets.MAVEN_SIGNING_KEY_ID }}
+          ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.MAVEN_SIGNING_KEY }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.MAVEN_SIGNING_PASSWORD }}
+        run: cd ./lib && ./gradlew publish
+
+  publish-plugin:
+    needs: publish-lib
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Publish gradle plugin to Gradle Plugin Portal
+        env:
+          GIT_TAG_VERSION: ${{ env.VERSION }}
+          GRADLE_PUBLISH_KEY: ${{ secrets.GRADLE_PUBLISH_KEY }}
+          GRADLE_PUBLISH_SECRET: ${{ secrets.GRADLE_PUBLISH_SECRET }}
+        run: cd ./plugin && ./gradlew publishPlugins
+
+  # Post-release: point README and examples to the released version.
+  update-docs:
+    needs: publish-plugin
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          ref: main
 
       - name: Update version references
         shell: bash
         run: |
           set -euo pipefail
-          VERSION="${{ inputs.version }}"
 
           sed -i 's/id("de\.quati\.pgen") version "[^"]*"/id("de.quati.pgen") version "'"$VERSION"'"/' README.md
           sed -i 's/implementation("de\.quati\.pgen:r2dbc:[^"]*")/implementation("de.quati.pgen:r2dbc:'"$VERSION"'")/' README.md
@@ -66,101 +131,18 @@ jobs:
           sed -i 's/implementation("de\.quati\.pgen:r2dbc:[^"]*")/implementation("de.quati.pgen:r2dbc:'"$VERSION"'")/' example/realtime/build.gradle.kts
           sed -i 's/implementation("de\.quati\.pgen:wal:[^"]*")/implementation("de.quati.pgen:wal:'"$VERSION"'")/' example/realtime/build.gradle.kts
 
-      - name: Commit changes
+          git diff
+
+      - name: Commit and push
         shell: bash
         run: |
           set -euo pipefail
-          VERSION="${{ inputs.version }}"
-
-          git config user.name "${{ github.actor }}"
-          git config user.email "${{ github.actor }}@users.noreply.github.com"
-
           if git diff --quiet; then
             echo "No changes to commit."
             exit 0
           fi
-
-          git add -A
-          git commit -m "bot: update version"
-          git push
-
-      - name: Create and push tag
-        shell: bash
-        run: |
-          set -euo pipefail
-          TAG="${{ inputs.version }}"
-
-          if git rev-parse -q --verify "refs/tags/${TAG}" >/dev/null; then
-            echo "Tag '${TAG}' already exists."
-            exit 1
-          fi
-
-          git tag -a "$TAG" -m "$TAG"
-          git push origin "$TAG"
-
-  publish:
-    needs: bump
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    steps:
-      - name: Checkout tagged commit
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          ref: ${{ inputs.version }}
-
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
-        with:
-          java-version: '21'
-          distribution: 'temurin'
-
-      - name: Publish gradle plugin
-        env:
-          GIT_TAG_VERSION: ${{ inputs.version }}
-          GRADLE_PUBLISH_KEY: ${{ secrets.GRADLE_PUBLISH_KEY }}
-          GRADLE_PUBLISH_SECRET: ${{ secrets.GRADLE_PUBLISH_SECRET }}
-          DRY_RUN: ${{ inputs.dry_run }}
-        run: |
-          cd ./plugin
-          if [ "$DRY_RUN" = "false" ]; then
-            ./gradlew publishPlugins
-          else
-            ./gradlew publishPlugins --dry-run
-          fi
-
-      - name: Publish library
-        env:
-          GIT_TAG_VERSION: ${{ inputs.version }}
-          ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.MAVEN_USERNAME }}
-          ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.MAVEN_TOKEN }}
-          ORG_GRADLE_PROJECT_signingInMemoryKeyId: ${{ secrets.MAVEN_SIGNING_KEY_ID }}
-          ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.MAVEN_SIGNING_KEY }}
-          ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.MAVEN_SIGNING_PASSWORD }}
-          DRY_RUN: ${{ inputs.dry_run }}
-        run: |
-          cd ./lib
-          if [ "$DRY_RUN" = "false" ]; then
-            ./gradlew publish
-          else
-            ./gradlew publishToMavenLocal
-          fi
-
-  release:
-    needs: publish
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - name: Create GitHub Release
-        if: inputs.dry_run == 'false'
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          tag_name: ${{ inputs.version }}
-          release_name: ${{ inputs.version }}
-          body: |
-            Release ${{ inputs.version }}
-          prerelease: false
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -am "bot: update version to $VERSION"
+          git pull --rebase origin main
+          git push origin HEAD:main
