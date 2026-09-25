@@ -41,8 +41,8 @@ subprojects {
 
     dependencies {
         testImplementation(kotlin("test"))
-        testImplementation("io.kotest:kotest-assertions-core:6.0.7")
-        testRuntimeOnly("org.slf4j:slf4j-simple:2.0.17")
+        testImplementation("io.kotest:kotest-assertions-core:6.2.5")
+        testRuntimeOnly("org.slf4j:slf4j-simple:2.0.19")
     }
 
     tasks.test {
