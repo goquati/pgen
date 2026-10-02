@@ -1,7 +1,7 @@
 [versions]
 kotlin = "2.4.20"
 kotlinx-serialization = "1.11.0"
-flyway = "13.7.0"
+flyway = "13.8.0"
 quati-util = "2.6.0"
 jdbc-postgresql = "42.7.13"
 poet = "2.4.0"
