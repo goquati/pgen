@@ -53,6 +53,6 @@ gradlePlugin {
            |time and eliminate boilerplate by keeping your Exposed models synchronized with your database schema 
            |effortlessly.""".trimMargin().trim()
         tags =
-            listOf("Kotlin Exposed", "PostgreSQL", "Exposed", "Kotlin DSL", "Database Integration", "Code Generation")
+            listOf("Kotlin-Exposed", "PostgreSQL", "Exposed", "Kotlin-DSL", "Database-Integration", "Code-Generation")
     }
 }
