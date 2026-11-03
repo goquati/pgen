@@ -7,6 +7,7 @@ import de.quati.pgen.plugin.intern.model.config.Config
 import de.quati.pgen.plugin.intern.model.spec.PgenSpec
 import de.quati.pgen.plugin.intern.model.spec.Column
 import de.quati.pgen.plugin.intern.model.spec.DbName
+import de.quati.pgen.plugin.intern.model.spec.KotlinClassName
 import de.quati.pgen.plugin.intern.model.spec.KotlinValueClass
 import de.quati.pgen.plugin.intern.model.spec.SqlColumnName
 import de.quati.pgen.plugin.intern.model.spec.Table
@@ -31,6 +32,8 @@ internal class CodeGenContext(
         refMappings + customTypeMappings
     }
 
+    private val kotlinString = KotlinClassName(packageName = "kotlin", className = "String")
+
     fun resolve(type: Column.Type): Column.Type.Actual = when (type) {
         is Column.Type.Reference -> getRefTypeOrThrow(type)
         is Column.Type.Actual -> type
@@ -42,6 +45,10 @@ internal class CodeGenContext(
                 is Column.Type.Reference -> getRefTypeOrThrow(type)
                 is Column.Type.Actual -> type
             }
+        } ?: typeMappings[ref.name]?.let { valueClass ->
+            val base = Column.Type.TextBacked(ref.name)
+            if (valueClass.name == kotlinString) base
+            else Column.Type.Overwrite(valueClass = valueClass, base = base)
         } ?: error("Reference not found: $ref")
     }
 

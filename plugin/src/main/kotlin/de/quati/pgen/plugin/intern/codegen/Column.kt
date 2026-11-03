@@ -168,6 +168,13 @@ internal fun initializerBlock(column: Column): CodeBlock {
             columnName,
             type.columnType.poet
         )
+
+        is Column.Type.TextBacked -> CodeBlock.of(
+            "registerColumn(name = %S, type = %T(sqlType = %S))",
+            columnName,
+            Poet.Pgen.Driver.textBackedColumnType,
+            type.sqlType,
+        )
     }
 }
 

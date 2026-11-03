@@ -236,6 +236,7 @@ internal object Poet {
             val int8MultiRange = packageNameDriverColumnType.className("int8MultiRange")
             val citextColumnType = packageNameDriverColumnType.className("CitextColumnType")
             val citext = packageNameDriverColumnType.className("citext")
+            val textBackedColumnType = packageNameDriverColumnType.className("TextBackedColumnType")
             val intervalColumnType = packageNameDriverColumnType.className("IntervalColumnType")
             val interval = packageNameDriverColumnType.className("interval")
             val pgenEnum = packageNameDriverColumnType.className("pgenEnum")

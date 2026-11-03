@@ -36,12 +36,16 @@ internal fun generateDbSpec(config: Config.Db): PgenSpec.Database {
         val additionalDomainTypes = with(dbService) {
             val actualNames = allColumnTypes.mapNotNull { it.toSqlObjectNameOrNull() }.toSet()
             val refNames = allColumnTypes.filterIsInstance<Column.Type.Reference>().map { it.name }.toSet()
-            val missingNames = refNames - actualNames
+            val mappedNames = config.typeMappings.map { it.sqlType }.toSet()
+            val missingNames = refNames - actualNames - mappedNames
             val filter = SqlObjectFilter.Objects(missingNames)
             val foundObjects = dbService.getDomainTypes(filter)
             val notFoundNames = missingNames - foundObjects.map { it.ref }.toSet()
             if (notFoundNames.isNotEmpty())
-                error("domain types $notFoundNames are not found")
+                error(
+                    "unsupported column types $notFoundNames, map them via typeMappings, " +
+                        "e.g. add(\"${notFoundNames.first()}\", clazz = \"kotlin.String\")"
+                )
             foundObjects
         }
 

@@ -5,6 +5,7 @@ import de.quati.pgen.plugin.intern.codegen.CodeGenContext
 context(c: CodeGenContext)
 internal fun Column.Type.isSupportedForWalEvents(): Boolean = when (val type = c.resolve(this)) {
     is Column.Type.CustomType,
+    is Column.Type.TextBacked,
     is Column.Type.Overwrite,
     is Column.Type.NonPrimitive.Array,
     is Column.Type.NonPrimitive.Composite,

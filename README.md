@@ -130,6 +130,9 @@ Key configuration blocks inside `pgen { … }`:
     - `flyway { migrationDirectory("…") }` (optional)
     - `tableFilter { addSchemas("public"), include/exclude tables }`
     - `typeMappings { add("schema.domain", clazz = "com.example.Email") }`
+        - also maps postgres types pgen does not support natively (e.g. `pg_catalog.name`); their values are read
+          and written via the text representation: `add("pg_catalog.name", clazz = "kotlin.String")`, or a value
+          class wrapping a `String`
     - `enumMappings { add(sqlType = "schema.enum", clazz = "com.example.Role") }`
     - `typeOverwrites { add("schema.table.column", clazz = "…", parseFunction = "…") }`
 - Top-level outputs

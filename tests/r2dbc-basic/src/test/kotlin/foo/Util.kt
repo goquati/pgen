@@ -15,6 +15,7 @@ import de.quati.pgen.tests.r2dbc.basic.generated.db.foo.public.Orders
 import de.quati.pgen.tests.r2dbc.basic.generated.db.foo.public.ProductType
 import de.quati.pgen.tests.r2dbc.basic.generated.db.foo.public.Products
 import de.quati.pgen.tests.r2dbc.basic.generated.db.foo.public.Users
+import de.quati.pgen.tests.r2dbc.basic.shared.PgName
 import de.quati.pgen.tests.r2dbc.basic.shared.UserId
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -44,6 +45,7 @@ internal suspend fun createUserFixture(
                 id = Option.Undefined,
                 username = NonEmptyTextDomain(username),
                 email = "$username@example.com",
+                name = PgName(username),
                 displayName = null,
                 roles = Option.Some(listOf("user")),
                 preferences = Option.Some(JsonObject(mapOf("theme" to JsonPrimitive("dark")))),

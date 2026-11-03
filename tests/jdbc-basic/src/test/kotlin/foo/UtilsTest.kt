@@ -87,6 +87,7 @@ class UtilsTest {
             id = Option.Some(userId),
             username = NonEmptyTextDomain("admin"),
             email = "admin@example.com",
+            name = null,
             displayName = null,
             roles = Option.Some(listOf("user")),
             preferences = Option.Some(JsonObject(mapOf("theme" to JsonPrimitive("dark")))),

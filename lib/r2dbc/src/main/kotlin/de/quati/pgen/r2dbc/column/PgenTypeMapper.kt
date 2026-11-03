@@ -25,6 +25,7 @@ public class PgenTypeMapper : TypeMapper {
     override val dialects: List<KClass<PostgreSQLDialect>> = listOf(PostgreSQLDialect::class)
     override val columnTypes: List<KClass<out IColumnType<*>>> = listOf(
         CitextColumnType::class,
+        TextBackedColumnType::class,
         Int4RangeColumnType::class,
         Int8RangeColumnType::class,
         Int4MultiRangeColumnType::class,
@@ -72,6 +73,7 @@ public class PgenTypeMapper : TypeMapper {
         return if (value == null) false
         else when (columnType) {
             is CitextColumnType -> bind(PostgresqlObjectId.UNSPECIFIED, value)
+            is TextBackedColumnType -> bind(PostgresqlObjectId.UNSPECIFIED, value)
             is IntervalColumnType -> bind(PostgresqlObjectId.INTERVAL, value)
             is CompositeColumnType<*> -> bind(PostgresqlObjectId.UNSPECIFIED, value)
             is PgenColumnType -> bind(columnType.typeInfo.toPostgresType(), value)
