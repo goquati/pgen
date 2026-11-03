@@ -1,5 +1,6 @@
 package foo
 
+import de.quati.pgen.tests.jdbc.basic.shared.UserId
 import de.quati.kotlin.util.Option
 import de.quati.kotlin.util.Result
 import de.quati.kotlin.util.getOrThrow
@@ -52,6 +53,7 @@ class UsersTest {
         entity.id shouldBe userId
         entity.username shouldBe NonEmptyTextDomain(username)
         entity.email shouldBe "$username@example.com"
+        entity.name shouldBe username
         entity.displayName.shouldBeNull()
         entity.roles shouldContainExactly listOf("user")
         entity.preferences shouldBe JsonObject(mapOf("theme" to JsonPrimitive("dark")))
@@ -68,6 +70,7 @@ class UsersTest {
                     id = Option.Undefined,
                     username = NonEmptyTextDomain(username),
                     email = "$username@example.com",
+                    name = null,
                     displayName = "Display $username",
                     roles = Option.Undefined,
                     preferences = Option.Undefined,
@@ -102,6 +105,7 @@ class UsersTest {
                     id = Option.Undefined,
                     username = Option.Undefined,
                     email = Option.Some("updated@example.com"),
+                    name = Option.Undefined,
                     displayName = Option.Some("Updated User"),
                     roles = Option.Some(listOf("admin", "user")),
                     preferences = Option.Some(JsonObject(mapOf("theme" to JsonPrimitive("light")))),
@@ -160,5 +164,34 @@ class UsersTest {
         }.getFailedConstraint() shouldBe Users.Constraints.usersRolesNotEmpty
 
         count() shouldBe 0
+    }
+
+    @Test
+    fun `pg_catalog name column mapped via typeMappings`() {
+        val special = "Grüße 'quoted' \"x\" ; --"
+        val id1 = createUserFixture("name-1") { it[Users.name] = special }.getOrThrow()
+        val id2 = createUserFixture("name-2") { it[Users.name] = null }.getOrThrow()
+        val id3 = createUserFixture("name-3") { it[Users.name] = "a".repeat(70) }.getOrThrow()
+
+        fun readName(id: UserId) = db.transaction(readOnly = true) {
+            Users.selectAll().where { Users.id eq id }.single()[Users.name]
+        }
+        readName(id1) shouldBe special
+        readName(id2).shouldBeNull()
+        readName(id3) shouldBe "a".repeat(63) // postgres truncates 'name' to 63 bytes
+
+        db.transaction(readOnly = true) {
+            Users.selectAll().where { Users.name eq special }.map { it[Users.id] }
+        } shouldContainExactly listOf(id1)
+
+        db.transaction { Users.update({ Users.id eq id2 }) { it[Users.name] = "pg_class" } }
+        readName(id2) shouldBe "pg_class"
+
+        db.transaction(readOnly = true) {
+            exec("select name::text, pg_typeof(name)::text from public.users where id = '${id2.value}'") { rs ->
+                rs.next()
+                rs.getString(1) to rs.getString(2)
+            }
+        } shouldBe ("pg_class" to "name")
     }
 }

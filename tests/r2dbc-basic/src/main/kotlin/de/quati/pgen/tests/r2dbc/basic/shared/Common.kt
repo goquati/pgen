@@ -7,3 +7,6 @@ import kotlin.uuid.Uuid
 value class UserId(val value: Uuid) {
     constructor(value: String) : this(Uuid.parse(value))
 }
+
+@JvmInline
+value class PgName(val value: String)

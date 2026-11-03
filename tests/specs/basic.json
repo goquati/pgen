@@ -1159,6 +1159,11 @@
               "nullable": true
             },
             {
+              "name": "name",
+              "type": "pg_catalog.name",
+              "nullable": true
+            },
+            {
               "name": "display_name",
               "type": "text",
               "nullable": true

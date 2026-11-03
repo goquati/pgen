@@ -44,6 +44,7 @@ internal sealed interface TableFieldTypeOasData {
             is Column.Type.NonPrimitive.Composite -> Type(type = "string")
             is Column.Type.NonPrimitive.PgVector -> Type(type = "string")
             is Column.Type.CustomType -> Type(type = "string")
+            is Column.Type.TextBacked -> Type(type = "string")
             Column.Type.Primitive.BOOL -> Type(type = "boolean")
             Column.Type.Primitive.BINARY -> Type(type = "string", format = "byte")
             Column.Type.Primitive.DATE -> Type(type = "string", format = "date")

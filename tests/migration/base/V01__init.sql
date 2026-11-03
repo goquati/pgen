@@ -36,6 +36,7 @@ create table public.users
     id            public.user_id primary key            default gen_random_uuid(),
     username      public.non_empty_text_domain not null,
     email         text,
+    name          pg_catalog.name,
     display_name  text,
     roles         text[]                       not null default array ['user'],
     preferences   jsonb                        not null default '{}'::jsonb,

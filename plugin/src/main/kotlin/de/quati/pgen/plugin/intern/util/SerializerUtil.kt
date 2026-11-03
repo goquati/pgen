@@ -33,6 +33,7 @@ internal object ColumnTypeSerializer : KSerializer<Column.Type> {
             is Column.Type.Primitive -> encoder.encodeSerializableValue(SqlType.serializer(), value.sqlType)
             is Column.Type.Reference -> encoder.encodeSerializableValue(SqlType.serializer(), value.sqlType)
             is Column.Type.CustomType -> serialize(encoder, value.toRef())
+            is Column.Type.TextBacked -> serialize(encoder, value.toRef())
             is Column.Type.Overwrite -> throw SerializationException("Cannot serialize 'Overwrite' type")
             is Column.Type.NonPrimitive ->
                 encoder.encodeSerializableValue(Column.Type.NonPrimitive.serializer(), value)

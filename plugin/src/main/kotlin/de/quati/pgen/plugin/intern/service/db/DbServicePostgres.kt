@@ -130,7 +130,7 @@ internal class DbServicePostgres(
                 else
                     error("invalid numeric type, precision: $numericPrecision, scale: $numericScale")
 
-            else -> Type.Primitive.parse(columnTypeName)
+            else -> Type.Primitive.parseOrNull(columnTypeName) ?: Type.Reference(sqlTypeName)
         }
     }
 

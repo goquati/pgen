@@ -44,6 +44,7 @@ internal fun createUserFixture(
                 id = Option.Undefined,
                 username = NonEmptyTextDomain(username),
                 email = "$username@example.com",
+                name = username,
                 displayName = null,
                 roles = Option.Some(listOf("user")),
                 preferences = Option.Some(JsonObject(mapOf("theme" to JsonPrimitive("dark")))),

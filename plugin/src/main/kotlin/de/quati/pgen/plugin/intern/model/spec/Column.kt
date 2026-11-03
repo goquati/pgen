@@ -76,6 +76,11 @@ internal data class Column(
             fun toRef() = Reference(name)
         }
 
+        data class TextBacked(val name: SqlObjectName) : Actual {
+            override val sqlType get() = name.toSqlType()
+            fun toRef() = Reference(name)
+        }
+
         sealed interface DomainType : Actual {
             context(c: CodeGenContext)
             fun getDomainTypename(): TypeName
@@ -198,11 +203,13 @@ internal data class Column(
             override val sqlType get() = SqlType(sqlTypeName)
 
             companion object {
-                fun parse(name: String): Primitive {
+                fun parseOrNull(name: String): Primitive? {
                     val type = SqlType.parse(name)
                     return Primitive.entries.firstOrNull { it.sqlType == type }
-                        ?: error("undefined primitive type name '$name'")
                 }
+
+                fun parse(name: String): Primitive = parseOrNull(name)
+                    ?: error("undefined primitive type name '$name'")
             }
         }
     }

@@ -48,6 +48,7 @@ pgen {
         }
         typeMappings {
             add("public.user_id", clazz = "$sharedModule.UserId")
+            add("pg_catalog.name", clazz = "$sharedModule.PgName")
         }
         enumMappings {
             add(sqlType = "public.role", clazz = "$sharedModule.RoleDto")

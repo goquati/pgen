@@ -148,6 +148,7 @@ private fun CodeBlock.Builder.addPgFieldConverter(
     Column.Type.Primitive.TEXT -> add("%T.String", Poet.Pgen.Core.Column.pgStructFieldConverter)
     Column.Type.Primitive.UUID -> add("%T.Uuid", Poet.Pgen.Core.Column.pgStructFieldConverter)
     Column.Type.Primitive.VARCHAR -> add("%T.String", Poet.Pgen.Core.Column.pgStructFieldConverter)
+    is Column.Type.TextBacked -> add("%T.String", Poet.Pgen.Core.Column.pgStructFieldConverter)
     Column.Type.Primitive.UNCONSTRAINED_NUMERIC -> add("%T.BigDecimal", Poet.Pgen.Core.Column.pgStructFieldConverter)
     Column.Type.Primitive.BINARY -> add("%T.ByteArray", Poet.Pgen.Core.Column.pgStructFieldConverter)
 }

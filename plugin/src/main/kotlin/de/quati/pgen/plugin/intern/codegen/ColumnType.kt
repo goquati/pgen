@@ -46,6 +46,7 @@ internal fun Column.Type.getTypeName(innerArrayType: Boolean = true): TypeName =
     Column.Type.Primitive.UNCONSTRAINED_NUMERIC -> BigDecimal::class.asTypeName()
     Column.Type.Primitive.REG_CLASS -> Poet.Pgen.Shared.regClass
     is Column.Type.CustomType -> type.value.poet
+    is Column.Type.TextBacked -> String::class.asTypeName()
 }
 
 private fun codeBlock(format: String, vararg args: Any) = CodeBlock.builder().add(format, *args).build()
@@ -116,6 +117,7 @@ internal fun Column.Type.getExposedColumnType(): CodeBlock = when (val type = c.
 
     Column.Type.Primitive.REG_CLASS -> codeBlock("%T()", Poet.Pgen.Driver.regClassColumnType)
     is Column.Type.CustomType -> codeBlock("%T()", type.columnType.poet)
+    is Column.Type.TextBacked -> codeBlock("%T(sqlType=%S)", Poet.Pgen.Driver.textBackedColumnType, type.sqlType)
 }
 
 internal fun Column.Type.toSqlObjectNameOrNull() = when (this) {
@@ -124,6 +126,7 @@ internal fun Column.Type.toSqlObjectNameOrNull() = when (this) {
     is Column.Type.NonPrimitive.Composite -> ref
     is Column.Type.Reference,
     is Column.Type.CustomType,
+    is Column.Type.TextBacked,
     is Column.Type.Overwrite,
     is Column.Type.NonPrimitive.Array,
     is Column.Type.NonPrimitive.Numeric,
