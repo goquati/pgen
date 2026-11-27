@@ -1,9 +1,9 @@
 [versions]
 kotlin = "2.4.21"
 kotlinx-serialization = "1.13.0"
-flyway = "13.12.2"
+flyway = "13.13.0"
 quati-util = "2.6.1"
-jdbc-postgresql = "42.7.14"
+jdbc-postgresql = "42.7.15"
 poet = "2.4.0"
 gradle-plugin-publish = "2.2.1"
 
